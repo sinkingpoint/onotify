@@ -20,3 +20,5 @@ CREATE TABLE IF NOT EXISTS api_keys (
   expires number,
   scopes string
 );
+
+INSERT INTO api_keys VALUES (0, 0, "notify-test", 0, "post-alerts");

@@ -1,9 +1,10 @@
 import { fromHono } from "chanfana";
 import { Hono } from "hono";
 import { PostAlerts } from "./endpoints/alertPush";
+import { Bindings } from "./types";
 
 // Start a Hono app
-const app = new Hono();
+const app = new Hono<{ Bindings: Bindings }>();
 
 // Setup OpenAPI registry
 const openapi = fromHono(app, {
