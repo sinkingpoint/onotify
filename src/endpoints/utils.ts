@@ -1,4 +1,4 @@
-import { Bindings } from "../types";
+import { Bindings } from "../types/internal";
 
 const API_KEY_PREFIX = "notify-";
 

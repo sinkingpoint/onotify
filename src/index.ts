@@ -1,7 +1,7 @@
 import { fromHono } from "chanfana";
 import { Hono } from "hono";
 import { PostAlerts } from "./endpoints/alertPush";
-import { Bindings } from "./types";
+import { Bindings } from "./types/internal";
 
 // Start a Hono app
 const app = new Hono<{ Bindings: Bindings }>();

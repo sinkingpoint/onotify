@@ -1,7 +1,9 @@
 import { OpenAPIRoute } from "chanfana";
-import { Bindings, Errors, HTTPResponses, PostableAlerts } from "../types";
+import { PostableAlerts } from "../types/api";
 import { Context } from "hono";
 import { checkAPIKey } from "./utils";
+import { Errors, HTTPResponses as HTTPResponse } from "../types/http";
+import { Bindings } from "../types/internal";
 
 const API_SCOPE = "post-alerts";
 
@@ -33,11 +35,11 @@ export class PostAlerts extends OpenAPIRoute {
     const authHeader = c.req.header("Authorization");
     const authResult = await checkAPIKey(c.env, authHeader, API_SCOPE);
     if (authResult.result !== "ok") {
-      c.status(HTTPResponses.Unauthorized);
+      c.status(HTTPResponse.Unauthorized);
       return c.text(authResult.text);
     }
 
-    c.status(HTTPResponses.OK);
+    c.status(HTTPResponse.OK);
     return c.text("ok");
   }
 }
