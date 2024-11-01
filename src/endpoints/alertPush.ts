@@ -3,7 +3,9 @@ import { PostableAlerts } from "../types/api";
 import { Context } from "hono";
 import { checkAPIKey } from "./utils";
 import { Errors, HTTPResponses as HTTPResponse } from "../types/http";
-import { Bindings } from "../types/internal";
+import { Alert, Bindings } from "../types/internal";
+import { fingerprint } from "./utils/fingerprinting";
+import { date } from "zod";
 
 const API_SCOPE = "post-alerts";
 
@@ -38,6 +40,27 @@ export class PostAlerts extends OpenAPIRoute {
       c.status(HTTPResponse.Unauthorized);
       return c.text(authResult.text);
     }
+
+    const alerts: Alert[] = [];
+    for (const alert of data.body) {
+      const startsAt = Date.parse(alert.startsAt) / 1000;
+      const endsAt = alert.endsAt ? Date.parse(alert.endsAt) / 1000 : 0;
+
+      alerts.push({
+        fingerprint: fingerprint(alert.labels),
+        status: alert.status,
+        name: alert.labels["__alertname__"] ?? "",
+        labels: alert.labels,
+        annotations: alert.annotations ?? {},
+        startsAt,
+        endsAt,
+      });
+    }
+
+    const id = c.env.ACCOUNT_CONTROLLER.idFromName(authResult.account_id);
+    const controller = c.env.ACCOUNT_CONTROLLER.get(id);
+
+    c.executionCtx.waitUntil(controller.ingestAlerts(alerts));
 
     c.status(HTTPResponse.OK);
     return c.text("ok");
