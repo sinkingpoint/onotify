@@ -140,11 +140,11 @@ export const HTTPConfig = z
 
 const LabelName = z.string().refine((val) => {
   return val.match(/^[^{}!=~,\\"'`\s]+$/);
-});
+}, "label_name must match `/^[^{}!=~,\\\"'`\\s]+$/`");
 
 export const Matcher = z.string().refine((val) => {
   return val.match(/^[^{}!=~,\\"'`\s]+(=|!=|=~|!~)"[^{}!=~,\\"'`\s]+"$/);
-});
+}, 'matcher must match `/^[^{}!=~,\\"\'`\\s]+(=|!=|=~|!~)"[^{}!=~,\\"\'`\\s]+"$/`');
 
 // TODO: Refine this.
 export const Duration = z.string();
@@ -794,7 +794,9 @@ const InhibitRule = z.object({
   equal: z.array(LabelName).default([]),
 });
 
-const Time = z.string().refine((a) => a.match(/^[0-9]{2}:[0-9]{2}$/));
+const Time = z
+  .string()
+  .refine((a) => a.match(/^[0-9]{2}:[0-9]{2}$/), "time must match `HH:SS`");
 const WeekdayRange = z.string().refine((a) => {
   const days = [
     "monday",
@@ -820,7 +822,7 @@ const WeekdayRange = z.string().refine((a) => {
     days.includes(parts[1]) &&
     days.indexOf(parts[0]) < days.indexOf(parts[1])
   );
-});
+}, "Weekday must be `<day>`, or `<from>:<until>");
 
 const DayOfMonthRange = z.string().refine((a) => {
   if (!a.includes(":")) {
@@ -836,7 +838,7 @@ const DayOfMonthRange = z.string().refine((a) => {
   const p2 = parseInt(parts[1], 10);
 
   return !Number.isNaN(p1) && !Number.isNaN(p2) && p1 < p2;
-});
+}, "day_of_month must be <day>, or <from>:<until>");
 
 const MonthRange = z.string().refine((a) => {
   const months = [
@@ -881,7 +883,7 @@ const MonthRange = z.string().refine((a) => {
   }
 
   return startIndex < endIndex;
-});
+}, "month_range must me <month>, or <start>:<end>");
 
 const YearRange = z.string().refine((a) => {
   if (!a.includes(":")) {
@@ -897,7 +899,7 @@ const YearRange = z.string().refine((a) => {
   const p2 = parseInt(parts[1], 10);
 
   return !Number.isNaN(p1) && !Number.isNaN(p2) && p1 < p2;
-});
+}, "year_range must me <year>, or <start>:<end>");
 
 const TimeRangeSpec = z.object({
   start_time: Time,
@@ -917,6 +919,15 @@ const TimeInterval = z.object({
   name: z.string(),
   time_intervals: z.array(TimeIntervalSpec),
 });
+
+const walkTree = (tree: Route, process: (r: Route) => void) => {
+  const to_process = [tree];
+  while (to_process.length > 0) {
+    const node = to_process.pop();
+    process(node);
+    if (node.routes) to_process.push(...node.routes);
+  }
+};
 
 export const AlertmanagerConfig = z
   .object({
@@ -1003,4 +1014,26 @@ export const AlertmanagerConfig = z
   )
   .refine(
     ...enforceMutuallyExclusive("opsgenie_api_key", "opsgenie_api_key_file")
-  );
+  )
+  .superRefine((conf, ctx) => {
+    // Make sure that all the receivers in the routing tree exist.
+    const existingReceiverNames = conf.receivers.map((r) => r.name);
+    let neededReceiverNames = [];
+    conf.route
+      ? walkTree(conf.route, (r) =>
+          r.receiver ? neededReceiverNames.push(r.receiver) : {}
+        )
+      : {};
+
+    const missingReceivers = neededReceiverNames.filter(
+      (n) => !existingReceiverNames.includes(n)
+    );
+
+    if (missingReceivers.length > 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.unrecognized_keys,
+        keys: missingReceivers,
+        message: `found receiver names that are not defined`,
+      });
+    }
+  });
