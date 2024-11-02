@@ -26,7 +26,7 @@ export const enforceMutuallyExclusive = (
   ];
 };
 
-export const TLSConfig = z.object({
+export const TLSConfigSpec = z.object({
   // CA certificate to validate the server certificate with.
   ca_file: z.string().optional(),
 
@@ -43,7 +43,7 @@ export const TLSConfig = z.object({
   max_version: z.string().optional(),
 });
 
-export const OAuth2Config = z
+export const OAuth2ConfigSpec = z
   .object({
     client_id: z.string(),
     client_secret: z.string().optional(),
@@ -61,7 +61,7 @@ export const OAuth2Config = z
     endpoint_params: z.array(z.string()).default([]),
 
     // Configures the token request's TLS settings.
-    tls_config: TLSConfig.default({ insecure_skip_verify: false }),
+    tls_config: TLSConfigSpec.default({ insecure_skip_verify: false }),
 
     // Optional proxy URL.
     proxy_url: z.string().optional(),
@@ -80,7 +80,7 @@ export const OAuth2Config = z
     ...enforceMutuallyExclusive("client_secret", "client_secret_file", true)
   );
 
-export const HTTPConfig = z
+export const HTTPConfigSpec = z
   .object({
     // Sets the `Authorization` header with the configured username and password.
     // password and password_file are mutually exclusive.
@@ -108,7 +108,7 @@ export const HTTPConfig = z
       .refine(...enforceMutuallyExclusive("credentials", "credentials_file")),
     // Optional OAuth 2.0 configuration.
     // Cannot be used at the same time as basic_auth or authorization.
-    oauth2: OAuth2Config.optional(),
+    oauth2: OAuth2ConfigSpec.optional(),
     // Whether to enable HTTP2.
     enable_http2: z.boolean().default(true),
     // Optional proxy URL.
@@ -129,22 +129,22 @@ export const HTTPConfig = z
     follow_redirects: z.boolean().default(true),
 
     // Configures the TLS settings.
-    tls_config: TLSConfig.default(TLSConfig.parse({})),
+    tls_config: TLSConfigSpec.default(TLSConfigSpec.parse({})),
   })
   .refine(...enforceMutuallyExclusive("basic_auth", "authorization"));
 
-export const LabelName = z.string().refine((val) => {
+export const LabelNameSpec = z.string().refine((val) => {
   return val.match(/^[^{}!=~,\\"'`\s]+$/);
 }, "label_name must match `/^[^{}!=~,\\\"'`\\s]+$/`");
 
-export const Matcher = z.string().refine((val) => {
+export const MatcherSpec = z.string().refine((val) => {
   return val.match(/^[^{}!=~,\\"'`\s]+(=|!=|=~|!~)"[^{}!=~,\\"'`\s]+"$/);
 }, 'matcher must match `/^[^{}!=~,\\"\'`\\s]+(=|!=|=~|!~)"[^{}!=~,\\"\'`\\s]+"$/`');
 
 // TODO: Refine this.
-export const Duration = z.string();
+export const DurationSpec = z.string();
 
-export const baseRoute = z.object({
+const baseRouteSpec = z.object({
   receiver: z.string().optional(),
   // The labels by which incoming alerts are grouped together. For example,
   // multiple alerts coming in for cluster=A and alertname=LatencyHigh would
@@ -170,19 +170,19 @@ export const baseRoute = z.object({
   match_re: z.record(z.string(), z.string()).default({}),
 
   // A list of matchers that an alert has to fulfill to match the node.
-  matchers: z.array(Matcher).default([]),
+  matchers: z.array(MatcherSpec).default([]),
 
   // How long to initially wait to send a notification for a group
   // of alerts. Allows to wait for an inhibiting alert to arrive or collect
   // more initial alerts for the same group. (Usually ~0s to few minutes.)
   // If omitted, child routes inherit the group_wait of the parent route.
-  group_wait: Duration.default("30s"),
+  group_wait: DurationSpec.default("30s"),
 
   // How long to wait before sending a notification about new alerts that
   // are added to a group of alerts for which an initial notification has
   // already been sent. (Usually ~5m or more.) If omitted, child routes
   // inherit the group_interval of the parent route.
-  group_interval: Duration.default("5m"),
+  group_interval: DurationSpec.default("5m"),
 
   // How long to wait before sending a notification again if it has already
   // been sent successfully for an alert. (Usually ~3h or more). If omitted,
@@ -191,7 +191,7 @@ export const baseRoute = z.object({
   // `--data.retention` configuration flag. Notifications will be resent after either
   // repeat_interval or the data retention period have passed, whichever
   // occurs first. `repeat_interval` should be a multiple of `group_interval`.
-  repeat_interval: Duration.default("4h"),
+  repeat_interval: DurationSpec.default("4h"),
 
   // Times when the route should be muted. These must match the name of a
   // mute time interval defined in the mute_time_intervals section.
@@ -211,15 +211,15 @@ export const baseRoute = z.object({
   active_time_intervals: z.array(z.string()).default([]),
 });
 
-type Route = z.infer<typeof baseRoute> & {
-  routes?: Route[];
+type RouteSpec = z.infer<typeof baseRouteSpec> & {
+  routes?: RouteSpec[];
 };
 
-export const RouteConfig: z.ZodType<Route> = baseRoute.extend({
-  routes: z.lazy(() => RouteConfig.array()).optional(),
+export const RouteConfigSpec: z.ZodType<RouteSpec> = baseRouteSpec.extend({
+  routes: z.lazy(() => RouteConfigSpec.array()).optional(),
 });
 
-export const DiscordConfig = z
+export const DiscordConfigSpec = z
   .object({
     // Whether to notify about resolved alerts.
     send_resolved: z.boolean().default(true),
@@ -232,11 +232,11 @@ export const DiscordConfig = z
     // Message title template.
     title: z.string().default('{{ template "discord.default.title" . }}'),
     message: z.string().default('{{ template "discord.default.message" . }}'),
-    http_config: HTTPConfig.optional(),
+    http_config: HTTPConfigSpec.optional(),
   })
   .refine(...enforceMutuallyExclusive("webhook_url", "webhook_url_file", true));
 
-export const EmailConfig = z
+export const EmailConfigSpec = z
   .object({
     // Whether to notify about resolved alerts.
     send_resolved: z.boolean().default(false),
@@ -265,7 +265,7 @@ export const EmailConfig = z
     // Note that Go does not support unencrypted connections to remote SMTP endpoints.
     require_tls: z.boolean().optional(),
 
-    tls_config: TLSConfig.optional(),
+    tls_config: TLSConfigSpec.optional(),
 
     html: z.string().optional(),
     text: z.string().optional(),
@@ -274,7 +274,7 @@ export const EmailConfig = z
   .refine(...enforceMutuallyExclusive("auth_password", "auth_password_file"))
   .refine(...enforceMutuallyExclusive("html", "text", false));
 
-export const MSTeamsConfig = z
+export const MSTeamsConfigSpec = z
   .object({
     // Whether to notify about resolved alerts.
     send_resolved: z.boolean().default(true),
@@ -291,18 +291,18 @@ export const MSTeamsConfig = z
     // Message body template.
     text: z.string().default('{{ template "msteams.default.text" . }}'),
     // The HTTP client's configuration.
-    http_config: HTTPConfig.optional(),
+    http_config: HTTPConfigSpec.optional(),
   })
   .refine(...enforceMutuallyExclusive("webhook_url", "webhook_url_file", true));
 
-export const OpsGenieResponders = z.object({
+export const OpsGenieRespondersSpec = z.object({
   id: z.string().optional(),
   name: z.string().optional(),
   username: z.string().optional(),
   type: z.string(),
 });
 
-export const OpsGenieConfig = z
+export const OpsGenieConfigSpec = z
   .object({
     // Whether to notify about resolved alerts.
     send_resolved: z.boolean().default(true),
@@ -332,7 +332,7 @@ export const OpsGenieConfig = z
     details: z.record(z.string(), z.string()).optional(),
 
     // List of responders responsible for notifications.
-    responders: OpsGenieResponders.array().default([]),
+    responders: OpsGenieRespondersSpec.array().default([]),
 
     // Comma separated list of tags attached to the notifications.
     tags: z.string().optional(),
@@ -353,22 +353,22 @@ export const OpsGenieConfig = z
     // Comma separated list of actions that will be available for the alert.
     actions: z.string().optional(),
 
-    http_config: HTTPConfig.optional(),
+    http_config: HTTPConfigSpec.optional(),
   })
   .refine(...enforceMutuallyExclusive("api_key", "api_key_file", true));
 
-export const PagerdutyImageConfig = z.object({
+export const PagerdutyImageConfigSpec = z.object({
   href: z.string().optional(),
   src: z.string().optional(),
   alt: z.string().optional(),
 });
 
-export const PagerdutyLinkConfig = z.object({
+export const PagerdutyLinkConfigSpec = z.object({
   href: z.string().optional(),
   text: z.string().optional(),
 });
 
-export const PagerdutyConfig = z
+export const PagerdutyConfigSpec = z
   .object({
     // Whether to notify about resolved alerts.
     send_resolved: z.boolean().default(true),
@@ -421,10 +421,10 @@ export const PagerdutyConfig = z
     }),
 
     // Images to attach to the incident.
-    images: z.array(PagerdutyImageConfig).default([]),
+    images: z.array(PagerdutyImageConfigSpec).default([]),
 
     // Links to attach to the incident.
-    links: z.array(PagerdutyLinkConfig).default([]),
+    links: z.array(PagerdutyLinkConfigSpec).default([]),
 
     // The part or component of the affected system that is broken.
     component: z.string().optional(),
@@ -435,12 +435,12 @@ export const PagerdutyConfig = z
     // The class/type of the event.
     class: z.string().optional(),
 
-    http_config: HTTPConfig.optional(),
+    http_config: HTTPConfigSpec.optional(),
   })
   .refine(...enforceMutuallyExclusive("routing_key", "routing_key_file"))
   .refine(...enforceMutuallyExclusive("service_key", "service_key_file"));
 
-export const PushoverConfig = z
+export const PushoverConfigSpec = z
   .object({
     // Whether to notify about resolved alerts.
     send_resolved: z.boolean().default(true),
@@ -479,27 +479,27 @@ export const PushoverConfig = z
 
     // How often the Pushover servers will send the same notification to the user.
     // Must be at least 30 seconds.
-    retry: Duration.default("1m"),
+    retry: DurationSpec.default("1m"),
 
     // How long your notification will continue to be retried for, unless the user acknowledges the notification.
-    expire: Duration.default("1h"),
+    expire: DurationSpec.default("1h"),
 
     // Optional time to live (TTL) to use for notification, see https://pushover.net/api#ttl
-    ttl: Duration.optional(),
+    ttl: DurationSpec.optional(),
 
-    http_config: HTTPConfig.optional(),
+    http_config: HTTPConfigSpec.optional(),
   })
   .refine(...enforceMutuallyExclusive("user_key", "user_key_file", true))
   .refine(...enforceMutuallyExclusive("token", "token_file", true));
 
-export const SlackActionConfirmFieldConfig = z.object({
+export const SlackActionConfirmFieldConfigSpec = z.object({
   text: z.string(),
   dismiss_text: z.string().default(""),
   ok_text: z.string().default(""),
   title: z.string().default(""),
 });
 
-export const SlackActionConfig = z.object({
+export const SlackActionConfigSpec = z.object({
   text: z.string(),
   type: z.string(),
   // Either url or name and value are mandatory.
@@ -507,17 +507,17 @@ export const SlackActionConfig = z.object({
   name: z.string().optional(),
   value: z.string().optional(),
 
-  confirm: SlackActionConfirmFieldConfig.optional(),
+  confirm: SlackActionConfirmFieldConfigSpec.optional(),
   style: z.string().default(""),
 });
 
-export const SlackFieldConfig = z.object({
+export const SlackFieldConfigSpec = z.object({
   title: z.string(),
   value: z.string(),
   short: z.boolean().optional(),
 });
 
-export const SlackConfig = z
+export const SlackConfigSpec = z
   .object({
     // Whether to notify about resolved alerts.
     send_resolved: z.boolean().default(false),
@@ -537,7 +537,7 @@ export const SlackConfig = z
     username: z.string().default('{{ template "slack.default.username" . }}'),
 
     // The following parameters define the attachment.
-    actions: z.array(SlackActionConfig).default([]),
+    actions: z.array(SlackActionConfigSpec).default([]),
     callback_id: z
       .string()
       .default('{{ template "slack.default.callbackid" . }}'),
@@ -545,7 +545,7 @@ export const SlackConfig = z
       .string()
       .default('{{ if eq .Status "firing" }}danger{{ else }}good{{ end }}'),
     fallback: z.string().default('{{ template "slack.default.fallback" . }}'),
-    fields: z.array(SlackFieldConfig).default([]),
+    fields: z.array(SlackFieldConfigSpec).default([]),
     footer: z.string().default('{{ template "slack.default.footer" . }}'),
     mrkdwn_in: z.array(z.string()).default(["fallback", "pretext", "text"]),
     pretext: z.string().default('{{ template "slack.default.pretext" . }}'),
@@ -558,11 +558,11 @@ export const SlackConfig = z
     image_url: z.string().optional(),
     thumb_url: z.string().optional(),
 
-    http_config: HTTPConfig.optional(),
+    http_config: HTTPConfigSpec.optional(),
   })
   .refine(...enforceMutuallyExclusive("api_url", "api_url_file", true));
 
-export const AWSSigv4Config = z.object({
+export const AWSSigv4ConfigSpec = z.object({
   // The AWS region. If blank, the region from the default credentials chain is used.
   region: z.string().optional(),
 
@@ -578,7 +578,7 @@ export const AWSSigv4Config = z.object({
   role_arn: z.string().optional(),
 });
 
-export const SNSConfig = z.object({
+export const SNSConfigSpec = z.object({
   // Whether to notify about resolved alerts.
   send_resolved: z.boolean().default(true),
 
@@ -587,7 +587,7 @@ export const SNSConfig = z.object({
   api_url: z.string().optional(),
 
   // Configures AWS's Signature Verification 4 signing process to sign requests.
-  sigv4: AWSSigv4Config.optional(),
+  sigv4: AWSSigv4ConfigSpec.optional(),
 
   // SNS topic ARN, i.e. arn:aws:sns:us-east-2:698519295917:My-Topic
   // If you don't specify this value, you must specify a value for the phone_number or target_arn.
@@ -613,10 +613,10 @@ export const SNSConfig = z.object({
   attributes: z.record(z.string(), z.string()).default({}),
 
   // The HTTP client's configuration.
-  http_config: HTTPConfig.optional(),
+  http_config: HTTPConfigSpec.optional(),
 });
 
-export const TelegramConfig = z
+export const TelegramConfigSpec = z
   .object({
     // Whether to notify about resolved alerts.
     send_resolved: z.boolean().default(true),
@@ -642,11 +642,11 @@ export const TelegramConfig = z
     // Parse mode for telegram message, supported values are MarkdownV2, Markdown, HTML and empty string for plain text.
     parse_mode: z.string().default("HTML"),
 
-    http_config: HTTPConfig.optional(),
+    http_config: HTTPConfigSpec.optional(),
   })
   .refine(...enforceMutuallyExclusive("bot_token", "bot_token_file", true));
 
-export const VictorOpsConfig = z
+export const VictorOpsConfigSpec = z
   .object({
     // Whether to notify about resolved alerts.
     send_resolved: z.boolean().default(true),
@@ -683,11 +683,11 @@ export const VictorOpsConfig = z
       .string()
       .default('{{ template "victorops.default.monitoring_tool" . }}'),
 
-    http_config: HTTPConfig.optional(),
+    http_config: HTTPConfigSpec.optional(),
   })
   .refine(...enforceMutuallyExclusive("api_key", "api_key_file"));
 
-export const WebhookConfig = z
+export const WebhookConfigSpec = z
   .object({
     // Whether to notify about resolved alerts.
     send_resolved: z.boolean().default(true),
@@ -697,7 +697,7 @@ export const WebhookConfig = z
     url: z.string(),
     url_file: z.string(),
 
-    http_config: HTTPConfig.optional(),
+    http_config: HTTPConfigSpec.optional(),
 
     // The maximum number of alerts to include in a single webhook message. Alerts
     // above this threshold are truncated. When leaving this at its default value of 0, all alerts are included.
@@ -705,7 +705,7 @@ export const WebhookConfig = z
   })
   .refine(...enforceMutuallyExclusive("url", "url_file", true));
 
-export const WeChatConfig = z.object({
+export const WeChatConfigSpec = z.object({
   // Whether to notify about resolved alerts.
   send_resolved: z.boolean().default(false),
 
@@ -730,7 +730,7 @@ export const WeChatConfig = z.object({
   to_tag: z.string().default('{{ template "wechat.default.to_tag" . }}'),
 });
 
-export const WebexConfig = z.object({
+export const WebexConfigSpec = z.object({
   // Whether to notify about resolved alerts.
   send_resolved: z.boolean().default(false),
 
@@ -744,49 +744,49 @@ export const WebexConfig = z.object({
   // Message template.
   message: z.string().default('{{ template "webex.default.message" .}}'),
 
-  http_config: HTTPConfig.optional(),
+  http_config: HTTPConfigSpec.optional(),
 });
 
-export const Receiver = z.object({
+export const ReceiverSpec = z.object({
   name: z.string(),
-  discord_configs: z.array(DiscordConfig).optional(),
-  email_configs: z.array(EmailConfig).optional(),
-  msteams_config: z.array(MSTeamsConfig).optional(),
-  opsgenie_configs: z.array(OpsGenieConfig).optional(),
-  pagerduty_configs: z.array(PagerdutyConfig).optional(),
-  pushover_configs: z.array(PushoverConfig).optional(),
-  slack_configs: z.array(SlackConfig).optional(),
-  sns_configs: z.array(SNSConfig).optional(),
-  telegram_configs: z.array(TelegramConfig).optional(),
-  victorops_configs: z.array(VictorOpsConfig).optional(),
-  webex_configs: z.array(WebexConfig).optional(),
-  webhook_configs: z.array(WebhookConfig).optional(),
-  wechat_configs: z.array(WeChatConfig).optional(),
+  discord_configs: z.array(DiscordConfigSpec).optional(),
+  email_configs: z.array(EmailConfigSpec).optional(),
+  msteams_config: z.array(MSTeamsConfigSpec).optional(),
+  opsgenie_configs: z.array(OpsGenieConfigSpec).optional(),
+  pagerduty_configs: z.array(PagerdutyConfigSpec).optional(),
+  pushover_configs: z.array(PushoverConfigSpec).optional(),
+  slack_configs: z.array(SlackConfigSpec).optional(),
+  sns_configs: z.array(SNSConfigSpec).optional(),
+  telegram_configs: z.array(TelegramConfigSpec).optional(),
+  victorops_configs: z.array(VictorOpsConfigSpec).optional(),
+  webex_configs: z.array(WebexConfigSpec).optional(),
+  webhook_configs: z.array(WebhookConfigSpec).optional(),
+  wechat_configs: z.array(WeChatConfigSpec).optional(),
 });
 
-export const InhibitRule = z.object({
+export const InhibitRuleSpec = z.object({
   // DEPRECATED: Use target_matchers below.
   // Matchers that have to be fulfilled in the alerts to be muted.
-  target_match: z.record(LabelName, z.string()).optional(),
+  target_match: z.record(LabelNameSpec, z.string()).optional(),
 
   // DEPRECATED: Use target_matchers below.
-  target_match_re: z.record(LabelName, z.string()).optional(),
+  target_match_re: z.record(LabelNameSpec, z.string()).optional(),
 
   // A list of matchers that have to be fulfilled by the target alerts to be muted.
-  target_matchers: z.array(Matcher).optional(),
+  target_matchers: z.array(MatcherSpec).optional(),
 
   // DEPRECATED: Use source_matchers below.
   // Matchers for which one or more alerts have to exist for the inhibition to take effect.
-  source_match: z.record(LabelName, z.string()).optional(),
+  source_match: z.record(LabelNameSpec, z.string()).optional(),
 
   // DEPRECATED: Use source_matchers below.
-  source_match_re: z.record(LabelName, z.string()).optional(),
+  source_match_re: z.record(LabelNameSpec, z.string()).optional(),
 
   // A list of matchers for which one or more alerts have to exist for the inhibition to take effect.
-  source_matchers: z.array(Matcher).optional(),
+  source_matchers: z.array(MatcherSpec).optional(),
 
   // Labels that must have an equal value in the source and target alert for the inhibition to take effect.
-  equal: z.array(LabelName).default([]),
+  equal: z.array(LabelNameSpec).default([]),
 });
 
 export const Time = z
@@ -915,7 +915,7 @@ export const TimeInterval = z.object({
   time_intervals: z.array(TimeIntervalSpec),
 });
 
-export const walkTree = (tree: Route, process: (r: Route) => void) => {
+export const walkTree = (tree: RouteSpec, process: (r: RouteSpec) => void) => {
   const to_process = [tree];
   while (to_process.length > 0) {
     const node = to_process.pop();
@@ -924,7 +924,7 @@ export const walkTree = (tree: Route, process: (r: Route) => void) => {
   }
 };
 
-export const AlertmanagerConfig = z
+export const AlertmanagerConfigSpec = z
   .object({
     // The default SMTP `from` header field.
     smtp_from: z.string().optional(),
@@ -973,7 +973,7 @@ export const AlertmanagerConfig = z
     wechat_api_corp_id: z.string().optional(),
     telegram_api_url: z.string().default("https://api.telegram.org"),
     webex_api_url: z.string().default("https://webexapis.com/v1/messages"),
-    http_config: HTTPConfig.default(HTTPConfig.parse({})),
+    http_config: HTTPConfigSpec.default(HTTPConfigSpec.parse({})),
 
     // resolve_timeout is the default value used by alertmanager if the alert does
     // not include EndsAt, after this time passes it can declare the alert as resolved if it has not been updated.
@@ -985,13 +985,13 @@ export const AlertmanagerConfig = z
     templates: z.array(z.string()).default([]),
 
     // The root node of the routing tree.
-    route: RouteConfig,
+    route: RouteConfigSpec,
 
     // A list of notification receivers.
-    receivers: z.array(Receiver).default([]),
+    receivers: z.array(ReceiverSpec).default([]),
 
     // A list of inhibition rules.
-    inhibit_rules: z.array(InhibitRule).default([]),
+    inhibit_rules: z.array(InhibitRuleSpec).default([]),
 
     // DEPRECATED: use time_intervals below.
     // A list of mute time intervals for muting routes.
@@ -1032,3 +1032,6 @@ export const AlertmanagerConfig = z
       });
     }
   });
+
+export type AlertmanagerConfig = z.infer<typeof AlertmanagerConfigSpec>;
+export type RouteConfig = z.infer<typeof RouteConfigSpec>;
