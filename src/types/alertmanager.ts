@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z, ZodTypeDef } from "zod";
 
 // Returns a Zod refinement that rejects the value if the two fields
 // are not mutually exclusive.
@@ -137,9 +137,46 @@ export const LabelNameSpec = z.string().refine((val) => {
   return val.match(/^[^{}!=~,\\"'`\s]+$/);
 }, "label_name must match `/^[^{}!=~,\\\"'`\\s]+$/`");
 
-export const MatcherSpec = z.string().refine((val) => {
-  return val.match(/^[^{}!=~,\\"'`\s]+(=|!=|=~|!~)"[^{}!=~,\\"'`\s]+"$/);
-}, 'matcher must match `/^[^{}!=~,\\"\'`\\s]+(=|!=|=~|!~)"[^{}!=~,\\"\'`\\s]+"$/`');
+const unquote = (s: string): string => {
+  if (s.length < 2) {
+    throw "expected length >= 2";
+  }
+
+  const openQuote = s[0];
+  if (!['"', "'", "`"].includes(openQuote)) {
+    throw `invalid open quote: '${openQuote}''`;
+  }
+
+  if (s[s.length - 1] !== openQuote) {
+    throw `expected "${openQuote} to end quote, got ${s[s.length - 1]}`;
+  }
+
+  let unquoted = s.substring(1, s.length - 1);
+  unquoted = unquoted.replace("\\n", "\n");
+  unquoted = unquoted.replace("\\t", "\t");
+  unquoted = unquoted.replace('\\"', '"');
+  unquoted = unquoted.replace(`\\'`, `'`);
+
+  return unquoted;
+};
+
+export const MatcherSpec = z.string().transform((val) => {
+  const parts = val.match(/^([^{}!=~,\\"'`\s]+)(=|!=|=~|!~)(".+")$/);
+
+  if (!parts || parts.length != 4) {
+    throw `expected a valid matcher, not ${val}`;
+  }
+
+  console.log(parts[3]);
+
+  const matcher = unquote(parts[3]);
+
+  return {
+    label_name: parts[1],
+    matcher: parts[2],
+    label_value: matcher,
+  };
+});
 
 // TODO: Refine this.
 export const DurationSpec = z.string();
@@ -211,13 +248,20 @@ const baseRouteSpec = z.object({
   active_time_intervals: z.array(z.string()).default([]),
 });
 
-type RouteSpec = z.infer<typeof baseRouteSpec> & {
-  routes?: RouteSpec[];
+type inRouteSpec = z.input<typeof baseRouteSpec> & {
+  routes?: inRouteSpec[];
 };
 
-export const RouteConfigSpec: z.ZodType<RouteSpec> = baseRouteSpec.extend({
-  routes: z.lazy(() => RouteConfigSpec.array()).optional(),
-});
+type outRouteSpec = z.output<typeof baseRouteSpec> & {
+  routes?: outRouteSpec[];
+};
+
+type RouteSpec = outRouteSpec;
+
+export const RouteConfigSpec: z.ZodType<outRouteSpec, ZodTypeDef, inRouteSpec> =
+  baseRouteSpec.extend({
+    routes: z.lazy(() => RouteConfigSpec.array()).optional(),
+  });
 
 export const DiscordConfigSpec = z
   .object({
@@ -789,10 +833,24 @@ export const InhibitRuleSpec = z.object({
   equal: z.array(LabelNameSpec).default([]),
 });
 
-export const Time = z
-  .string()
-  .refine((a) => a.match(/^[0-9]{2}:[0-9]{2}$/), "time must match `HH:SS`");
-export const WeekdayRange = z.string().refine((a) => {
+export const TimeSpec = z.string().transform((val) => {
+  let parts = val.split(":").map((n) => parseInt(n));
+  if (!parts || parts.length !== 2) {
+    throw `expected HH:MM`;
+  }
+
+  if (parts[0] < 0 || parts[0] >= 24) {
+    throw `hour must be between 0-23`;
+  }
+
+  if (parts[1] < 0 || parts[1] >= 60) {
+    throw `hour must be 0-60`;
+  }
+
+  return { hour: parts[0], minute: parts[1] };
+});
+
+export const WeekdayRangeSpec = z.string().transform((a) => {
   const days = [
     "monday",
     "tuesday",
@@ -804,39 +862,80 @@ export const WeekdayRange = z.string().refine((a) => {
   ];
 
   if (!a.includes(":")) {
-    return days.includes(a);
+    if (!days.includes(a)) {
+      throw `unknown day: ${a}`;
+    }
+
+    return { type: "single", day: days.indexOf(a) };
   }
 
   const parts = a.split(":");
   if (!parts || parts.length != 2) {
-    return false;
+    throw "Weekday must be `<day>`, or `<from>:<until>";
   }
 
-  return (
-    days.includes(parts[0]) &&
-    days.includes(parts[1]) &&
-    days.indexOf(parts[0]) < days.indexOf(parts[1])
-  );
-}, "Weekday must be `<day>`, or `<from>:<until>");
+  const start = parts[0].toLowerCase();
+  const end = parts[1].toLowerCase();
+  if (!days.includes(start)) {
+    throw `unknown day: ${start}`;
+  }
 
-export const DayOfMonthRange = z.string().refine((a) => {
+  if (!days.includes(end)) {
+    throw `unknown day ${end}`;
+  }
+
+  const startIndex = days.indexOf(start);
+  const endIndex = days.indexOf(end);
+  if (startIndex >= endIndex) {
+    throw `start day ${start} must be before end day ${end}`;
+  }
+
+  return { type: "range", start: startIndex, end: endIndex };
+});
+
+export const DaysOfMonthRange = z.string().transform((a) => {
   if (!a.includes(":")) {
-    return !Number.isNaN(parseInt(a, 10));
+    const num = parseInt(a, 10);
+    if (Number.isNaN(num)) {
+      throw `expected number: ${a}`;
+    }
+
+    if (num === 0) {
+      throw `days_of_month_range cannot be 0`;
+    }
+
+    return { type: "single", day: num };
   }
 
   const parts = a.split(":");
   if (!parts || parts.length != 2) {
-    return false;
+    throw `days_of_month_range must be <day> or <start>:<end>`;
   }
 
   const p1 = parseInt(parts[0], 10);
   const p2 = parseInt(parts[1], 10);
+  if (Number.isNaN(p1)) {
+    throw `days_of_month_range expects a number, not ${p1}`;
+  }
 
-  return !Number.isNaN(p1) && !Number.isNaN(p2) && p1 < p2;
-}, "day_of_month must be <day>, or <from>:<until>");
+  if (p1 === 0 || p2 === 0) {
+    throw `days_of_month_range cannot be 0`;
+  }
 
-export const MonthRange = z.string().refine((a) => {
+  if (Number.isNaN(p2)) {
+    throw `days_of_month_range expects a number, not ${p2}`;
+  }
+
+  if (p1 >= p2) {
+    throw `days_of_month_range expects ${p1} to be less than ${p2}`;
+  }
+
+  return { type: "range", start: p1, end: p2 };
+});
+
+export const MonthRange = z.string().transform((a) => {
   const months = [
+    "buffer", // Months start at 1, so this makes it easier to calculate indexes.
     "january",
     "february",
     "march",
@@ -851,63 +950,84 @@ export const MonthRange = z.string().refine((a) => {
     "december",
   ];
 
+  a = a.toLowerCase();
+  if (!a.includes(":")) {
+    const index = months.indexOf(a);
+    const n = index !== -1 ? index : parseInt(a, 10);
+    if (n > months.length || n <= 0 || Number.isNaN(n)) {
+      throw `month_range expects a month or a number(1-12), not ${a}`;
+    }
+
+    return { type: "single", month: n };
+  }
+
+  const parts = a.split(":");
+  if (!parts || parts.length != 2) {
+    throw `month_range expects <start>:<end>`;
+  }
+
+  let startIndex = months.indexOf(parts[0]);
+  startIndex = startIndex !== -1 ? startIndex : parseInt(parts[0], 10);
+  if (
+    startIndex > months.length ||
+    startIndex <= 0 ||
+    Number.isNaN(startIndex)
+  ) {
+    throw `month_range expects a month or a number(1-12), not ${parts[0]}`;
+  }
+
+  let endIndex = months.indexOf(parts[1]);
+  endIndex = endIndex !== -1 ? endIndex : parseInt(parts[1], 10);
+  if (endIndex > months.length || endIndex <= 0 || Number.isNaN(endIndex)) {
+    throw `month_range expects a month or a number(1-12), not ${parts[1]}`;
+  }
+
+  return { type: "range", start: startIndex, end: endIndex };
+});
+
+export const YearRange = z.string().transform((a) => {
   if (!a.includes(":")) {
     const n = parseInt(a, 10);
-    return months.includes(a) || (n > 0 && n < 12);
+    if (Number.isNaN(n)) {
+      throw `year_range expects a number, not ${a}`;
+    }
+    return { type: "single", year: n };
   }
 
   const parts = a.split(":");
   if (!parts || parts.length != 2) {
-    return false;
-  }
-
-  let startIndex = parseInt(parts[0], 10);
-  if (Number.isNaN(startIndex)) {
-    startIndex = months.indexOf(parts[0]);
-    if (startIndex === -1) {
-      return false;
-    }
-  }
-
-  let endIndex = parseInt(parts[1], 10);
-  if (Number.isNaN(endIndex)) {
-    endIndex = months.indexOf(parts[1]);
-    if (endIndex === -1) {
-      return false;
-    }
-  }
-
-  return startIndex < endIndex;
-}, "month_range must me <month>, or <start>:<end>");
-
-export const YearRange = z.string().refine((a) => {
-  if (!a.includes(":")) {
-    return !Number.isNaN(parseInt(a, 10));
-  }
-
-  const parts = a.split(":");
-  if (!parts || parts.length != 2) {
-    return false;
+    throw `year_range expects <start>:<end>`;
   }
 
   const p1 = parseInt(parts[0], 10);
-  const p2 = parseInt(parts[1], 10);
+  if (Number.isNaN(p1)) {
+    throw `year_range expects a number, not ${parts[0]}`;
+  }
 
-  return !Number.isNaN(p1) && !Number.isNaN(p2) && p1 < p2;
-}, "year_range must me <year>, or <start>:<end>");
+  const p2 = parseInt(parts[1], 10);
+  if (Number.isNaN(p2)) {
+    throw `year_range expects a number, not ${parts[1]}`;
+  }
+
+  if (p1 >= p2) {
+    throw `year_range expects start year (${p1}) to be before the end year ${p2}`;
+  }
+
+  return { type: "range", start: p1, end: p2 };
+});
 
 export const TimeRangeSpec = z.object({
-  start_time: Time,
-  end_type: Time,
+  start_time: TimeSpec,
+  end_type: TimeSpec,
 });
 
 export const TimeIntervalSpec = z.object({
   times: z.array(TimeRangeSpec).optional(),
-  weekdays: z.array(WeekdayRange).optional(),
-  days_of_month: z.array(DayOfMonthRange).optional(),
+  weekdays: z.array(WeekdayRangeSpec).optional(),
+  days_of_month: z.array(DaysOfMonthRange).optional(),
   months: z.array(MonthRange).optional(),
   years: z.array(YearRange).optional(),
-  location: z.string(),
+  location: z.string(), // TODO: Validate this.
 });
 
 export const TimeInterval = z.object({
@@ -915,6 +1035,7 @@ export const TimeInterval = z.object({
   time_intervals: z.array(TimeIntervalSpec),
 });
 
+// Walks the given routing tree, running `process` for every encountered node.
 export const walkTree = (tree: RouteSpec, process: (r: RouteSpec) => void) => {
   const to_process = [tree];
   while (to_process.length > 0) {
