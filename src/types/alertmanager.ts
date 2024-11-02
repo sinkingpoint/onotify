@@ -1,13 +1,8 @@
 import { z } from "zod";
 
-// Returns true if exactly one of a, b is truthy.
-const mutuallyExclusive = (a: any, b: any): boolean => {
-  return !!a !== !!b;
-};
-
 // Returns a Zod refinement that rejects the value if the two fields
 // are not mutually exclusive.
-const enforceMutuallyExclusive = (
+export const enforceMutuallyExclusive = (
   k1: string,
   k2: string,
   require_one: boolean = false
@@ -138,7 +133,7 @@ export const HTTPConfig = z
   })
   .refine(...enforceMutuallyExclusive("basic_auth", "authorization"));
 
-const LabelName = z.string().refine((val) => {
+export const LabelName = z.string().refine((val) => {
   return val.match(/^[^{}!=~,\\"'`\s]+$/);
 }, "label_name must match `/^[^{}!=~,\\\"'`\\s]+$/`");
 
@@ -220,11 +215,11 @@ type Route = z.infer<typeof baseRoute> & {
   routes?: Route[];
 };
 
-const RouteConfig: z.ZodType<Route> = baseRoute.extend({
+export const RouteConfig: z.ZodType<Route> = baseRoute.extend({
   routes: z.lazy(() => RouteConfig.array()).optional(),
 });
 
-const DiscordConfig = z
+export const DiscordConfig = z
   .object({
     // Whether to notify about resolved alerts.
     send_resolved: z.boolean().default(true),
@@ -241,7 +236,7 @@ const DiscordConfig = z
   })
   .refine(...enforceMutuallyExclusive("webhook_url", "webhook_url_file", true));
 
-const EmailConfig = z
+export const EmailConfig = z
   .object({
     // Whether to notify about resolved alerts.
     send_resolved: z.boolean().default(false),
@@ -279,7 +274,7 @@ const EmailConfig = z
   .refine(...enforceMutuallyExclusive("auth_password", "auth_password_file"))
   .refine(...enforceMutuallyExclusive("html", "text", false));
 
-const MSTeamsConfig = z
+export const MSTeamsConfig = z
   .object({
     // Whether to notify about resolved alerts.
     send_resolved: z.boolean().default(true),
@@ -300,14 +295,14 @@ const MSTeamsConfig = z
   })
   .refine(...enforceMutuallyExclusive("webhook_url", "webhook_url_file", true));
 
-const OpsGenieResponders = z.object({
+export const OpsGenieResponders = z.object({
   id: z.string().optional(),
   name: z.string().optional(),
   username: z.string().optional(),
   type: z.string(),
 });
 
-const OpsGenieConfig = z
+export const OpsGenieConfig = z
   .object({
     // Whether to notify about resolved alerts.
     send_resolved: z.boolean().default(true),
@@ -362,18 +357,18 @@ const OpsGenieConfig = z
   })
   .refine(...enforceMutuallyExclusive("api_key", "api_key_file", true));
 
-const PagerdutyImageConfig = z.object({
+export const PagerdutyImageConfig = z.object({
   href: z.string().optional(),
   src: z.string().optional(),
   alt: z.string().optional(),
 });
 
-const PagerdutyLinkConfig = z.object({
+export const PagerdutyLinkConfig = z.object({
   href: z.string().optional(),
   text: z.string().optional(),
 });
 
-const PagerdutyConfig = z
+export const PagerdutyConfig = z
   .object({
     // Whether to notify about resolved alerts.
     send_resolved: z.boolean().default(true),
@@ -445,7 +440,7 @@ const PagerdutyConfig = z
   .refine(...enforceMutuallyExclusive("routing_key", "routing_key_file"))
   .refine(...enforceMutuallyExclusive("service_key", "service_key_file"));
 
-const PushoverConfig = z
+export const PushoverConfig = z
   .object({
     // Whether to notify about resolved alerts.
     send_resolved: z.boolean().default(true),
@@ -497,14 +492,14 @@ const PushoverConfig = z
   .refine(...enforceMutuallyExclusive("user_key", "user_key_file", true))
   .refine(...enforceMutuallyExclusive("token", "token_file", true));
 
-const SlackActionConfirmFieldConfig = z.object({
+export const SlackActionConfirmFieldConfig = z.object({
   text: z.string(),
   dismiss_text: z.string().default(""),
   ok_text: z.string().default(""),
   title: z.string().default(""),
 });
 
-const SlackActionConfig = z.object({
+export const SlackActionConfig = z.object({
   text: z.string(),
   type: z.string(),
   // Either url or name and value are mandatory.
@@ -516,13 +511,13 @@ const SlackActionConfig = z.object({
   style: z.string().default(""),
 });
 
-const SlackFieldConfig = z.object({
+export const SlackFieldConfig = z.object({
   title: z.string(),
   value: z.string(),
   short: z.boolean().optional(),
 });
 
-const SlackConfig = z
+export const SlackConfig = z
   .object({
     // Whether to notify about resolved alerts.
     send_resolved: z.boolean().default(false),
@@ -567,7 +562,7 @@ const SlackConfig = z
   })
   .refine(...enforceMutuallyExclusive("api_url", "api_url_file", true));
 
-const AWSSigv4Config = z.object({
+export const AWSSigv4Config = z.object({
   // The AWS region. If blank, the region from the default credentials chain is used.
   region: z.string().optional(),
 
@@ -583,7 +578,7 @@ const AWSSigv4Config = z.object({
   role_arn: z.string().optional(),
 });
 
-const SNSConfig = z.object({
+export const SNSConfig = z.object({
   // Whether to notify about resolved alerts.
   send_resolved: z.boolean().default(true),
 
@@ -621,7 +616,7 @@ const SNSConfig = z.object({
   http_config: HTTPConfig.optional(),
 });
 
-const TelegramConfig = z
+export const TelegramConfig = z
   .object({
     // Whether to notify about resolved alerts.
     send_resolved: z.boolean().default(true),
@@ -651,7 +646,7 @@ const TelegramConfig = z
   })
   .refine(...enforceMutuallyExclusive("bot_token", "bot_token_file", true));
 
-const VictorOpsConfig = z
+export const VictorOpsConfig = z
   .object({
     // Whether to notify about resolved alerts.
     send_resolved: z.boolean().default(true),
@@ -692,7 +687,7 @@ const VictorOpsConfig = z
   })
   .refine(...enforceMutuallyExclusive("api_key", "api_key_file"));
 
-const WebhookConfig = z
+export const WebhookConfig = z
   .object({
     // Whether to notify about resolved alerts.
     send_resolved: z.boolean().default(true),
@@ -710,7 +705,7 @@ const WebhookConfig = z
   })
   .refine(...enforceMutuallyExclusive("url", "url_file", true));
 
-const WeChatConfig = z.object({
+export const WeChatConfig = z.object({
   // Whether to notify about resolved alerts.
   send_resolved: z.boolean().default(false),
 
@@ -735,7 +730,7 @@ const WeChatConfig = z.object({
   to_tag: z.string().default('{{ template "wechat.default.to_tag" . }}'),
 });
 
-const WebexConfig = z.object({
+export const WebexConfig = z.object({
   // Whether to notify about resolved alerts.
   send_resolved: z.boolean().default(false),
 
@@ -752,7 +747,7 @@ const WebexConfig = z.object({
   http_config: HTTPConfig.optional(),
 });
 
-const Receiver = z.object({
+export const Receiver = z.object({
   name: z.string(),
   discord_configs: z.array(DiscordConfig).optional(),
   email_configs: z.array(EmailConfig).optional(),
@@ -769,7 +764,7 @@ const Receiver = z.object({
   wechat_configs: z.array(WeChatConfig).optional(),
 });
 
-const InhibitRule = z.object({
+export const InhibitRule = z.object({
   // DEPRECATED: Use target_matchers below.
   // Matchers that have to be fulfilled in the alerts to be muted.
   target_match: z.record(LabelName, z.string()).optional(),
@@ -794,10 +789,10 @@ const InhibitRule = z.object({
   equal: z.array(LabelName).default([]),
 });
 
-const Time = z
+export const Time = z
   .string()
   .refine((a) => a.match(/^[0-9]{2}:[0-9]{2}$/), "time must match `HH:SS`");
-const WeekdayRange = z.string().refine((a) => {
+export const WeekdayRange = z.string().refine((a) => {
   const days = [
     "monday",
     "tuesday",
@@ -824,7 +819,7 @@ const WeekdayRange = z.string().refine((a) => {
   );
 }, "Weekday must be `<day>`, or `<from>:<until>");
 
-const DayOfMonthRange = z.string().refine((a) => {
+export const DayOfMonthRange = z.string().refine((a) => {
   if (!a.includes(":")) {
     return !Number.isNaN(parseInt(a, 10));
   }
@@ -840,7 +835,7 @@ const DayOfMonthRange = z.string().refine((a) => {
   return !Number.isNaN(p1) && !Number.isNaN(p2) && p1 < p2;
 }, "day_of_month must be <day>, or <from>:<until>");
 
-const MonthRange = z.string().refine((a) => {
+export const MonthRange = z.string().refine((a) => {
   const months = [
     "january",
     "february",
@@ -885,7 +880,7 @@ const MonthRange = z.string().refine((a) => {
   return startIndex < endIndex;
 }, "month_range must me <month>, or <start>:<end>");
 
-const YearRange = z.string().refine((a) => {
+export const YearRange = z.string().refine((a) => {
   if (!a.includes(":")) {
     return !Number.isNaN(parseInt(a, 10));
   }
@@ -901,12 +896,12 @@ const YearRange = z.string().refine((a) => {
   return !Number.isNaN(p1) && !Number.isNaN(p2) && p1 < p2;
 }, "year_range must me <year>, or <start>:<end>");
 
-const TimeRangeSpec = z.object({
+export const TimeRangeSpec = z.object({
   start_time: Time,
   end_type: Time,
 });
 
-const TimeIntervalSpec = z.object({
+export const TimeIntervalSpec = z.object({
   times: z.array(TimeRangeSpec).optional(),
   weekdays: z.array(WeekdayRange).optional(),
   days_of_month: z.array(DayOfMonthRange).optional(),
@@ -915,12 +910,12 @@ const TimeIntervalSpec = z.object({
   location: z.string(),
 });
 
-const TimeInterval = z.object({
+export const TimeInterval = z.object({
   name: z.string(),
   time_intervals: z.array(TimeIntervalSpec),
 });
 
-const walkTree = (tree: Route, process: (r: Route) => void) => {
+export const walkTree = (tree: Route, process: (r: Route) => void) => {
   const to_process = [tree];
   while (to_process.length > 0) {
     const node = to_process.pop();
