@@ -6,7 +6,7 @@ export interface Bindings {
 }
 
 export interface Alert {
-  fingerprint: bigint;
+  fingerprint: string;
   status: "firing" | "resolved";
   startsAt: number;
   endsAt?: number;

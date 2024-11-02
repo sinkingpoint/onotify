@@ -5,7 +5,6 @@ import { checkAPIKey } from "./utils";
 import { Errors, HTTPResponses as HTTPResponse } from "../types/http";
 import { Alert, Bindings } from "../types/internal";
 import { fingerprint } from "./utils/fingerprinting";
-import { date } from "zod";
 
 const API_SCOPE = "post-alerts";
 
@@ -47,7 +46,7 @@ export class PostAlerts extends OpenAPIRoute {
       const endsAt = alert.endsAt ? Date.parse(alert.endsAt) / 1000 : 0;
 
       alerts.push({
-        fingerprint: fingerprint(alert.labels),
+        fingerprint: fingerprint(alert.labels).toString(16),
         status: alert.status,
         name: alert.labels["__alertname__"] ?? "",
         labels: alert.labels,
