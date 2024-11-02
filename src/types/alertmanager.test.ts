@@ -1,4 +1,5 @@
 import {
+  AlertmanagerConfigSpec,
   DaysOfMonthRange,
   MatcherSpec,
   MonthRange,
@@ -6,6 +7,8 @@ import {
   WeekdayRangeSpec,
   YearRange,
 } from "./alertmanager";
+
+import fs from "fs";
 
 test("TimeSpec 01:23", () => {
   expect(TimeSpec.parse("01:23")).toEqual({ hour: 1, minute: 23 });
@@ -214,4 +217,21 @@ test("MatcherSpec escaped quote", () => {
 
 test("MatcherSpec missing quote", () => {
   expect(() => MatcherSpec.parse(`a=b\""`)).toThrow();
+});
+
+test("Full Config", () => {
+  const rawConfig = fs
+    .readFileSync("testdata/alertmanager-config.json")
+    .toString();
+  const config = AlertmanagerConfigSpec.parse(JSON.parse(rawConfig));
+
+  // Test that configs get filtered down the tree.
+  expect(config.route.group_wait).toEqual("30s");
+  expect(config.route.group_by).toEqual(["alertname", "cluster", "service"]);
+  expect(config.route.routes[0].group_wait).toEqual("5m");
+  expect(config.route.routes[0].group_by).toEqual([
+    "alertname",
+    "cluster",
+    "service",
+  ]);
 });

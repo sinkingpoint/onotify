@@ -167,8 +167,6 @@ export const MatcherSpec = z.string().transform((val) => {
     throw `expected a valid matcher, not ${val}`;
   }
 
-  console.log(parts[3]);
-
   const matcher = unquote(parts[3]);
 
   return {
@@ -1036,12 +1034,15 @@ export const TimeInterval = z.object({
 });
 
 // Walks the given routing tree, running `process` for every encountered node.
-export const walkTree = (tree: RouteSpec, process: (r: RouteSpec) => void) => {
-  const to_process = [tree];
+export const walkTree = (
+  tree: RouteSpec,
+  process: (node: RouteSpec, parent?: RouteSpec) => void
+) => {
+  const to_process = [[tree, undefined]];
   while (to_process.length > 0) {
-    const node = to_process.pop();
-    process(node);
-    if (node.routes) to_process.push(...node.routes);
+    const [node, parent] = to_process.pop();
+    process(node, parent);
+    if (node.routes) to_process.push(...node.routes.map((n) => [n, node]));
   }
 };
 
@@ -1131,6 +1132,13 @@ export const AlertmanagerConfigSpec = z
   .refine(
     ...enforceMutuallyExclusive("opsgenie_api_key", "opsgenie_api_key_file")
   )
+  .refine(
+    (val) =>
+      Object.keys(val.route.match).length === 0 &&
+      Object.keys(val.route.match_re).length === 0 &&
+      val.route.matchers.length === 0,
+    `Root of the routing tree must not contain any matchers`
+  )
   .superRefine((conf, ctx) => {
     // Make sure that all the receivers in the routing tree exist.
     const existingReceiverNames = conf.receivers.map((r) => r.name);
@@ -1152,6 +1160,20 @@ export const AlertmanagerConfigSpec = z
         message: `found receiver names that are not defined`,
       });
     }
+  })
+  .transform((conf) => {
+    // Walk the routing tree and solidify all the arguments by passing them down.
+    walkTree(conf.route, (node, parent) => {
+      if (!parent) return;
+      node.group_by ??= parent.group_by;
+      node.group_wait ??= parent.group_wait;
+      node.group_interval ??= parent.group_interval;
+      node.repeat_interval ??= parent.repeat_interval;
+      node.mute_time_intervals ??= parent.mute_time_intervals;
+      node.active_time_intervals ??= parent.active_time_intervals;
+    });
+
+    return conf;
   });
 
 export type AlertmanagerConfig = z.infer<typeof AlertmanagerConfigSpec>;
