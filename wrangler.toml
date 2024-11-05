@@ -13,11 +13,3 @@ enabled = true
 binding = "DB"
 database_name = "onotify"
 database_id = "6c0521ab-ef05-4e93-b246-4a56a7ca8069"
-
-[[durable_objects.bindings]]
-name = "ACCOUNT_CONTROLLER"
-class_name = "AccountController"
-
-[[migrations]]
-tag = "v1" # Should be unique for each entry
-new_classes = ["AccountController"]
