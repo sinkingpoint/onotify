@@ -8,9 +8,11 @@ import { Context } from "hono";
 import { Bindings } from "../types/internal";
 import {
   checkAPIKey,
+  globalKVTreeKey,
   inhibitionsKVKey,
   receiversKVKey,
   routingKVTreeKey,
+  timeIntervalsKVKey,
   toErrorString,
 } from "./utils";
 
@@ -36,26 +38,36 @@ export class PostConfig extends OpenAPIRoute {
   };
 
   async handle(c: Context<{ Bindings: Bindings }>) {
-    const authResult = await checkAPIKey(c.env, c.req.header["Authorization"]);
+    const authResult = await checkAPIKey(c.env, c.req.header("Authorization"));
     if (authResult.result !== "ok") {
       c.status(HTTPResponses.Unauthorized);
       return c.text(toErrorString(authResult));
     }
 
-    const { user_id, account_id, scopes } = authResult;
+    const { account_id } = authResult;
 
     // Get validated data
     const data = await this.getValidatedData<typeof this.schema>();
     const config = data.body;
-    const routingTree = collapseRoutingTree(config);
-    c.env.CONFIGS.put(
-      routingKVTreeKey(account_id),
-      JSON.stringify(routingTree)
-    );
 
+    const routingTree = collapseRoutingTree(config);
     const receivers = config.receivers.reduce(
       (prev, curr) => (prev[curr.name] = curr),
       {}
+    );
+    const timeIntervals = config.time_intervals.reduce(
+      (prev, curr) => (prev[curr.name] = curr),
+      {}
+    );
+
+    c.env.CONFIGS.put(
+      globalKVTreeKey(account_id),
+      JSON.stringify(config.global)
+    );
+
+    c.env.CONFIGS.put(
+      routingKVTreeKey(account_id),
+      JSON.stringify(routingTree)
     );
 
     c.env.CONFIGS.put(receiversKVKey(account_id), JSON.stringify(receivers));
@@ -63,17 +75,12 @@ export class PostConfig extends OpenAPIRoute {
       inhibitionsKVKey(account_id),
       JSON.stringify(config.inhibit_rules)
     );
+    c.env.CONFIGS.put(
+      timeIntervalsKVKey(account_id),
+      JSON.stringify(timeIntervals)
+    );
 
-    // // Files from which custom notification template definitions are read.
-    // // The last component may use a wildcard matcher, e.g. 'templates/*.tmpl'.
-    // templates: z.array(z.string()).default([]),
-
-    // // DEPRECATED: use time_intervals below.
-    // // A list of mute time intervals for muting routes.
-    // mute_time_interval: z.array(z.string()).default([]),
-
-    // // A list of time intervals for muting/activating routes.
-    // time_intervals: z.array(TimeInterval).default([]),
+    // TODO: Handle custom templates + `mute_time_intervals`
 
     return c.text("ok");
   }

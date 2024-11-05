@@ -13,3 +13,7 @@ enabled = true
 binding = "DB"
 database_name = "onotify"
 database_id = "6c0521ab-ef05-4e93-b246-4a56a7ca8069"
+
+[[kv_namespaces]]
+binding = "CONFIGS"
+id = "b04d857d6653487ebee0f8aa63c244dd"
