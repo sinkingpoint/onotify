@@ -11,7 +11,7 @@ import {
   globalKVTreeKey,
   inhibitionsKVKey,
   receiversKVKey,
-  routingKVTreeKey,
+  routingKVTreeKey as routingTreeKVKey,
   timeIntervalsKVKey,
   toErrorString,
 } from "./utils";
@@ -66,7 +66,7 @@ export class PostConfig extends OpenAPIRoute {
     );
 
     c.env.CONFIGS.put(
-      routingKVTreeKey(account_id),
+      routingTreeKVKey(account_id),
       JSON.stringify(routingTree)
     );
 

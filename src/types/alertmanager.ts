@@ -1258,7 +1258,7 @@ export const AlertmanagerConfigSpec = z
 export type AlertmanagerConfig = z.infer<typeof AlertmanagerConfigSpec>;
 export type RouteConfig = z.infer<typeof RouteConfigSpec>;
 
-type FlatRouteConfig = Omit<RouteConfig, "routes"> & {
+export type FlatRouteConfig = Omit<RouteConfig, "routes"> & {
   routes: string[];
 };
 
@@ -1266,6 +1266,7 @@ type FlatRouteConfig = Omit<RouteConfig, "routes"> & {
 export const collapseRoutingTree = (c: AlertmanagerConfig) => {
   const ids: Map<RouteConfig, string> = new Map();
   const flatNodes: Record<string, FlatRouteConfig> = {};
+  const hasParents: Map<string, boolean> = new Map();
 
   const toProcess = [c.route];
   while (toProcess.length > 0) {
@@ -1277,6 +1278,7 @@ export const collapseRoutingTree = (c: AlertmanagerConfig) => {
       node.routes.forEach((n) => {
         const existingID = ids.get(n);
         if (existingID) {
+          hasParents.set(existingID, true);
           childHashes.push(existingID);
         } else {
           missing.push(n);
@@ -1298,5 +1300,6 @@ export const collapseRoutingTree = (c: AlertmanagerConfig) => {
     flatNodes[nodeHash] = dehydratedNode;
   }
 
-  return flatNodes;
+  const roots = Object.keys(flatNodes).filter((id) => !hasParents.get(id));
+  return { roots: roots, tree: flatNodes };
 };
