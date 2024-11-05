@@ -234,8 +234,8 @@ test("Full Config", () => {
   // Test that configs get filtered down the tree.
   expect(config.route.group_wait).toEqual("30s");
   expect(config.route.group_by).toEqual(["alertname", "cluster", "service"]);
-  expect(config.route.routes[0].group_wait).toEqual("5m");
-  expect(config.route.routes[0].group_by).toEqual([
+  expect(config.route.routes![0].group_wait).toEqual("5m");
+  expect(config.route.routes![0].group_by).toEqual([
     "alertname",
     "cluster",
     "service",

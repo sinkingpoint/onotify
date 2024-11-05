@@ -2,19 +2,20 @@ import { OpenAPIRoute } from "chanfana";
 import {
   AlertmanagerConfigSpec,
   collapseRoutingTree,
+  Receiver,
+  TimeInterval,
 } from "../types/alertmanager";
 import { Errors, HTTPResponses } from "../types/http";
 import { Context } from "hono";
 import { Bindings } from "../types/internal";
+import { checkAPIKey, toErrorString } from "./utils/auth";
 import {
-  checkAPIKey,
-  globalKVTreeKey,
+  globalTreeKVKey,
   inhibitionsKVKey,
   receiversKVKey,
-  routingKVTreeKey as routingTreeKVKey,
+  routingTreeKVKey,
   timeIntervalsKVKey,
-  toErrorString,
-} from "./utils";
+} from "./utils/kv";
 
 export class PostConfig extends OpenAPIRoute {
   schema = {
@@ -51,17 +52,18 @@ export class PostConfig extends OpenAPIRoute {
     const config = data.body;
 
     const routingTree = collapseRoutingTree(config);
-    const receivers = config.receivers.reduce(
-      (prev, curr) => (prev[curr.name] = curr),
-      {}
-    );
-    const timeIntervals = config.time_intervals.reduce(
-      (prev, curr) => (prev[curr.name] = curr),
-      {}
-    );
+    const receivers: Record<string, Receiver> = {};
+    for (const receiver of config.receivers) {
+      receivers[receiver.name] = receiver;
+    }
+
+    const timeIntervals: Record<string, TimeInterval> = {};
+    for (const interval of config.time_intervals) {
+      timeIntervals[interval.name] = interval;
+    }
 
     c.env.CONFIGS.put(
-      globalKVTreeKey(account_id),
+      globalTreeKVKey(account_id),
       JSON.stringify(config.global)
     );
 

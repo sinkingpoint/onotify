@@ -845,6 +845,8 @@ export const ReceiverSpec = z
   })
   .strict();
 
+export type Receiver = z.infer<typeof ReceiverSpec>;
+
 export const InhibitRuleSpec = z
   .object({
     // DEPRECATED: Use target_matchers below.
@@ -1064,32 +1066,36 @@ export const TimeRangeSpec = z
 
 export const TimeIntervalSpec = z
   .object({
-    times: z.array(TimeRangeSpec).optional(),
-    weekdays: z.array(WeekdayRangeSpec).optional(),
-    days_of_month: z.array(DaysOfMonthRange).optional(),
-    months: z.array(MonthRange).optional(),
-    years: z.array(YearRange).optional(),
-    location: z.string().default("UTC"), // TODO: Validate this.
+    name: z.string(),
+    time_intervals: z.array(
+      z.object({
+        times: z.array(TimeRangeSpec).optional(),
+        weekdays: z.array(WeekdayRangeSpec).optional(),
+        days_of_month: z.array(DaysOfMonthRange).optional(),
+        months: z.array(MonthRange).optional(),
+        years: z.array(YearRange).optional(),
+        location: z.string().default("UTC"), // TODO: Validate this.
+      })
+    ),
   })
   .strict();
 
-export const TimeInterval = z
-  .object({
-    name: z.string(),
-    time_intervals: z.array(TimeIntervalSpec),
-  })
-  .strict();
+export type TimeInterval = z.infer<typeof TimeIntervalSpec>;
 
 // Walks the given routing tree, running `process` for every encountered node.
 export const walkTree = (
   tree: RouteSpec,
   process: (node: RouteSpec, parent?: RouteSpec) => void
 ) => {
-  const to_process = [[tree, undefined]];
+  const to_process: [RouteSpec, RouteSpec | undefined][] = [[tree, undefined]];
   while (to_process.length > 0) {
-    const [node, parent] = to_process.pop();
+    const [node, parent] = to_process.pop()!;
     process(node, parent);
-    if (node.routes) to_process.push(...node.routes.map((n) => [n, node]));
+    if (node.routes) {
+      to_process.push(
+        ...node.routes.map((n): [RouteSpec, RouteSpec | undefined] => [n, node])
+      );
+    }
   }
 };
 
@@ -1169,10 +1175,10 @@ export const AlertmanagerConfigSpec = z
 
     // DEPRECATED: use time_intervals below.
     // A list of mute time intervals for muting routes.
-    mute_time_intervals: z.array(TimeInterval).default([]),
+    mute_time_intervals: z.array(TimeIntervalSpec).default([]),
 
     // A list of time intervals for muting/activating routes.
-    time_intervals: z.array(TimeInterval).default([]),
+    time_intervals: z.array(TimeIntervalSpec).default([]),
   })
   .strict()
   .refine(
@@ -1195,7 +1201,7 @@ export const AlertmanagerConfigSpec = z
   .superRefine((conf, ctx) => {
     // Make sure that all the receivers in the routing tree exist.
     const existingReceiverNames = conf.receivers.map((r) => r.name);
-    let neededReceiverNames = [];
+    let neededReceiverNames: string[] = [];
     conf.route
       ? walkTree(conf.route, (r) =>
           r.receiver ? neededReceiverNames.push(r.receiver) : {}
@@ -1216,7 +1222,7 @@ export const AlertmanagerConfigSpec = z
   })
   .superRefine((conf, ctx) => {
     // Assert that all the receivers etc have unique names.
-    const receiver_names = {};
+    const receiver_names: Record<string, z.infer<typeof ReceiverSpec>> = {};
     conf.receivers.forEach((r) => {
       if (receiver_names[r.name]) {
         ctx.addIssue({
@@ -1228,7 +1234,10 @@ export const AlertmanagerConfigSpec = z
       receiver_names[r.name] = r;
     });
 
-    const time_interval_names = {};
+    const time_interval_names: Record<
+      string,
+      z.infer<typeof TimeIntervalSpec>
+    > = {};
     conf.time_intervals.forEach((r) => {
       if (time_interval_names[r.name]) {
         ctx.addIssue({
@@ -1270,10 +1279,10 @@ export const collapseRoutingTree = (c: AlertmanagerConfig) => {
 
   const toProcess = [c.route];
   while (toProcess.length > 0) {
-    const node = toProcess.pop();
+    const node = toProcess.pop()!;
     // We're not at a leaf node, so we need to get the hashes of all our children.
-    const childHashes = [];
-    const missing = [];
+    const childHashes: string[] = [];
+    const missing: RouteConfig[] = [];
     if (node.routes) {
       node.routes.forEach((n) => {
         const existingID = ids.get(n);

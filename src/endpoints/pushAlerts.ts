@@ -1,11 +1,12 @@
 import { OpenAPIRoute } from "chanfana";
-import { PostableAlert, PostableAlertsSpec } from "../types/api";
+import { PostableAlertsSpec } from "../types/api";
 import { Errors, HTTPResponses } from "../types/http";
 import { Alert, Bindings } from "../types/internal";
 import { Context } from "hono";
-import { checkAPIKey, routingKVTreeKey, toErrorString } from "./utils";
 import { RouteConfig, collapseRoutingTree } from "../types/alertmanager";
 import { fingerprint } from "./utils/fingerprinting";
+import { checkAPIKey, toErrorString } from "./utils/auth";
+import { routingTreeKVKey } from "./utils/kv";
 
 const REGEX_CACHE: Record<string, RegExp> = {};
 
@@ -39,7 +40,7 @@ export class PostConfig extends OpenAPIRoute {
 
     const data = await this.getValidatedData<typeof this.schema>();
     const { account_id } = authResult;
-    const rawConfig = await c.env.CONFIGS.get(routingKVTreeKey(account_id));
+    const rawConfig = await c.env.CONFIGS.get(routingTreeKVKey(account_id));
     if (!rawConfig) {
       c.status(HTTPResponses.InternalServerError);
       return c.text("no config yet");
@@ -51,10 +52,10 @@ export class PostConfig extends OpenAPIRoute {
     const groups: Record<string, Alert[]> = {};
 
     for (const postableAlert of data.body) {
-      const alert = {
+      const alert: Alert = {
         fingerprint: fingerprint(postableAlert.labels).toString(),
         name: postableAlert.labels["name"] ?? "",
-        status: postableAlert.status,
+        startsAt: postableAlert.startsAt ?? Date.now(),
         ...postableAlert,
       };
 
@@ -63,7 +64,7 @@ export class PostConfig extends OpenAPIRoute {
       );
 
       while (toProcess.length > 0) {
-        const nodeID = toProcess.pop();
+        const nodeID = toProcess.pop()!;
         const node = tree[nodeID];
         if (!doesAlertMatchRoute(alert, node)) {
           continue;
@@ -106,7 +107,7 @@ const getRegex = (r: string): RegExp => {
 };
 
 const doesAlertMatchRoute = (
-  a: PostableAlert,
+  a: Alert,
   r: Pick<RouteConfig, "match" | "match_re" | "matchers">
 ) => {
   for (const labelName of Object.keys(r.match)) {

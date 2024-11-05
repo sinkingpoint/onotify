@@ -16,7 +16,7 @@
 		"resolveJsonModule": true,
 		"rootDir": ".",
 		"skipLibCheck": true,
-		"strict": false,
+		"strict": true,
 		"traceResolution": false,
 		"outDir": "",
 		"target": "esnext",

@@ -1,4 +1,4 @@
-import { Bindings } from "../types/internal";
+import { Bindings } from "../../types/internal";
 
 const API_KEY_PREFIX = "notify-";
 
@@ -38,7 +38,7 @@ type APIKeyResult = APIKey | APIKeyError;
 // 3. has all of the required scopes
 export const checkAPIKey = async (
   env: Bindings,
-  auth_header: string,
+  auth_header: string | undefined,
   ...requiredScopes: string[]
 ): Promise<APIKeyResult> => {
   if (!auth_header) {
@@ -62,7 +62,14 @@ export const checkAPIKey = async (
     };
   }
 
-  const data = await env.DB.prepare(
+  type apiKeyResult = {
+    account_id: string;
+    user_id: string;
+    expires: number;
+    scopes: string;
+  };
+
+  const data: D1Result<apiKeyResult> = await env.DB.prepare(
     `SELECT account_id, user_id, expires, scopes FROM api_keys WHERE key=?`
   )
     .bind(key)
@@ -106,28 +113,8 @@ export const checkAPIKey = async (
 
   return {
     result: "ok",
-    account_id: data["account_id"],
-    user_id: data["user_id"],
+    account_id: result["account_id"],
+    user_id: result["user_id"],
     scopes: scopes,
   };
-};
-
-export const globalKVTreeKey = (account_id: string) => {
-  return `onotify-${account_id}-routing-tree`;
-};
-
-export const routingKVTreeKey = (account_id: string) => {
-  return `onotify-${account_id}-routing-tree`;
-};
-
-export const receiversKVKey = (account_id: string) => {
-  return `onotify-${account_id}-routing-tree`;
-};
-
-export const inhibitionsKVKey = (account_id: string): string => {
-  return `onotify-${account_id}-inhibititions`;
-};
-
-export const timeIntervalsKVKey = (account_id: string): string => {
-  return `onotify-${account_id}-time-intervals`;
 };
