@@ -1,5 +1,5 @@
 export const globalTreeKVKey = (account_id: string) => {
-  return `onotify-${account_id}-routing-tree`;
+  return `onotify-${account_id}-global`;
 };
 
 export const routingTreeKVKey = (account_id: string) => {
@@ -7,7 +7,7 @@ export const routingTreeKVKey = (account_id: string) => {
 };
 
 export const receiversKVKey = (account_id: string) => {
-  return `onotify-${account_id}-routing-tree`;
+  return `onotify-${account_id}-receivers`;
 };
 
 export const inhibitionsKVKey = (account_id: string): string => {

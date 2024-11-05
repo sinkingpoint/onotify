@@ -10,7 +10,7 @@ import { routingTreeKVKey } from "./utils/kv";
 
 const REGEX_CACHE: Record<string, RegExp> = {};
 
-export class PostConfig extends OpenAPIRoute {
+export class PostAlerts extends OpenAPIRoute {
   schema = {
     tags: ["config"],
     summary: "Upload an Alertmanager config",
@@ -85,6 +85,8 @@ export class PostConfig extends OpenAPIRoute {
         toProcess.push(...node.routes);
       }
     }
+
+    console.log(groups);
   }
 }
 
