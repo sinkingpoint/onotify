@@ -1,4 +1,5 @@
 import { z, ZodTypeDef } from "zod";
+import hash from "object-hash";
 
 // Returns a Zod refinement that rejects the value if the two fields
 // are not mutually exclusive.
@@ -26,22 +27,24 @@ export const enforceMutuallyExclusive = (
   ];
 };
 
-export const TLSConfigSpec = z.object({
-  // CA certificate to validate the server certificate with.
-  ca_file: z.string().optional(),
+export const TLSConfigSpec = z
+  .object({
+    // CA certificate to validate the server certificate with.
+    ca_file: z.string().optional(),
 
-  // Certificate and key files for client cert authentication to the server.
-  cert_file: z.string().optional(),
-  key_file: z.string().optional(),
+    // Certificate and key files for client cert authentication to the server.
+    cert_file: z.string().optional(),
+    key_file: z.string().optional(),
 
-  // ServerName extension to indicate the name of the server.
-  server_name: z.string().optional(),
+    // ServerName extension to indicate the name of the server.
+    server_name: z.string().optional(),
 
-  // Disable validation of the server certificate.
-  insecure_skip_verify: z.boolean().default(false),
-  min_version: z.string().optional(),
-  max_version: z.string().optional(),
-});
+    // Disable validation of the server certificate.
+    insecure_skip_verify: z.boolean().default(false),
+    min_version: z.string().optional(),
+    max_version: z.string().optional(),
+  })
+  .strict();
 
 export const OAuth2ConfigSpec = z
   .object({
@@ -76,6 +79,7 @@ export const OAuth2ConfigSpec = z
     // Specifies headers to send to proxies during CONNECT requests.
     proxy_connect_header: z.record(z.string(), z.array(z.string())),
   })
+  .strict()
   .refine(
     ...enforceMutuallyExclusive("client_secret", "client_secret_file", true)
   );
@@ -131,6 +135,7 @@ export const HTTPConfigSpec = z
     // Configures the TLS settings.
     tls_config: TLSConfigSpec.default(TLSConfigSpec.parse({})),
   })
+  .strict()
   .refine(...enforceMutuallyExclusive("basic_auth", "authorization"));
 
 export const LabelNameSpec = z.string().refine((val) => {
@@ -179,72 +184,74 @@ export const MatcherSpec = z.string().transform((val) => {
 // TODO: Refine this.
 export const DurationSpec = z.string();
 
-const baseRouteSpec = z.object({
-  receiver: z.string().optional(),
-  // The labels by which incoming alerts are grouped together. For example,
-  // multiple alerts coming in for cluster=A and alertname=LatencyHigh would
-  // be batched into a single group.
-  //
-  // To aggregate by all possible labels use the special value '...' as the sole label name, for example:
-  // group_by: ['...']
-  // This effectively disables aggregation entirely, passing through all
-  // alerts as-is. This is unlikely to be what you want, unless you have
-  // a very low alert volume or your upstream notification system performs
-  // its own grouping.
-  group_by: z.array(z.string()).optional(),
+const baseRouteSpec = z
+  .object({
+    receiver: z.string().optional(),
+    // The labels by which incoming alerts are grouped together. For example,
+    // multiple alerts coming in for cluster=A and alertname=LatencyHigh would
+    // be batched into a single group.
+    //
+    // To aggregate by all possible labels use the special value '...' as the sole label name, for example:
+    // group_by: ['...']
+    // This effectively disables aggregation entirely, passing through all
+    // alerts as-is. This is unlikely to be what you want, unless you have
+    // a very low alert volume or your upstream notification system performs
+    // its own grouping.
+    group_by: z.array(z.string()).optional(),
 
-  // Whether an alert should continue matching subsequent sibling nodes.
-  continue: z.boolean().default(false),
+    // Whether an alert should continue matching subsequent sibling nodes.
+    continue: z.boolean().default(false),
 
-  // DEPRECATED: Use matchers below.
-  // A set of equality matchers an alert has to fulfill to match the node.
-  match: z.record(z.string(), z.string()).default({}),
+    // DEPRECATED: Use matchers below.
+    // A set of equality matchers an alert has to fulfill to match the node.
+    match: z.record(z.string(), z.string()).default({}),
 
-  // DEPRECATED: Use matchers below.
-  // A set of regex-matchers an alert has to fulfill to match the node.
-  match_re: z.record(z.string(), z.string()).default({}),
+    // DEPRECATED: Use matchers below.
+    // A set of regex-matchers an alert has to fulfill to match the node.
+    match_re: z.record(z.string(), z.string()).default({}),
 
-  // A list of matchers that an alert has to fulfill to match the node.
-  matchers: z.array(MatcherSpec).default([]),
+    // A list of matchers that an alert has to fulfill to match the node.
+    matchers: z.array(MatcherSpec).default([]),
 
-  // How long to initially wait to send a notification for a group
-  // of alerts. Allows to wait for an inhibiting alert to arrive or collect
-  // more initial alerts for the same group. (Usually ~0s to few minutes.)
-  // If omitted, child routes inherit the group_wait of the parent route.
-  group_wait: DurationSpec.default("30s"),
+    // How long to initially wait to send a notification for a group
+    // of alerts. Allows to wait for an inhibiting alert to arrive or collect
+    // more initial alerts for the same group. (Usually ~0s to few minutes.)
+    // If omitted, child routes inherit the group_wait of the parent route.
+    group_wait: DurationSpec.default("30s"),
 
-  // How long to wait before sending a notification about new alerts that
-  // are added to a group of alerts for which an initial notification has
-  // already been sent. (Usually ~5m or more.) If omitted, child routes
-  // inherit the group_interval of the parent route.
-  group_interval: DurationSpec.default("5m"),
+    // How long to wait before sending a notification about new alerts that
+    // are added to a group of alerts for which an initial notification has
+    // already been sent. (Usually ~5m or more.) If omitted, child routes
+    // inherit the group_interval of the parent route.
+    group_interval: DurationSpec.default("5m"),
 
-  // How long to wait before sending a notification again if it has already
-  // been sent successfully for an alert. (Usually ~3h or more). If omitted,
-  // child routes inherit the repeat_interval of the parent route.
-  // Note that this parameter is implicitly bound by Alertmanager's
-  // `--data.retention` configuration flag. Notifications will be resent after either
-  // repeat_interval or the data retention period have passed, whichever
-  // occurs first. `repeat_interval` should be a multiple of `group_interval`.
-  repeat_interval: DurationSpec.default("4h"),
+    // How long to wait before sending a notification again if it has already
+    // been sent successfully for an alert. (Usually ~3h or more). If omitted,
+    // child routes inherit the repeat_interval of the parent route.
+    // Note that this parameter is implicitly bound by Alertmanager's
+    // `--data.retention` configuration flag. Notifications will be resent after either
+    // repeat_interval or the data retention period have passed, whichever
+    // occurs first. `repeat_interval` should be a multiple of `group_interval`.
+    repeat_interval: DurationSpec.default("4h"),
 
-  // Times when the route should be muted. These must match the name of a
-  // mute time interval defined in the mute_time_intervals section.
-  // Additionally, the root node cannot have any mute times.
-  // When a route is muted it will not send any notifications, but
-  // otherwise acts normally (including ending the route-matching process
-  // if the `continue` option is not set.)
-  mute_time_intervals: z.array(z.string()).default([]),
+    // Times when the route should be muted. These must match the name of a
+    // mute time interval defined in the mute_time_intervals section.
+    // Additionally, the root node cannot have any mute times.
+    // When a route is muted it will not send any notifications, but
+    // otherwise acts normally (including ending the route-matching process
+    // if the `continue` option is not set.)
+    mute_time_intervals: z.array(z.string()).default([]),
 
-  // Times when the route should be active. These must match the name of a
-  // time interval defined in the time_intervals section. An empty value
-  // means that the route is always active.
-  // Additionally, the root node cannot have any active times.
-  // The route will send notifications only when active, but otherwise
-  // acts normally (including ending the route-matching process
-  // if the `continue` option is not set).
-  active_time_intervals: z.array(z.string()).default([]),
-});
+    // Times when the route should be active. These must match the name of a
+    // time interval defined in the time_intervals section. An empty value
+    // means that the route is always active.
+    // Additionally, the root node cannot have any active times.
+    // The route will send notifications only when active, but otherwise
+    // acts normally (including ending the route-matching process
+    // if the `continue` option is not set).
+    active_time_intervals: z.array(z.string()).default([]),
+  })
+  .strict();
 
 type inRouteSpec = z.input<typeof baseRouteSpec> & {
   routes?: inRouteSpec[];
@@ -257,9 +264,11 @@ type outRouteSpec = z.output<typeof baseRouteSpec> & {
 type RouteSpec = outRouteSpec;
 
 export const RouteConfigSpec: z.ZodType<outRouteSpec, ZodTypeDef, inRouteSpec> =
-  baseRouteSpec.extend({
-    routes: z.lazy(() => RouteConfigSpec.array()).optional(),
-  });
+  baseRouteSpec
+    .extend({
+      routes: z.lazy(() => RouteConfigSpec.array()).optional(),
+    })
+    .strict();
 
 export const DiscordConfigSpec = z
   .object({
@@ -276,6 +285,7 @@ export const DiscordConfigSpec = z
     message: z.string().default('{{ template "discord.default.message" . }}'),
     http_config: HTTPConfigSpec.optional(),
   })
+  .strict()
   .refine(...enforceMutuallyExclusive("webhook_url", "webhook_url_file", true));
 
 export const EmailConfigSpec = z
@@ -313,6 +323,7 @@ export const EmailConfigSpec = z
     text: z.string().optional(),
     headers: z.record(z.string(), z.string()).default({}),
   })
+  .strict()
   .refine(...enforceMutuallyExclusive("auth_password", "auth_password_file"))
   .refine(...enforceMutuallyExclusive("html", "text", false));
 
@@ -335,14 +346,17 @@ export const MSTeamsConfigSpec = z
     // The HTTP client's configuration.
     http_config: HTTPConfigSpec.optional(),
   })
+  .strict()
   .refine(...enforceMutuallyExclusive("webhook_url", "webhook_url_file", true));
 
-export const OpsGenieRespondersSpec = z.object({
-  id: z.string().optional(),
-  name: z.string().optional(),
-  username: z.string().optional(),
-  type: z.string(),
-});
+export const OpsGenieRespondersSpec = z
+  .object({
+    id: z.string().optional(),
+    name: z.string().optional(),
+    username: z.string().optional(),
+    type: z.string(),
+  })
+  .strict();
 
 export const OpsGenieConfigSpec = z
   .object({
@@ -397,18 +411,23 @@ export const OpsGenieConfigSpec = z
 
     http_config: HTTPConfigSpec.optional(),
   })
+  .strict()
   .refine(...enforceMutuallyExclusive("api_key", "api_key_file", true));
 
-export const PagerdutyImageConfigSpec = z.object({
-  href: z.string().optional(),
-  src: z.string().optional(),
-  alt: z.string().optional(),
-});
+export const PagerdutyImageConfigSpec = z
+  .object({
+    href: z.string().optional(),
+    src: z.string().optional(),
+    alt: z.string().optional(),
+  })
+  .strict();
 
-export const PagerdutyLinkConfigSpec = z.object({
-  href: z.string().optional(),
-  text: z.string().optional(),
-});
+export const PagerdutyLinkConfigSpec = z
+  .object({
+    href: z.string().optional(),
+    text: z.string().optional(),
+  })
+  .strict();
 
 export const PagerdutyConfigSpec = z
   .object({
@@ -479,6 +498,7 @@ export const PagerdutyConfigSpec = z
 
     http_config: HTTPConfigSpec.optional(),
   })
+  .strict()
   .refine(...enforceMutuallyExclusive("routing_key", "routing_key_file"))
   .refine(...enforceMutuallyExclusive("service_key", "service_key_file"));
 
@@ -531,33 +551,40 @@ export const PushoverConfigSpec = z
 
     http_config: HTTPConfigSpec.optional(),
   })
+  .strict()
   .refine(...enforceMutuallyExclusive("user_key", "user_key_file", true))
   .refine(...enforceMutuallyExclusive("token", "token_file", true));
 
-export const SlackActionConfirmFieldConfigSpec = z.object({
-  text: z.string(),
-  dismiss_text: z.string().default(""),
-  ok_text: z.string().default(""),
-  title: z.string().default(""),
-});
+export const SlackActionConfirmFieldConfigSpec = z
+  .object({
+    text: z.string(),
+    dismiss_text: z.string().default(""),
+    ok_text: z.string().default(""),
+    title: z.string().default(""),
+  })
+  .strict();
 
-export const SlackActionConfigSpec = z.object({
-  text: z.string(),
-  type: z.string(),
-  // Either url or name and value are mandatory.
-  url: z.string().optional(),
-  name: z.string().optional(),
-  value: z.string().optional(),
+export const SlackActionConfigSpec = z
+  .object({
+    text: z.string(),
+    type: z.string(),
+    // Either url or name and value are mandatory.
+    url: z.string().optional(),
+    name: z.string().optional(),
+    value: z.string().optional(),
 
-  confirm: SlackActionConfirmFieldConfigSpec.optional(),
-  style: z.string().default(""),
-});
+    confirm: SlackActionConfirmFieldConfigSpec.optional(),
+    style: z.string().default(""),
+  })
+  .strict();
 
-export const SlackFieldConfigSpec = z.object({
-  title: z.string(),
-  value: z.string(),
-  short: z.boolean().optional(),
-});
+export const SlackFieldConfigSpec = z
+  .object({
+    title: z.string(),
+    value: z.string(),
+    short: z.boolean().optional(),
+  })
+  .strict();
 
 export const SlackConfigSpec = z
   .object({
@@ -602,61 +629,66 @@ export const SlackConfigSpec = z
 
     http_config: HTTPConfigSpec.optional(),
   })
+  .strict()
   .refine(...enforceMutuallyExclusive("api_url", "api_url_file", true));
 
-export const AWSSigv4ConfigSpec = z.object({
-  // The AWS region. If blank, the region from the default credentials chain is used.
-  region: z.string().optional(),
+export const AWSSigv4ConfigSpec = z
+  .object({
+    // The AWS region. If blank, the region from the default credentials chain is used.
+    region: z.string().optional(),
 
-  // The AWS API keys. Both access_key and secret_key must be supplied or both must be blank.
-  // If blank the environment variables `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` are used.
-  access_key: z.string().optional(),
-  secret_key: z.string().optional(),
+    // The AWS API keys. Both access_key and secret_key must be supplied or both must be blank.
+    // If blank the environment variables `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` are used.
+    access_key: z.string().optional(),
+    secret_key: z.string().optional(),
 
-  // Named AWS profile used to authenticate.
-  profile: z.string().optional(),
+    // Named AWS profile used to authenticate.
+    profile: z.string().optional(),
 
-  // AWS Role ARN, an alternative to using AWS API keys.
-  role_arn: z.string().optional(),
-});
+    // AWS Role ARN, an alternative to using AWS API keys.
+    role_arn: z.string().optional(),
+  })
+  .strict();
 
-export const SNSConfigSpec = z.object({
-  // Whether to notify about resolved alerts.
-  send_resolved: z.boolean().default(true),
+export const SNSConfigSpec = z
+  .object({
+    // Whether to notify about resolved alerts.
+    send_resolved: z.boolean().default(true),
 
-  // The SNS API URL i.e. https://sns.us-east-2.amazonaws.com.
-  // If not specified, the SNS API URL from the SNS SDK will be used.
-  api_url: z.string().optional(),
+    // The SNS API URL i.e. https://sns.us-east-2.amazonaws.com.
+    // If not specified, the SNS API URL from the SNS SDK will be used.
+    api_url: z.string().optional(),
 
-  // Configures AWS's Signature Verification 4 signing process to sign requests.
-  sigv4: AWSSigv4ConfigSpec.optional(),
+    // Configures AWS's Signature Verification 4 signing process to sign requests.
+    sigv4: AWSSigv4ConfigSpec.optional(),
 
-  // SNS topic ARN, i.e. arn:aws:sns:us-east-2:698519295917:My-Topic
-  // If you don't specify this value, you must specify a value for the phone_number or target_arn.
-  // If you are using a FIFO SNS topic you should set a message group interval longer than 5 minutes
-  // to prevent messages with the same group key being deduplicated by the SNS default deduplication window
-  topic_arn: z.string().optional(),
+    // SNS topic ARN, i.e. arn:aws:sns:us-east-2:698519295917:My-Topic
+    // If you don't specify this value, you must specify a value for the phone_number or target_arn.
+    // If you are using a FIFO SNS topic you should set a message group interval longer than 5 minutes
+    // to prevent messages with the same group key being deduplicated by the SNS default deduplication window
+    topic_arn: z.string().optional(),
 
-  // Subject line when the message is delivered to email endpoints.
-  subject: z.string().default('{{ template "sns.default.subject" .}}'),
+    // Subject line when the message is delivered to email endpoints.
+    subject: z.string().default('{{ template "sns.default.subject" .}}'),
 
-  // Phone number if message is delivered via SMS in E.164 format.
-  // If you don't specify this value, you must specify a value for the topic_arn or target_arn.
-  phone_number: z.string().optional(),
+    // Phone number if message is delivered via SMS in E.164 format.
+    // If you don't specify this value, you must specify a value for the topic_arn or target_arn.
+    phone_number: z.string().optional(),
 
-  // The  mobile platform endpoint ARN if message is delivered via mobile notifications.
-  // If you don't specify this value, you must specify a value for the topic_arn or phone_number.
-  target_arn: z.string().optional(),
+    // The  mobile platform endpoint ARN if message is delivered via mobile notifications.
+    // If you don't specify this value, you must specify a value for the topic_arn or phone_number.
+    target_arn: z.string().optional(),
 
-  // The message content of the SNS notification.
-  message: z.string().default('{{ template "sns.default.message" .}}'),
+    // The message content of the SNS notification.
+    message: z.string().default('{{ template "sns.default.message" .}}'),
 
-  // SNS message attributes.
-  attributes: z.record(z.string(), z.string()).default({}),
+    // SNS message attributes.
+    attributes: z.record(z.string(), z.string()).default({}),
 
-  // The HTTP client's configuration.
-  http_config: HTTPConfigSpec.optional(),
-});
+    // The HTTP client's configuration.
+    http_config: HTTPConfigSpec.optional(),
+  })
+  .strict();
 
 export const TelegramConfigSpec = z
   .object({
@@ -686,6 +718,7 @@ export const TelegramConfigSpec = z
 
     http_config: HTTPConfigSpec.optional(),
   })
+  .strict()
   .refine(...enforceMutuallyExclusive("bot_token", "bot_token_file", true));
 
 export const VictorOpsConfigSpec = z
@@ -727,6 +760,7 @@ export const VictorOpsConfigSpec = z
 
     http_config: HTTPConfigSpec.optional(),
   })
+  .strict()
   .refine(...enforceMutuallyExclusive("api_key", "api_key_file"));
 
 export const WebhookConfigSpec = z
@@ -736,8 +770,8 @@ export const WebhookConfigSpec = z
 
     // The endpoint to send HTTP POST requests to.
     // url and url_file are mutually exclusive.
-    url: z.string(),
-    url_file: z.string(),
+    url: z.string().optional(),
+    url_file: z.string().optional(),
 
     http_config: HTTPConfigSpec.optional(),
 
@@ -745,32 +779,35 @@ export const WebhookConfigSpec = z
     // above this threshold are truncated. When leaving this at its default value of 0, all alerts are included.
     max_alerts: z.number().int().default(0),
   })
+  .strict()
   .refine(...enforceMutuallyExclusive("url", "url_file", true));
 
-export const WeChatConfigSpec = z.object({
-  // Whether to notify about resolved alerts.
-  send_resolved: z.boolean().default(false),
+export const WeChatConfigSpec = z
+  .object({
+    // Whether to notify about resolved alerts.
+    send_resolved: z.boolean().default(false),
 
-  // The API key to use when talking to the WeChat API.
-  api_secret: z.string().optional(),
+    // The API key to use when talking to the WeChat API.
+    api_secret: z.string().optional(),
 
-  // The WeChat API URL.
-  api_url: z.string().optional(),
+    // The WeChat API URL.
+    api_url: z.string().optional(),
 
-  // The corp id for authentication.
-  corp_id: z.string().optional(),
+    // The corp id for authentication.
+    corp_id: z.string().optional(),
 
-  // API request data as defined by the WeChat API.
-  message: z.string().default('{{ template "wechat.default.message" . }}'),
+    // API request data as defined by the WeChat API.
+    message: z.string().default('{{ template "wechat.default.message" . }}'),
 
-  // Type of the message type, supported values are `text` and `markdown`.
-  message_type: z.string().default("text"),
+    // Type of the message type, supported values are `text` and `markdown`.
+    message_type: z.string().default("text"),
 
-  agent_id: z.string().default('{{ template "wechat.default.agent_id" . }}'),
-  to_user: z.string().default('{{ template "wechat.default.to_user" . }}'),
-  to_party: z.string().default('{{ template "wechat.default.to_party" . }}'),
-  to_tag: z.string().default('{{ template "wechat.default.to_tag" . }}'),
-});
+    agent_id: z.string().default('{{ template "wechat.default.agent_id" . }}'),
+    to_user: z.string().default('{{ template "wechat.default.to_user" . }}'),
+    to_party: z.string().default('{{ template "wechat.default.to_party" . }}'),
+    to_tag: z.string().default('{{ template "wechat.default.to_tag" . }}'),
+  })
+  .strict();
 
 export const WebexConfigSpec = z.object({
   // Whether to notify about resolved alerts.
@@ -789,47 +826,51 @@ export const WebexConfigSpec = z.object({
   http_config: HTTPConfigSpec.optional(),
 });
 
-export const ReceiverSpec = z.object({
-  name: z.string(),
-  discord_configs: z.array(DiscordConfigSpec).optional(),
-  email_configs: z.array(EmailConfigSpec).optional(),
-  msteams_config: z.array(MSTeamsConfigSpec).optional(),
-  opsgenie_configs: z.array(OpsGenieConfigSpec).optional(),
-  pagerduty_configs: z.array(PagerdutyConfigSpec).optional(),
-  pushover_configs: z.array(PushoverConfigSpec).optional(),
-  slack_configs: z.array(SlackConfigSpec).optional(),
-  sns_configs: z.array(SNSConfigSpec).optional(),
-  telegram_configs: z.array(TelegramConfigSpec).optional(),
-  victorops_configs: z.array(VictorOpsConfigSpec).optional(),
-  webex_configs: z.array(WebexConfigSpec).optional(),
-  webhook_configs: z.array(WebhookConfigSpec).optional(),
-  wechat_configs: z.array(WeChatConfigSpec).optional(),
-});
+export const ReceiverSpec = z
+  .object({
+    name: z.string(),
+    discord_configs: z.array(DiscordConfigSpec).optional(),
+    email_configs: z.array(EmailConfigSpec).optional(),
+    msteams_config: z.array(MSTeamsConfigSpec).optional(),
+    opsgenie_configs: z.array(OpsGenieConfigSpec).optional(),
+    pagerduty_configs: z.array(PagerdutyConfigSpec).optional(),
+    pushover_configs: z.array(PushoverConfigSpec).optional(),
+    slack_configs: z.array(SlackConfigSpec).optional(),
+    sns_configs: z.array(SNSConfigSpec).optional(),
+    telegram_configs: z.array(TelegramConfigSpec).optional(),
+    victorops_configs: z.array(VictorOpsConfigSpec).optional(),
+    webex_configs: z.array(WebexConfigSpec).optional(),
+    webhook_configs: z.array(WebhookConfigSpec).optional(),
+    wechat_configs: z.array(WeChatConfigSpec).optional(),
+  })
+  .strict();
 
-export const InhibitRuleSpec = z.object({
-  // DEPRECATED: Use target_matchers below.
-  // Matchers that have to be fulfilled in the alerts to be muted.
-  target_match: z.record(LabelNameSpec, z.string()).optional(),
+export const InhibitRuleSpec = z
+  .object({
+    // DEPRECATED: Use target_matchers below.
+    // Matchers that have to be fulfilled in the alerts to be muted.
+    target_match: z.record(LabelNameSpec, z.string()).optional(),
 
-  // DEPRECATED: Use target_matchers below.
-  target_match_re: z.record(LabelNameSpec, z.string()).optional(),
+    // DEPRECATED: Use target_matchers below.
+    target_match_re: z.record(LabelNameSpec, z.string()).optional(),
 
-  // A list of matchers that have to be fulfilled by the target alerts to be muted.
-  target_matchers: z.array(MatcherSpec).optional(),
+    // A list of matchers that have to be fulfilled by the target alerts to be muted.
+    target_matchers: z.array(MatcherSpec).optional(),
 
-  // DEPRECATED: Use source_matchers below.
-  // Matchers for which one or more alerts have to exist for the inhibition to take effect.
-  source_match: z.record(LabelNameSpec, z.string()).optional(),
+    // DEPRECATED: Use source_matchers below.
+    // Matchers for which one or more alerts have to exist for the inhibition to take effect.
+    source_match: z.record(LabelNameSpec, z.string()).optional(),
 
-  // DEPRECATED: Use source_matchers below.
-  source_match_re: z.record(LabelNameSpec, z.string()).optional(),
+    // DEPRECATED: Use source_matchers below.
+    source_match_re: z.record(LabelNameSpec, z.string()).optional(),
 
-  // A list of matchers for which one or more alerts have to exist for the inhibition to take effect.
-  source_matchers: z.array(MatcherSpec).optional(),
+    // A list of matchers for which one or more alerts have to exist for the inhibition to take effect.
+    source_matchers: z.array(MatcherSpec).optional(),
 
-  // Labels that must have an equal value in the source and target alert for the inhibition to take effect.
-  equal: z.array(LabelNameSpec).default([]),
-});
+    // Labels that must have an equal value in the source and target alert for the inhibition to take effect.
+    equal: z.array(LabelNameSpec).default([]),
+  })
+  .strict();
 
 export const TimeSpec = z.string().transform((val) => {
   let parts = val.split(":").map((n) => parseInt(n));
@@ -1014,24 +1055,30 @@ export const YearRange = z.string().transform((a) => {
   return { type: "range", start: p1, end: p2 };
 });
 
-export const TimeRangeSpec = z.object({
-  start_time: TimeSpec,
-  end_type: TimeSpec,
-});
+export const TimeRangeSpec = z
+  .object({
+    start_time: TimeSpec,
+    end_time: TimeSpec,
+  })
+  .strict();
 
-export const TimeIntervalSpec = z.object({
-  times: z.array(TimeRangeSpec).optional(),
-  weekdays: z.array(WeekdayRangeSpec).optional(),
-  days_of_month: z.array(DaysOfMonthRange).optional(),
-  months: z.array(MonthRange).optional(),
-  years: z.array(YearRange).optional(),
-  location: z.string(), // TODO: Validate this.
-});
+export const TimeIntervalSpec = z
+  .object({
+    times: z.array(TimeRangeSpec).optional(),
+    weekdays: z.array(WeekdayRangeSpec).optional(),
+    days_of_month: z.array(DaysOfMonthRange).optional(),
+    months: z.array(MonthRange).optional(),
+    years: z.array(YearRange).optional(),
+    location: z.string().default("UTC"), // TODO: Validate this.
+  })
+  .strict();
 
-export const TimeInterval = z.object({
-  name: z.string(),
-  time_intervals: z.array(TimeIntervalSpec),
-});
+export const TimeInterval = z
+  .object({
+    name: z.string(),
+    time_intervals: z.array(TimeIntervalSpec),
+  })
+  .strict();
 
 // Walks the given routing tree, running `process` for every encountered node.
 export const walkTree = (
@@ -1046,7 +1093,7 @@ export const walkTree = (
   }
 };
 
-export const AlertmanagerConfigSpec = z
+export const GlobalConfigSpec = z
   .object({
     // The default SMTP `from` header field.
     smtp_from: z.string().optional(),
@@ -1101,7 +1148,12 @@ export const AlertmanagerConfigSpec = z
     // not include EndsAt, after this time passes it can declare the alert as resolved if it has not been updated.
     // This has no impact on alerts from Prometheus, as they always include EndsAt.
     resolve_timeout: z.string().default("5s"),
+  })
+  .strict();
 
+export const AlertmanagerConfigSpec = z
+  .object({
+    global: GlobalConfigSpec.default(GlobalConfigSpec.parse({})),
     // Files from which custom notification template definitions are read.
     // The last component may use a wildcard matcher, e.g. 'templates/*.tmpl'.
     templates: z.array(z.string()).default([]),
@@ -1117,11 +1169,12 @@ export const AlertmanagerConfigSpec = z
 
     // DEPRECATED: use time_intervals below.
     // A list of mute time intervals for muting routes.
-    mute_time_interval: z.array(z.string()).default([]),
+    mute_time_intervals: z.array(TimeInterval).default([]),
 
     // A list of time intervals for muting/activating routes.
     time_intervals: z.array(TimeInterval).default([]),
   })
+  .strict()
   .refine(
     ...enforceMutuallyExclusive("smtp_auth_password", "smtp_auth_password_file")
   )
@@ -1161,6 +1214,32 @@ export const AlertmanagerConfigSpec = z
       });
     }
   })
+  .superRefine((conf, ctx) => {
+    // Assert that all the receivers etc have unique names.
+    const receiver_names = {};
+    conf.receivers.forEach((r) => {
+      if (receiver_names[r.name]) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `receiver ${r.name} is defined multiple times`,
+        });
+      }
+
+      receiver_names[r.name] = r;
+    });
+
+    const time_interval_names = {};
+    conf.time_intervals.forEach((r) => {
+      if (time_interval_names[r.name]) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `time interval ${r.name} is defined multiple times`,
+        });
+      }
+
+      time_interval_names[r.name] = r;
+    });
+  })
   .transform((conf) => {
     // Walk the routing tree and solidify all the arguments by passing them down.
     walkTree(conf.route, (node, parent) => {
@@ -1178,3 +1257,46 @@ export const AlertmanagerConfigSpec = z
 
 export type AlertmanagerConfig = z.infer<typeof AlertmanagerConfigSpec>;
 export type RouteConfig = z.infer<typeof RouteConfigSpec>;
+
+type FlatRouteConfig = Omit<RouteConfig, "routes"> & {
+  routes: string[];
+};
+
+// collapseRoutingTree takes a nested Alertmanager routing tree and turns it into a flat list of nodes, with an associated ID.
+export const collapseRoutingTree = (c: AlertmanagerConfig) => {
+  const ids: Map<RouteConfig, string> = new Map();
+  const flatNodes: Record<string, FlatRouteConfig> = {};
+
+  const toProcess = [c.route];
+  while (toProcess.length > 0) {
+    const node = toProcess.pop();
+    // We're not at a leaf node, so we need to get the hashes of all our children.
+    const childHashes = [];
+    const missing = [];
+    if (node.routes) {
+      node.routes.forEach((n) => {
+        const existingID = ids.get(n);
+        if (existingID) {
+          childHashes.push(existingID);
+        } else {
+          missing.push(n);
+        }
+      });
+
+      if (missing.length > 0) {
+        // We have missing children that we need to calculate the ids for. So we push
+        // this node, and then all the missing children, so that they will get processed before this node again.
+        toProcess.push(node);
+        missing.forEach((n) => toProcess.push(n));
+        continue;
+      }
+    }
+
+    const dehydratedNode = { ...node, routes: childHashes };
+    const nodeHash = hash(dehydratedNode);
+    ids.set(node, nodeHash);
+    flatNodes[nodeHash] = dehydratedNode;
+  }
+
+  return flatNodes;
+};

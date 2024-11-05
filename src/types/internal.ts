@@ -1,8 +1,6 @@
-import { AccountController } from "../dos/account-controller";
-
 export interface Bindings {
   DB: D1Database;
-  ACCOUNT_CONTROLLER: DurableObjectNamespace<AccountController>;
+  CONFIGS: KVNamespace;
 }
 
 export interface Alert {

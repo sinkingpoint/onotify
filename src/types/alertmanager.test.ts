@@ -1,5 +1,6 @@
 import {
   AlertmanagerConfigSpec,
+  collapseRoutingTree,
   DaysOfMonthRange,
   MatcherSpec,
   MonthRange,
@@ -9,6 +10,7 @@ import {
 } from "./alertmanager";
 
 import fs from "fs";
+import yaml from "js-yaml";
 
 test("TimeSpec 01:23", () => {
   expect(TimeSpec.parse("01:23")).toEqual({ hour: 1, minute: 23 });
@@ -219,11 +221,15 @@ test("MatcherSpec missing quote", () => {
   expect(() => MatcherSpec.parse(`a=b\""`)).toThrow();
 });
 
+const readYamlFile = (path: string): any => {
+  const rawConfig = fs.readFileSync(path).toString();
+  return yaml.load(rawConfig);
+};
+
 test("Full Config", () => {
-  const rawConfig = fs
-    .readFileSync("testdata/alertmanager-config.json")
-    .toString();
-  const config = AlertmanagerConfigSpec.parse(JSON.parse(rawConfig));
+  const config = AlertmanagerConfigSpec.parse(
+    readYamlFile("testdata/simple.yaml")
+  );
 
   // Test that configs get filtered down the tree.
   expect(config.route.group_wait).toEqual("30s");
@@ -234,4 +240,20 @@ test("Full Config", () => {
     "cluster",
     "service",
   ]);
+  expect(config.mute_time_intervals);
+});
+
+test("duplicated route", () => {
+  const raw = readYamlFile("testdata/duplicated-receiver.yaml");
+  expect(() => AlertmanagerConfigSpec.parse(raw)).toThrow();
+});
+
+test("unknown value", () => {
+  const raw = readYamlFile("testdata/unknown-value.yaml");
+  expect(() => AlertmanagerConfigSpec.parse(raw)).toThrow();
+});
+
+test("duplicated time interval", () => {
+  const raw = readYamlFile("testdata/duplicated-time-interval-1.yaml");
+  expect(() => AlertmanagerConfigSpec.parse(raw)).toThrow();
 });

@@ -11,14 +11,18 @@
 	"dependencies": {
 		"chanfana": "^2.0.2",
 		"hono": "^4.4.7",
+		"object-hash": "^3.0.0",
 		"zod": "^3.23.8"
 	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "^4.20241022.0",
 		"@types/jest": "^29.5.14",
+		"@types/js-yaml": "^4.0.9",
 		"@types/node": "20.8.3",
+		"@types/object-hash": "^3.0.6",
 		"@types/service-worker-mock": "^2.0.1",
 		"jest": "^29.7.0",
+		"js-yaml": "^4.1.0",
 		"ts-jest": "^29.2.5",
 		"wrangler": "^3.60.3"
 	}
