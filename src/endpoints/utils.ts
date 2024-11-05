@@ -7,6 +7,22 @@ interface APIKeyError {
   text?: string;
 }
 
+export const toErrorString = (e: APIKeyError) => {
+  const ext = e.text ? `: ${e.text}` : "";
+  switch (e.result) {
+    case "missing":
+      return `Missing Authorization Header${ext}`;
+    case "malformed":
+      return `Malformed API Key:${ext}`;
+    case "expired":
+      return `Expired API Key:${ext}`;
+    case "invalid":
+      return `Invalid API Key:${ext}`;
+    case "missing scope":
+      return `API Key is not allowed to do that: ${ext}`;
+  }
+};
+
 interface APIKey {
   result: "ok";
   account_id: string;
@@ -35,7 +51,7 @@ export const checkAPIKey = async (
   if (bearer !== "Bearer") {
     return {
       result: "malformed",
-      text: "missing bearer prefix",
+      text: "missing Bearer prefix",
     };
   }
 
@@ -94,4 +110,16 @@ export const checkAPIKey = async (
     user_id: data["user_id"],
     scopes: scopes,
   };
+};
+
+export const routingKVTreeKey = (account_id: string) => {
+  return `onotify-${account_id}-routing-tree`;
+};
+
+export const receiversKVKey = (account_id: string) => {
+  return `onotify-${account_id}-routing-tree`;
+};
+
+export const inhibitionsKVKey = (account_id): string => {
+  return `onotify-${account_id}-inhibititions`;
 };
