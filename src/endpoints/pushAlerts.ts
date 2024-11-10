@@ -11,6 +11,8 @@ import {
 import { fingerprint } from "./utils/fingerprinting";
 import { checkAPIKey, toErrorString } from "./utils/auth";
 import { routingTreeKVKey } from "./utils/kv";
+import { matcherMatches } from "../utils/matcher";
+import { getAnchoredRegex } from "../utils/regex";
 
 const REGEX_CACHE: Record<string, RegExp> = {};
 
@@ -145,24 +147,6 @@ const groupAlert = (
   }
 };
 
-// Gets a compiled version of the given regexp, from the cache if we have already run one.
-const getRegex = (r: string): RegExp => {
-  // Pad with start and end chars so that we have to match the whole thing
-  if (!r.startsWith("^")) {
-    r = `^${r}`;
-  }
-
-  if (!r.endsWith("$")) {
-    r = `${r}$`;
-  }
-
-  if (!REGEX_CACHE[r]) {
-    REGEX_CACHE[r] = new RegExp(r);
-  }
-
-  return REGEX_CACHE[r];
-};
-
 const doesAlertMatchRoute = (
   a: Alert,
   r: Pick<RouteConfig, "match" | "match_re" | "matchers">
@@ -174,34 +158,15 @@ const doesAlertMatchRoute = (
   }
 
   for (const labelName of Object.keys(r.match_re)) {
-    const regexp = getRegex(r.match_re[labelName]);
+    const regexp = getAnchoredRegex(r.match_re[labelName]);
     if (!regexp.test(a.labels[labelName] ?? "")) {
       return false;
     }
   }
 
   for (const m of r.matchers) {
-    const testValue = a.labels[m.label_name] ?? "";
-    switch (m.matcher) {
-      case "=":
-        if (testValue !== m.label_value) {
-          return false;
-        }
-        break;
-      case "!=":
-        if (testValue === m.label_value) {
-          return false;
-        }
-        break;
-      case "=~":
-      case "!~":
-        const regex = getRegex(m.label_value);
-        if (m.matcher === "=~" && !regex.test(testValue)) {
-          return false;
-        } else if (m.matcher === "!~" && regex.test(testValue)) {
-          return false;
-        }
-        break;
+    if (!matcherMatches(m, a, REGEX_CACHE)) {
+      return false;
     }
   }
 

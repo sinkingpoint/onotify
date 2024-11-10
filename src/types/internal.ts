@@ -1,4 +1,5 @@
 import { AlertGroupController } from "..";
+import { PostableSilence } from "./api";
 
 export interface Bindings {
   DB: D1Database;
@@ -33,3 +34,8 @@ export interface AlertGroup {
   labels: string[];
   alerts: Alert[];
 }
+
+export type Silence = PostableSilence & {
+  id: string;
+  updatedAt: number;
+};

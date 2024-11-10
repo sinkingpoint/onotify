@@ -1,5 +1,6 @@
 import { z, ZodTypeDef } from "zod";
 import hash from "object-hash";
+import { Matcher } from "./api";
 
 // Returns a Zod refinement that rejects the value if the two fields
 // are not mutually exclusive.
@@ -165,19 +166,27 @@ const unquote = (s: string): string => {
   return unquoted;
 };
 
-export const MatcherSpec = z.string().transform((val) => {
+export const StringMatcherSpec = z.string().transform((val): Matcher => {
   const parts = val.match(/^([^{}!=~,\\"'`\s]+)(=|!=|=~|!~)(".+")$/);
 
   if (!parts || parts.length != 4) {
     throw `expected a valid matcher, not ${val}`;
   }
 
-  const matcher = unquote(parts[3]);
+  const [_, labelName, matcher, rawValue] = parts;
+
+  const isEqual = matcher === "=" || matcher === "=~";
+  const isRegex = matcher === "=~" || matcher === "!~";
+  let value = unquote(rawValue);
+  if (isRegex && !value.startsWith("^")) {
+    value = `^${value}`;
+  }
 
   return {
-    label_name: parts[1],
-    matcher: parts[2],
-    label_value: matcher,
+    name: labelName,
+    value: unquote(rawValue),
+    isEqual,
+    isRegex,
   };
 });
 
@@ -373,7 +382,7 @@ const baseRouteSpec = z
     match_re: z.record(z.string(), z.string()).default({}),
 
     // A list of matchers that an alert has to fulfill to match the node.
-    matchers: z.array(MatcherSpec).default([]),
+    matchers: z.array(StringMatcherSpec).default([]),
 
     // How long to initially wait to send a notification for a group
     // of alerts. Allows to wait for an inhibiting alert to arrive or collect
@@ -1019,7 +1028,7 @@ export const InhibitRuleSpec = z
     target_match_re: z.record(LabelNameSpec, z.string()).optional(),
 
     // A list of matchers that have to be fulfilled by the target alerts to be muted.
-    target_matchers: z.array(MatcherSpec).optional(),
+    target_matchers: z.array(StringMatcherSpec).optional(),
 
     // DEPRECATED: Use source_matchers below.
     // Matchers for which one or more alerts have to exist for the inhibition to take effect.
@@ -1029,7 +1038,7 @@ export const InhibitRuleSpec = z
     source_match_re: z.record(LabelNameSpec, z.string()).optional(),
 
     // A list of matchers for which one or more alerts have to exist for the inhibition to take effect.
-    source_matchers: z.array(MatcherSpec).optional(),
+    source_matchers: z.array(StringMatcherSpec).optional(),
 
     // Labels that must have an equal value in the source and target alert for the inhibition to take effect.
     equal: z.array(LabelNameSpec).default([]),

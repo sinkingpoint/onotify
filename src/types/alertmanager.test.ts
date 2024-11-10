@@ -3,7 +3,7 @@ import {
   collapseRoutingTree,
   DaysOfMonthRange,
   DurationSpec,
-  MatcherSpec,
+  StringMatcherSpec,
   MonthRange,
   TimeSpec,
   WeekdayRangeSpec,
@@ -179,47 +179,52 @@ test("YearRange not a 2024:2020", () => {
 });
 
 test("MatcherSpec a=b", () => {
-  expect(MatcherSpec.parse(`a="b"`)).toEqual({
-    label_name: "a",
-    matcher: "=",
-    label_value: "b",
+  expect(StringMatcherSpec.parse(`a="b"`)).toEqual({
+    name: "a",
+    value: "b",
+    isEqual: true,
+    isRegex: false,
   });
 });
 
 test("MatcherSpec a!=b", () => {
-  expect(MatcherSpec.parse(`a!="b"`)).toEqual({
-    label_name: "a",
-    matcher: "!=",
-    label_value: "b",
+  expect(StringMatcherSpec.parse(`a!="b"`)).toEqual({
+    name: "a",
+    value: "b",
+    isEqual: false,
+    isRegex: false,
   });
 });
 
 test("MatcherSpec a=~b", () => {
-  expect(MatcherSpec.parse(`a=~"b"`)).toEqual({
-    label_name: "a",
-    matcher: "=~",
-    label_value: "b",
+  expect(StringMatcherSpec.parse(`a=~"b"`)).toEqual({
+    name: "a",
+    value: "b",
+    isEqual: true,
+    isRegex: true,
   });
 });
 
 test("MatcherSpec a!~b", () => {
-  expect(MatcherSpec.parse(`a!~"b"`)).toEqual({
-    label_name: "a",
-    matcher: "!~",
-    label_value: "b",
+  expect(StringMatcherSpec.parse(`a!~"b"`)).toEqual({
+    name: "a",
+    value: "b",
+    isEqual: false,
+    isRegex: true,
   });
 });
 
 test("MatcherSpec escaped quote", () => {
-  expect(MatcherSpec.parse(`a="b\""`)).toEqual({
-    label_name: "a",
-    matcher: "=",
-    label_value: 'b"',
+  expect(StringMatcherSpec.parse(`a="b\""`)).toEqual({
+    name: "a",
+    value: 'b"',
+    isEqual: true,
+    isRegex: false,
   });
 });
 
 test("MatcherSpec missing quote", () => {
-  expect(() => MatcherSpec.parse(`a=b\""`)).toThrow();
+  expect(() => StringMatcherSpec.parse(`a=b\""`)).toThrow();
 });
 
 const readYamlFile = (path: string): any => {
