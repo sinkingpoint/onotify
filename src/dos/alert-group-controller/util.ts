@@ -8,6 +8,7 @@ export const PAGE_SIZE = 0;
 export const ALERTS_PREFIX = "alert";
 export const LABELS_KV_KEY = "labels";
 export const ROUTE_KV_KEY = "route";
+export const ACCOUNT_ID_KEY = "account-id";
 
 export type GroupedAlert = Alert & {
   state: "pending" | "firing" | "resolved";

@@ -67,7 +67,11 @@ export class PostAlerts extends OpenAPIRoute {
         );
 
         promises.push(
-          alertGroupController.initialize(routingTree.tree[nodeID], group)
+          alertGroupController.initialize(
+            account_id,
+            routingTree.tree[nodeID],
+            group
+          )
         );
       }
     }

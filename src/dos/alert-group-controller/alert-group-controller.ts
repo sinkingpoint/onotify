@@ -3,6 +3,7 @@ import { AlertGroup, Bindings } from "../../types/internal";
 import { FlatRouteConfig } from "../../types/alertmanager";
 import { AlertStateMachine } from "./state-machine";
 import {
+  ACCOUNT_ID_KEY,
   ALERTS_PREFIX,
   extractFingerprint,
   GroupedAlert,
@@ -47,9 +48,11 @@ export class AlertGroupController extends DurableObject<Bindings> {
   route: FlatRouteConfig | undefined;
   labels: string[] | undefined;
   state_machine: AlertStateMachine;
+  account_id: string;
   constructor(state: DurableObjectState, env: Bindings) {
     super(state, env);
     this.state_machine = new AlertStateMachine(this.ctx.storage);
+    this.account_id = "";
 
     state.blockConcurrencyWhile(async () => {
       this.labels = await this.ctx.storage.get(LABELS_KV_KEY);
@@ -61,7 +64,12 @@ export class AlertGroupController extends DurableObject<Bindings> {
     });
   }
 
-  async initialize(route: FlatRouteConfig, group: AlertGroup) {
+  async initialize(
+    account_id: string,
+    route: FlatRouteConfig,
+    group: AlertGroup
+  ) {
+    this.account_id = account_id;
     this.labels = this.labels ?? group.labels;
     this.route = route;
 
@@ -72,6 +80,7 @@ export class AlertGroupController extends DurableObject<Bindings> {
 
     await this.ctx.storage.put(LABELS_KV_KEY, this.labels);
     await this.ctx.storage.put(ROUTE_KV_KEY, this.route);
+    await this.ctx.storage.put(ACCOUNT_ID_KEY, this.account_id);
     await Promise.all(
       group.alerts.map((a) => this.state_machine.handlePendingAlert(a))
     );
