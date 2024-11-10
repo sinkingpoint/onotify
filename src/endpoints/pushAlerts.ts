@@ -57,7 +57,7 @@ export class PostAlerts extends OpenAPIRoute {
     const promises = [];
     for (const nodeID of Object.keys(groups)) {
       for (const group of groups[nodeID]) {
-        const alertGroupControllerName = `alert-group-controller-${nodeID}-${group.labels}`;
+        const alertGroupControllerName = `alert-group-controller-${account_id}-${nodeID}-${group.labels}`;
         const alertGroupControllerID = c.env.ALERT_GROUP_CONTROLLER.idFromName(
           alertGroupControllerName
         );
