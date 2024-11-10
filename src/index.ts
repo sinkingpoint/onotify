@@ -3,6 +3,7 @@ import { Hono } from "hono";
 import { Bindings } from "./types/internal";
 import { PostConfig } from "./endpoints/uploadConfig";
 import { PostAlerts } from "./endpoints/pushAlerts";
+export { AlertGroupController } from "./dos/alert-group-controller/alert-group-controller";
 
 // Start a Hono app
 const app = new Hono<{ Bindings: Bindings }>();

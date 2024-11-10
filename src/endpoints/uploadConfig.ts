@@ -62,26 +62,41 @@ export class PostConfig extends OpenAPIRoute {
       timeIntervals[interval.name] = interval;
     }
 
-    c.env.CONFIGS.put(
-      globalTreeKVKey(account_id),
-      JSON.stringify(config.global)
+    const promises = [];
+
+    promises.push(
+      c.env.CONFIGS.put(
+        globalTreeKVKey(account_id),
+        JSON.stringify(config.global)
+      )
     );
 
-    c.env.CONFIGS.put(
-      routingTreeKVKey(account_id),
-      JSON.stringify(routingTree)
+    promises.push(
+      c.env.CONFIGS.put(
+        routingTreeKVKey(account_id),
+        JSON.stringify(routingTree)
+      )
     );
 
-    c.env.CONFIGS.put(receiversKVKey(account_id), JSON.stringify(receivers));
-    c.env.CONFIGS.put(
-      inhibitionsKVKey(account_id),
-      JSON.stringify(config.inhibit_rules)
-    );
-    c.env.CONFIGS.put(
-      timeIntervalsKVKey(account_id),
-      JSON.stringify(timeIntervals)
+    promises.push(
+      c.env.CONFIGS.put(receiversKVKey(account_id), JSON.stringify(receivers))
     );
 
+    promises.push(
+      c.env.CONFIGS.put(
+        inhibitionsKVKey(account_id),
+        JSON.stringify(config.inhibit_rules)
+      )
+    );
+
+    promises.push(
+      c.env.CONFIGS.put(
+        timeIntervalsKVKey(account_id),
+        JSON.stringify(timeIntervals)
+      )
+    );
+
+    await Promise.all(promises);
     // TODO: Handle custom templates + `mute_time_intervals`
 
     return c.text("ok");

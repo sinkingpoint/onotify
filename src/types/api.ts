@@ -2,7 +2,6 @@ import { z } from "zod";
 
 // An alert that comes in over the API.
 export const PostableAlertSpec = z.object({
-  status: z.enum(["firing", "resolved"]),
   startsAt: z
     .string()
     .datetime({ offset: true })

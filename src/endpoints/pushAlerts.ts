@@ -1,9 +1,13 @@
 import { OpenAPIRoute } from "chanfana";
-import { PostableAlertsSpec } from "../types/api";
+import { PostableAlerts, PostableAlertsSpec } from "../types/api";
 import { Errors, HTTPResponses } from "../types/http";
-import { Alert, Bindings } from "../types/internal";
+import { Alert, AlertGroup, Bindings } from "../types/internal";
 import { Context } from "hono";
-import { RouteConfig, collapseRoutingTree } from "../types/alertmanager";
+import {
+  FlatRouteConfig,
+  RouteConfig,
+  collapseRoutingTree,
+} from "../types/alertmanager";
 import { fingerprint } from "./utils/fingerprinting";
 import { checkAPIKey, toErrorString } from "./utils/auth";
 import { routingTreeKVKey } from "./utils/kv";
@@ -46,49 +50,96 @@ export class PostAlerts extends OpenAPIRoute {
       return c.text("no config yet");
     }
 
-    const { roots, tree }: ReturnType<typeof collapseRoutingTree> =
+    const routingTree: ReturnType<typeof collapseRoutingTree> =
       JSON.parse(rawConfig);
 
-    const groups: Record<string, Alert[]> = {};
+    const groups = groupAlerts(data.body, routingTree);
+    const promises = [];
+    for (const nodeID of Object.keys(groups)) {
+      for (const group of groups[nodeID]) {
+        const alertGroupControllerName = `alert-group-controller-${nodeID}-${group.labels}`;
+        const alertGroupControllerID = c.env.ALERT_GROUP_CONTROLLER.idFromName(
+          alertGroupControllerName
+        );
 
-    for (const postableAlert of data.body) {
-      const alert: Alert = {
-        fingerprint: fingerprint(postableAlert.labels).toString(),
-        name: postableAlert.labels["name"] ?? "",
-        startsAt: postableAlert.startsAt ?? Date.now(),
-        ...postableAlert,
-      };
+        const alertGroupController = c.env.ALERT_GROUP_CONTROLLER.get(
+          alertGroupControllerID
+        );
 
-      const toProcess = roots.filter((r) =>
-        doesAlertMatchRoute(alert, tree[r])
-      );
-
-      while (toProcess.length > 0) {
-        const nodeID = toProcess.pop()!;
-        const node = tree[nodeID];
-        if (!doesAlertMatchRoute(alert, node)) {
-          continue;
-        }
-
-        if (node.receiver) {
-          if (!groups[nodeID]) {
-            groups[nodeID] = [alert];
-          } else {
-            groups[nodeID].push(alert);
-          }
-        }
-
-        if (!node.continue) {
-          break;
-        }
-
-        toProcess.push(...node.routes);
+        promises.push(
+          alertGroupController.initialize(routingTree.tree[nodeID], group)
+        );
       }
     }
 
-    console.log(groups);
+    c.executionCtx.waitUntil(Promise.all(promises));
+
+    c.status(HTTPResponses.OK);
+    return c.text("ok");
   }
 }
+
+const groupAlerts = (
+  alerts: PostableAlerts,
+  { roots, tree }: ReturnType<typeof collapseRoutingTree>
+): Record<string, AlertGroup[]> => {
+  const groups: Record<string, AlertGroup[]> = {};
+  for (const postableAlert of alerts) {
+    const alert: Alert = {
+      fingerprint: fingerprint(postableAlert.labels).toString(16),
+      startsAt: postableAlert.startsAt ?? Date.now(),
+      ...postableAlert,
+    };
+
+    const toProcess = roots.filter((r) => doesAlertMatchRoute(alert, tree[r]));
+
+    while (toProcess.length > 0) {
+      const nodeID = toProcess.pop()!;
+      const node = tree[nodeID];
+      if (!doesAlertMatchRoute(alert, node)) {
+        continue;
+      }
+
+      if (node.receiver) {
+        groupAlert(groups, nodeID, node, alert);
+      }
+
+      if (!node.continue) {
+        break;
+      }
+
+      toProcess.push(...node.routes);
+    }
+  }
+
+  return groups;
+};
+
+const groupAlert = (
+  groups: Record<string, AlertGroup[]>,
+  nodeID: string,
+  node: FlatRouteConfig,
+  alert: Alert
+) => {
+  if (!groups[nodeID]) {
+    groups[nodeID] = [];
+  }
+
+  const labels =
+    node.group_by?.map((labelName) => alert.labels[labelName] ?? "") ?? [];
+
+  const groupIdx = groups[nodeID].findIndex(
+    (g) =>
+      g.labels.length === labels.length &&
+      g.labels.every((n, i) => labels[i] === n)
+  );
+
+  if (groupIdx === -1) {
+    groups[nodeID].push({ labels, alerts: [alert] });
+  } else {
+    groups[nodeID][groupIdx].alerts.push(alert);
+  }
+};
 
 // Gets a compiled version of the given regexp, from the cache if we have already run one.
 const getRegex = (r: string): RegExp => {

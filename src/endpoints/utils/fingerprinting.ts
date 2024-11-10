@@ -9,7 +9,7 @@ const prime64 = BigInt("1099511628211");
 const seperatorByte = 255;
 
 const newFingerprint = (): Fingerprint => {
-  return offset64;
+  return BigInt.asUintN(64, offset64);
 };
 
 const hashAdd = (current: bigint, s: string): Fingerprint => {
@@ -19,13 +19,13 @@ const hashAdd = (current: bigint, s: string): Fingerprint => {
     current *= prime64;
   }
 
-  return current;
+  return BigInt.asUintN(64, current);
 };
 
 const hashAddByte = (current: bigint, b: number): Fingerprint => {
   current ^= BigInt(b);
   current *= prime64;
-  return current;
+  return BigInt.asUintN(64, current);
 };
 
 const emptyHash = newFingerprint();

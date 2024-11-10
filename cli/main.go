@@ -27,11 +27,15 @@ var CLI struct {
 type Alert struct {
 	StartsAt    string            `json:"startsAt,omitempty"`
 	EndsAt      string            `json:"endsAt,omitempty"`
-	Annotations map[string]string `json:"annotations,omitempty"`
-	Labels      map[string]string `json:"labels,omitempty"`
+	Annotations map[string]string `json:"annotations"`
+	Labels      map[string]string `json:"labels"`
 }
 
 func sendAlerts() error {
+	if CLI.SendAlerts.Annotations == nil {
+		CLI.SendAlerts.Annotations = map[string]string{}
+	}
+
 	url, err := url.Parse(CLI.SendAlerts.URL)
 	if err != nil {
 		return fmt.Errorf("failed to parse URL: %w", err)
@@ -69,17 +73,25 @@ func sendAlerts() error {
 		return fmt.Errorf("failed to encode alert payload: %w", err)
 	}
 
+	fmt.Println(string(body))
+
 	client := http.Client{
 		Timeout: 5 * time.Second,
+	}
+
+	headers := map[string][]string{
+		"Content-Type": {"application/json"},
+	}
+
+	for k, v := range CLI.SendAlerts.Headers {
+		headers[k] = []string{v}
 	}
 
 	req := &http.Request{
 		Method: http.MethodPost,
 		URL:    url,
-		Header: map[string][]string{
-			"Content-Type": {"application/json"},
-		},
-		Body: io.NopCloser(bytes.NewBuffer(body)),
+		Header: headers,
+		Body:   io.NopCloser(bytes.NewBuffer(body)),
 	}
 
 	resp, err := client.Do(req)
@@ -88,7 +100,8 @@ func sendAlerts() error {
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("bad response code: %d", resp.StatusCode)
+		body, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("bad response code: %d (%s)", resp.StatusCode, string(body))
 	}
 
 	return nil
