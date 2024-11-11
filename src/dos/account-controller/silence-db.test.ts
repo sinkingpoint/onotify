@@ -1,8 +1,8 @@
 import { fingerprint } from "../../endpoints/utils/fingerprinting";
 import { StringMatcherSpec } from "../../types/alertmanager";
 import { PostableSilence } from "../../types/api";
-import { Alert } from "../../types/internal";
-import { isSilenceSame, SilenceStorage } from "./silence-storage";
+import { Alert, Silence } from "../../types/internal";
+import { isSilenceSame, SilenceDB } from "./silence-db";
 
 const start = Date.now() - 5 * 1000;
 const activeEnd = start + 30 * 60 * 1000;
@@ -22,6 +22,25 @@ const firingAlert = (
   };
 };
 
+class MockSilenceStorage {
+  silences: Map<string, Silence>;
+  constructor() {
+    this.silences = new Map();
+  }
+
+  async get(id: string) {
+    return this.silences.get(id);
+  }
+
+  async put(id: string, s: Silence) {
+    this.silences.set(id, s);
+  }
+
+  async delete(id: string) {
+    return this.silences.delete(id);
+  }
+}
+
 const activeSilence = (...matchers: string[]): PostableSilence => {
   return {
     createdBy: "colin",
@@ -32,57 +51,56 @@ const activeSilence = (...matchers: string[]): PostableSilence => {
   };
 };
 
-test("no silences doesn't silence", () => {
-  const storage = new SilenceStorage();
+test("no silences doesn't silence", async () => {
+  const storage = new SilenceDB(new MockSilenceStorage());
   expect(storage.isSilenced(firingAlert({}, {}))).toEqual(false);
 });
 
-test("silences match =", () => {
-  const storage = new SilenceStorage();
-  storage.addSilence(activeSilence('test="true"'));
+test("silences match =", async () => {
+  const storage = new SilenceDB(new MockSilenceStorage());
+  await storage.addSilence(activeSilence('test="true"'));
   expect(storage.isSilenced(firingAlert({ test: "true" }, {}))).toEqual(true);
 });
 
-test("silences match !=", () => {
-  const storage = new SilenceStorage();
-  storage.addSilence(activeSilence('test!="true"'));
+test("silences match !=", async () => {
+  const storage = new SilenceDB(new MockSilenceStorage());
+  await storage.addSilence(activeSilence('test!="true"'));
   expect(storage.isSilenced(firingAlert({ test: "true2" }, {}))).toEqual(true);
 });
 
-test("silences match =~", () => {
-  const storage = new SilenceStorage();
-  storage.addSilence(activeSilence('test=~"true"'));
+test("silences match =~", async () => {
+  const storage = new SilenceDB(new MockSilenceStorage());
+  await storage.addSilence(activeSilence('test=~"true"'));
   expect(storage.isSilenced(firingAlert({ test: "true" }, {}))).toEqual(true);
 });
 
-test("silences don't match unanchored =~", () => {
+test("silences don't match unanchored =~", async () => {
   // Regex matchers are assumed to be anchored - start with a ^ and end with a $.
-  const storage = new SilenceStorage();
-  storage.addSilence(activeSilence('test=~"true"'));
+  const storage = new SilenceDB(new MockSilenceStorage());
+  await storage.addSilence(activeSilence('test=~"true"'));
   expect(storage.isSilenced(firingAlert({ test: "true-nottrue" }, {}))).toEqual(
     false
   );
 });
 
-test("silences doesn't update same", () => {
-  const storage = new SilenceStorage();
-  const [updated, id] = storage.addSilence(activeSilence('test=~"true"'));
+test("silences doesn't update same", async () => {
+  const storage = new SilenceDB(new MockSilenceStorage());
+  const [updated, id] = await storage.addSilence(activeSilence('test=~"true"'));
   expect(updated).toEqual(true);
 
-  expect(storage.addSilence({ ...activeSilence('test=~"true"'), id })).toEqual([
-    false,
-    id,
-  ]);
+  expect(
+    await storage.addSilence({ ...activeSilence('test=~"true"'), id })
+  ).toEqual([false, id]);
 });
 
-test("is silence same", () => {
-  const storage = new SilenceStorage();
+test("is silence same", async () => {
+  const storage = new SilenceDB(new MockSilenceStorage());
   const silence = { ...activeSilence('test="true"'), id: "test", updatedAt: 0 };
   expect(isSilenceSame(silence, silence)).toBe(true);
 });
 
-test("is silence not same", () => {
-  const storage = new SilenceStorage();
+test("is silence not same", async () => {
+  const storage = new SilenceDB(new MockSilenceStorage());
   const silence1 = {
     ...activeSilence('test="true"'),
     id: "test",

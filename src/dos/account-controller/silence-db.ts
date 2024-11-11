@@ -1,6 +1,8 @@
+import { inherits } from "util";
 import { PostableSilence } from "../../types/api";
 import { Alert, Silence } from "../../types/internal";
 import { matcherIsSame, matcherMatches } from "../../utils/matcher";
+import { SILENCE_KV_PREFIX } from "./util";
 const REGEX_CACHE = {};
 
 // Return true if the given silence matches the given alert.
@@ -16,15 +18,21 @@ export const newSilenceID = () => {
   return crypto.randomUUID();
 };
 
-export class SilenceStorage {
+export class SilenceDB {
   silences: Map<string, Silence>;
-  constructor() {
+  storage: SilenceStorage;
+  constructor(store: SilenceStorage) {
+    this.storage = store;
     this.silences = new Map();
+  }
+
+  init(silences: Map<string, Silence>) {
+    this.silences = silences;
   }
 
   // Adds the given silence to the storage, returning true if the value changed,
   // and the ID of the silence.
-  addSilence(s: PostableSilence): [boolean, string] {
+  async addSilence(s: PostableSilence): Promise<[boolean, string]> {
     if (s.id && !this.silences.has(s.id)) {
       // We are updating a silence, but it doesn't exist. Error.
       throw `unknown silence ID: ${s.id}`;
@@ -42,6 +50,7 @@ export class SilenceStorage {
       }
     }
 
+    await this.storage.put(newSilence.id, newSilence);
     this.silences.set(newSilence.id, newSilence);
     return [true, newSilence.id];
   }
@@ -63,3 +72,9 @@ export const isSilenceSame = (s1: Silence, s2: Silence) => {
     s1.matchers.every((m, i) => matcherIsSame(m, s2.matchers[i]))
   );
 };
+
+export interface SilenceStorage {
+  get: (id: string) => Promise<Silence | undefined>;
+  put: (id: string, silence: Silence) => Promise<void>;
+  delete: (id: string) => Promise<boolean>;
+}
