@@ -22,6 +22,10 @@ id = "b04d857d6653487ebee0f8aa63c244dd"
 name = "ALERT_GROUP_CONTROLLER"
 class_name = "AlertGroupController"
 
+[[durable_objects.bindings]]
+name = "ACCOUNT_CONTROLLER"
+class_name = "AccountController"
+
 [[migrations]]
 tag = "v1" # Should be unique for each entry
-new_classes = ["AlertGroupController"]
+new_classes = ["AlertGroupController", "AccountController"]

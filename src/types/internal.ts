@@ -1,10 +1,11 @@
-import { AlertGroupController } from "..";
+import { AccountController, AlertGroupController } from "..";
 import { PostableSilence } from "./api";
 
 export interface Bindings {
   DB: D1Database;
   CONFIGS: KVNamespace;
   ALERT_GROUP_CONTROLLER: DurableObjectNamespace<AlertGroupController>;
+  ACCOUNT_CONTROLLER: DurableObjectNamespace<AccountController>;
 }
 
 export interface Alert {
@@ -39,3 +40,12 @@ export type Silence = PostableSilence & {
   id: string;
   updatedAt: number;
 };
+
+export type CachedAlert = Alert & {
+  silencedBy: string[];
+  inhibitedBy: string[];
+  updatedAt: number;
+  receivers: string[];
+};
+
+export type ReceiveredAlert = Alert & { receivers: string[] };

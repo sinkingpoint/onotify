@@ -1,7 +1,12 @@
 import { OpenAPIRoute } from "chanfana";
 import { PostableAlerts, PostableAlertsSpec } from "../types/api";
 import { Errors, HTTPResponses } from "../types/http";
-import { Alert, AlertGroup, Bindings } from "../types/internal";
+import {
+  Alert,
+  AlertGroup,
+  Bindings,
+  ReceiveredAlert,
+} from "../types/internal";
 import { Context } from "hono";
 import {
   FlatRouteConfig,
@@ -55,7 +60,7 @@ export class PostAlerts extends OpenAPIRoute {
     const routingTree: ReturnType<typeof collapseRoutingTree> =
       JSON.parse(rawConfig);
 
-    const groups = groupAlerts(data.body, routingTree);
+    const [groups, receiveredAlerts] = groupAlerts(data.body, routingTree);
     const promises = [];
     for (const nodeID of Object.keys(groups)) {
       for (const group of groups[nodeID]) {
@@ -78,6 +83,13 @@ export class PostAlerts extends OpenAPIRoute {
       }
     }
 
+    const accountControllerID = c.env.ACCOUNT_CONTROLLER.idFromName(
+      `account-controller-${account_id}`
+    );
+
+    const accountController = c.env.ACCOUNT_CONTROLLER.get(accountControllerID);
+    promises.push(accountController.addAlerts(receiveredAlerts));
+
     c.executionCtx.waitUntil(Promise.all(promises));
 
     c.status(HTTPResponses.OK);
@@ -88,12 +100,14 @@ export class PostAlerts extends OpenAPIRoute {
 const groupAlerts = (
   alerts: PostableAlerts,
   { roots, tree }: ReturnType<typeof collapseRoutingTree>
-): Record<string, AlertGroup[]> => {
+): [Record<string, AlertGroup[]>, ReceiveredAlert[]] => {
   const groups: Record<string, AlertGroup[]> = {};
+  const receiveredAlerts: ReceiveredAlert[] = [];
   for (const postableAlert of alerts) {
-    const alert: Alert = {
+    const alert: ReceiveredAlert = {
       fingerprint: fingerprint(postableAlert.labels).toString(16),
       startsAt: postableAlert.startsAt ?? Date.now(),
+      receivers: [],
       ...postableAlert,
     };
 
@@ -108,6 +122,7 @@ const groupAlerts = (
 
       if (node.receiver) {
         groupAlert(groups, nodeID, node, alert);
+        alert.receivers.push(node.receiver);
       }
 
       if (!node.continue) {
@@ -118,7 +133,7 @@ const groupAlerts = (
     }
   }
 
-  return groups;
+  return [groups, receiveredAlerts];
 };
 
 const groupAlert = (

@@ -5,6 +5,7 @@ import { PostConfig } from "./endpoints/uploadConfig";
 import { PostAlerts } from "./endpoints/pushAlerts";
 import { PostSilence } from "./endpoints/postSilences";
 export { AlertGroupController } from "./dos/alert-group-controller/alert-group-controller";
+export { AccountController } from "./dos/account-controller";
 
 // Start a Hono app
 const app = new Hono<{ Bindings: Bindings }>();

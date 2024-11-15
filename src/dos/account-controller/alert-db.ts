@@ -1,7 +1,7 @@
-import { Alert } from "../../types/internal";
+import { Alert, CachedAlert, ReceiveredAlert } from "../../types/internal";
 import { alertIsSame } from "../../utils/alert";
 import { SilenceDB } from "./silence-db";
-import { alertKVKey, CachedAlert } from "./util";
+import { alertKVKey } from "./util";
 
 export interface AlertStorage {
   get: (fingerprint: string) => Promise<CachedAlert | undefined>;
@@ -23,7 +23,7 @@ export class AlertDB {
     this.alerts = alerts;
   }
 
-  async addAlert(a: Alert) {
+  async addAlert(a: ReceiveredAlert) {
     const cached = this.alerts.get(a.fingerprint);
     if (cached && alertIsSame(a, cached)) {
       return;
@@ -37,8 +37,23 @@ export class AlertDB {
     this.storeAlert({
       silencedBy,
       inhibitedBy,
+      updatedAt: Date.now(),
       ...a,
     });
+  }
+
+  async getAlert(fingerprint: string): Promise<CachedAlert | undefined> {
+    const cached = this.alerts.get(fingerprint);
+    if (cached) {
+      return cached;
+    }
+
+    const loaded = await this.storage.get(alertKVKey(fingerprint));
+    if (loaded) {
+      this.alerts.set(fingerprint, loaded);
+    }
+
+    return loaded;
   }
 
   private storeAlert(a: CachedAlert) {

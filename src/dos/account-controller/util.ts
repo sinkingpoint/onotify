@@ -1,9 +1,4 @@
-import { Alert, Silence } from "../../types/internal";
-
-export type CachedAlert = Alert & {
-  silencedBy: string[];
-  inhibitedBy: string[];
-};
+import { Alert, CachedAlert, Silence } from "../../types/internal";
 
 export const ALERT_KV_PREFIX = "alert";
 export const SILENCE_KV_PREFIX = "silence";
