@@ -1,8 +1,6 @@
-import { inherits } from "util";
 import { PostableSilence } from "../../types/api";
 import { Alert, Silence } from "../../types/internal";
 import { matcherIsSame, matcherMatches } from "../../utils/matcher";
-import { SILENCE_KV_PREFIX } from "./util";
 const REGEX_CACHE = {};
 
 // Return true if the given silence matches the given alert.
@@ -57,6 +55,15 @@ export class SilenceDB {
 
   isSilenced(a: Alert) {
     return [...this.silences.values()].some((s) => silenceMatches(s, a));
+  }
+
+  silencedBy(a: Alert) {
+    return [
+      ...this.silences
+        .values()
+        .filter((s) => silenceMatches(s, a))
+        .map((s) => s.id),
+    ];
   }
 }
 
