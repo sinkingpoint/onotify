@@ -3,7 +3,7 @@ import { Bindings } from "hono/types";
 import { SilenceDB } from "./silence-db";
 import { getAllAlerts, getAllSilences } from "./util";
 import { AlertDB } from "./alert-db";
-import { ReceiveredAlert } from "../../types/internal";
+import { GetAlertsOptions, ReceiveredAlert } from "../../types/internal";
 
 export class AccountController extends DurableObject {
   silenceStorage: SilenceDB;
@@ -33,7 +33,7 @@ export class AccountController extends DurableObject {
     return this.alertStorage.getAlert(fingerprint);
   }
 
-  getAlerts() {
-    return this.alertStorage.getAlerts();
+  getAlerts(options: GetAlertsOptions) {
+    return this.alertStorage.getAlerts(options);
   }
 }

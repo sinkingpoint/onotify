@@ -6,6 +6,7 @@ export interface Bindings {
   CONFIGS: KVNamespace;
   ALERT_GROUP_CONTROLLER: DurableObjectNamespace<AlertGroupController>;
   ACCOUNT_CONTROLLER: DurableObjectNamespace<AccountController>;
+  ALERT_DISPATCH: Workflow;
 }
 
 export interface Alert {
@@ -49,3 +50,9 @@ export type CachedAlert = Alert & {
 };
 
 export type ReceiveredAlert = Alert & { receivers: string[] };
+
+export interface GetAlertsOptions {
+  fingerprints?: string[];
+  silenced?: boolean;
+  inhibited?: boolean;
+}

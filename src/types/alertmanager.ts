@@ -953,6 +953,8 @@ export const WebhookConfigSpec = z
   .strict()
   .refine(...enforceMutuallyExclusive("url", "url_file", true));
 
+export type WebhookConfig = z.infer<typeof WebhookConfigSpec>;
+
 export const WeChatConfigSpec = z
   .object({
     // Whether to notify about resolved alerts.

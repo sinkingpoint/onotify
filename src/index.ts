@@ -7,6 +7,7 @@ import { PostSilence } from "./endpoints/postSilences";
 import { GetAlerts } from "./endpoints/getAlerts";
 export { AlertGroupController } from "./dos/alert-group-controller/alert-group-controller";
 export { AccountController } from "./dos/account-controller";
+export { AlertDispatch } from "./alert-dispatch";
 
 // Start a Hono app
 const app = new Hono<{ Bindings: Bindings }>();

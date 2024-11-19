@@ -39,7 +39,7 @@ export class GetAlerts extends OpenAPIRoute {
     const controller = c.env.ACCOUNT_CONTROLLER.get(controllerID);
 
     const outputAlerts = [];
-    for (const alert of await controller.getAlerts()) {
+    for (const alert of await controller.getAlerts({})) {
       outputAlerts.push({
         fingerprint: alert.fingerprint,
         labels: alert.labels,

@@ -18,6 +18,11 @@ database_id = "6c0521ab-ef05-4e93-b246-4a56a7ca8069"
 binding = "CONFIGS"
 id = "b04d857d6653487ebee0f8aa63c244dd"
 
+[[workflows]]
+name = "alert-dispatch"
+binding = "ALERT_DISPATCH"
+class_name = "AlertDispatch"
+
 [[durable_objects.bindings]]
 name = "ALERT_GROUP_CONTROLLER"
 class_name = "AlertGroupController"

@@ -55,6 +55,7 @@ export class AlertGroupController extends DurableObject<Bindings> {
     this.account_id = "";
 
     state.blockConcurrencyWhile(async () => {
+      this.account_id = (await this.ctx.storage.get(ACCOUNT_ID_KEY)) ?? "";
       this.labels = await this.ctx.storage.get(LABELS_KV_KEY);
       this.route = await this.ctx.storage.get(ROUTE_KV_KEY);
       const [pending_alerts, active_alerts] = await getAlertFingerprints(
@@ -95,7 +96,13 @@ export class AlertGroupController extends DurableObject<Bindings> {
     const page_size = PAGE_SIZE > 0 ? PAGE_SIZE : undefined;
     while (this.state_machine.hasPendingAlerts()) {
       const alerts = await this.state_machine.flushPendingAlerts(page_size);
-      console.log(alerts);
+      const dispatch = await this.env.ALERT_DISPATCH.create({
+        params: {
+          accountId: this.account_id,
+          alertFingerprints: alerts.map((a) => a.fingerprint),
+          receiverName: this.route?.receiver,
+        },
+      });
     }
 
     if (this.state_machine.hasActiveAlerts()) {
