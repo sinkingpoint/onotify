@@ -17,3 +17,15 @@ export const inhibitionsKVKey = (account_id: string): string => {
 export const timeIntervalsKVKey = (account_id: string): string => {
   return `onotify-${account_id}-time-intervals`;
 };
+
+export const alertGroupControllerName = (
+  accountID: string,
+  nodeID: string,
+  groupLabels: string[]
+) => {
+  return `alert-group-controller-${accountID}-${nodeID}-${groupLabels}`;
+};
+
+export const accountControllerName = (accountID: string) => {
+  return `account-controller-${accountID}`;
+};

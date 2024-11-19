@@ -94,7 +94,7 @@ export class AlertGroupController extends DurableObject<Bindings> {
   async alarm() {
     const page_size = PAGE_SIZE > 0 ? PAGE_SIZE : undefined;
     while (this.state_machine.hasPendingAlerts()) {
-      const alerts = this.state_machine.flushPendingAlerts(page_size);
+      const alerts = await this.state_machine.flushPendingAlerts(page_size);
       console.log(alerts);
     }
 

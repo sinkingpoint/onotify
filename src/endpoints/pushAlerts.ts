@@ -15,7 +15,7 @@ import {
 } from "../types/alertmanager";
 import { fingerprint } from "./utils/fingerprinting";
 import { checkAPIKey, toErrorString } from "./utils/auth";
-import { routingTreeKVKey } from "./utils/kv";
+import { alertGroupControllerName, routingTreeKVKey } from "./utils/kv";
 import { matcherMatches } from "../utils/matcher";
 import { getAnchoredRegex } from "../utils/regex";
 
@@ -43,7 +43,11 @@ export class PostAlerts extends OpenAPIRoute {
   };
 
   async handle(c: Context<{ Bindings: Bindings }>) {
-    const authResult = await checkAPIKey(c.env, c.req.header("Authorization"));
+    const authResult = await checkAPIKey(
+      c.env,
+      c.req.header("Authorization"),
+      "post-alerts"
+    );
     if (authResult.result !== "ok") {
       c.status(HTTPResponses.Unauthorized);
       return c.text(toErrorString(authResult));
@@ -64,10 +68,14 @@ export class PostAlerts extends OpenAPIRoute {
     const promises = [];
     for (const nodeID of Object.keys(groups)) {
       for (const group of groups[nodeID]) {
-        const alertGroupControllerName = `alert-group-controller-${account_id}-${nodeID}-${group.labels}`;
-        const alertGroupControllerID = c.env.ALERT_GROUP_CONTROLLER.idFromName(
-          alertGroupControllerName
+        const controllerName = alertGroupControllerName(
+          account_id,
+          nodeID,
+          group.labels
         );
+
+        const alertGroupControllerID =
+          c.env.ALERT_GROUP_CONTROLLER.idFromName(controllerName);
 
         const alertGroupController = c.env.ALERT_GROUP_CONTROLLER.get(
           alertGroupControllerID
@@ -131,6 +139,8 @@ const groupAlerts = (
 
       toProcess.push(...node.routes);
     }
+
+    receiveredAlerts.push(alert);
   }
 
   return [groups, receiveredAlerts];

@@ -3,10 +3,15 @@ import { alertIsSame } from "../../utils/alert";
 import { SilenceDB } from "./silence-db";
 import { alertKVKey } from "./util";
 
-export interface AlertStorage {
+interface AlertStorage {
   get: (fingerprint: string) => Promise<CachedAlert | undefined>;
   put: (fingerprint: string, alert: CachedAlert) => Promise<void>;
   delete: (fingerprint: string) => Promise<boolean>;
+}
+
+interface GetAlertsOptions {
+  after?: string;
+  count?: number;
 }
 
 export class AlertDB {
@@ -34,7 +39,7 @@ export class AlertDB {
       : this.silenceDB.silencedBy(a);
 
     const inhibitedBy = cached ? cached.inhibitedBy : [];
-    this.storeAlert({
+    return this.storeAlert({
       silencedBy,
       inhibitedBy,
       updatedAt: Date.now(),
@@ -56,8 +61,12 @@ export class AlertDB {
     return loaded;
   }
 
-  private storeAlert(a: CachedAlert) {
-    this.storage.put(alertKVKey(a.fingerprint), a);
+  getAlerts(): CachedAlert[] {
+    return [...this.alerts.values()];
+  }
+
+  private async storeAlert(a: CachedAlert) {
+    await this.storage.put(alertKVKey(a.fingerprint), a);
     this.alerts.set(a.fingerprint, a);
   }
 

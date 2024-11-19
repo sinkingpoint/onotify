@@ -4,6 +4,7 @@ import { Bindings } from "./types/internal";
 import { PostConfig } from "./endpoints/uploadConfig";
 import { PostAlerts } from "./endpoints/pushAlerts";
 import { PostSilence } from "./endpoints/postSilences";
+import { GetAlerts } from "./endpoints/getAlerts";
 export { AlertGroupController } from "./dos/alert-group-controller/alert-group-controller";
 export { AccountController } from "./dos/account-controller";
 
@@ -16,6 +17,7 @@ const openapi = fromHono(app, {
 });
 
 // Register OpenAPI endpoints
+openapi.get("/api/v2/alerts", GetAlerts);
 openapi.post("/api/v2/alerts", PostAlerts);
 openapi.post("/api/v1/upload-config", PostConfig);
 openapi.post("/api/v2/silences", PostSilence);

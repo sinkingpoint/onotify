@@ -46,3 +46,26 @@ export const PostableSilenceSpec = z.object({
 });
 
 export type PostableSilence = z.infer<typeof PostableSilenceSpec>;
+
+export const GettableAlertReceiverSpec = z.object({
+  name: z.string(),
+});
+
+export const GettableAlertStatusSpec = z.object({
+  inhibitedBy: z.array(z.string()),
+  silencedBy: z.array(z.string()),
+  state: z.enum(["active", "supressed"]),
+});
+
+export const GettableAlertSpec = z.object({
+  fingerprint: z.string(),
+  labels: z.record(z.string(), z.string()),
+  annotations: z.record(z.string(), z.string()),
+  startsAt: z.string().datetime({ precision: 3, offset: true }),
+  endsAt: z.string().datetime({ precision: 3, offset: true }),
+  updatedAt: z.string().datetime({ precision: 3, offset: true }),
+  receivers: z.array(GettableAlertReceiverSpec),
+  status: GettableAlertStatusSpec,
+});
+
+export const GettableAlertsSpec = z.array(GettableAlertSpec);

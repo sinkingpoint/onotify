@@ -23,11 +23,17 @@ export class AccountController extends DurableObject {
     });
   }
 
-  addAlerts(a: ReceiveredAlert[]) {
-    a.forEach(this.alertStorage.addAlert);
+  async addAlerts(a: ReceiveredAlert[]) {
+    a.forEach(async (a) => {
+      await this.alertStorage.addAlert(a);
+    });
   }
 
   async getAlert(fingerprint: string) {
     return this.alertStorage.getAlert(fingerprint);
+  }
+
+  getAlerts() {
+    return this.alertStorage.getAlerts();
   }
 }

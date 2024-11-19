@@ -7,6 +7,9 @@ interface APIKeyError {
   text?: string;
 }
 
+// Keys with a wildcard scope are allowed to do anything.
+const WILDCARD_SCOPE = "*";
+
 export const toErrorString = (e: APIKeyError) => {
   const ext = e.text ? `: ${e.text}` : "";
   switch (e.result) {
@@ -102,12 +105,14 @@ export const checkAPIKey = async (
   }
 
   const scopes: string[] = ((result["scopes"] as string) ?? "").split(",");
-  for (const required of requiredScopes) {
-    if (!scopes.includes(required)) {
-      return {
-        result: "missing scope",
-        text: `missing required scope: ${required}`,
-      };
+  if (!scopes.includes(WILDCARD_SCOPE)) {
+    for (const required of requiredScopes) {
+      if (!scopes.includes(required)) {
+        return {
+          result: "missing scope",
+          text: `missing required scope: ${required}`,
+        };
+      }
     }
   }
 
