@@ -101,8 +101,11 @@ export class AlertGroupController extends DurableObject<Bindings> {
           accountId: this.account_id,
           alertFingerprints: alerts.map((a) => a.fingerprint),
           receiverName: this.route?.receiver,
+          groupLabels: this.labels,
         },
       });
+
+      console.log("dispatching");
     }
 
     if (this.state_machine.hasActiveAlerts()) {

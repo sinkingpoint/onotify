@@ -3,7 +3,12 @@ import {
   WorkflowStep,
   WorkflowEvent,
 } from "cloudflare:workers";
-import { Bindings, CachedAlert } from "../types/internal";
+import {
+  AlertState,
+  alertState,
+  Bindings,
+  CachedAlert,
+} from "../types/internal";
 import { accountControllerName, receiversKVKey } from "../endpoints/utils/kv";
 import { Receiver } from "../types/alertmanager";
 import WebhookIntegration from "../integrations/webhook";
@@ -12,13 +17,25 @@ type Params = {
   accountId: string;
   alertFingerprints: string[];
   receiverName: string;
+  groupLabels: Record<string, string>;
 };
 
-type DispatchFunction<T> = (conf: T, alerts: CachedAlert[]) => Promise<void>;
+// name: string,
+// config: WebhookConfig,
+// alerts: CachedAlert[],
+// groupLabels: Record<string, string>
+type DispatchFunction<T> = (
+  name: string,
+  conf: T,
+  alerts: CachedAlert[],
+  groupLabels: Record<string, string>
+) => Promise<void>;
 
-const dispatch = async <T>(
+const dispatch = async <T extends { send_resolved: boolean }>(
+  name: string,
   configs: T[] | undefined,
   alerts: CachedAlert[],
+  groupLabels: Record<string, string>,
   receiver: DispatchFunction<T>
 ) => {
   if (!configs) {
@@ -27,7 +44,19 @@ const dispatch = async <T>(
 
   const promises: Promise<void>[] = [];
   for (const config of configs) {
-    promises.push(receiver(config, alerts));
+    let toSendAlerts = alerts;
+
+    if (!config.send_resolved) {
+      toSendAlerts = toSendAlerts.filter(
+        (a) => alertState(a) === AlertState.Firing
+      );
+    }
+
+    if (toSendAlerts.length === 0) {
+      continue;
+    }
+
+    promises.push(receiver(name, config, alerts, groupLabels));
   }
 
   await Promise.all(promises);
@@ -35,7 +64,8 @@ const dispatch = async <T>(
 
 export class AlertDispatch extends WorkflowEntrypoint<Bindings, Params> {
   async run(event: WorkflowEvent<Params>, step: WorkflowStep) {
-    const { accountId, alertFingerprints, receiverName } = event.payload;
+    const { accountId, alertFingerprints, receiverName, groupLabels } =
+      event.payload;
     const controllerName = accountControllerName(accountId);
     const accountControllerID =
       this.env.ACCOUNT_CONTROLLER.idFromName(controllerName);
@@ -65,7 +95,13 @@ export class AlertDispatch extends WorkflowEntrypoint<Bindings, Params> {
     }
 
     await step.do("webhooks", () =>
-      dispatch(receiver.webhook_configs, alerts, WebhookIntegration)
+      dispatch(
+        receiver.name,
+        receiver.webhook_configs,
+        alerts,
+        groupLabels,
+        WebhookIntegration
+      )
     );
   }
 }
