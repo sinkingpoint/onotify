@@ -1,23 +1,23 @@
 import { OpenAPIRoute } from "chanfana";
-import { PostableAlerts, PostableAlertsSpec } from "../types/api";
-import { Errors, HTTPResponses } from "../types/http";
+import { PostableAlerts, PostableAlertsSpec } from "../../types/api";
+import { Errors, HTTPResponses } from "../../types/http";
 import {
   Alert,
   AlertGroup,
   Bindings,
   ReceiveredAlert,
-} from "../types/internal";
+} from "../../types/internal";
 import { Context } from "hono";
 import {
   FlatRouteConfig,
   RouteConfig,
   collapseRoutingTree,
-} from "../types/alertmanager";
-import { fingerprint } from "./utils/fingerprinting";
-import { checkAPIKey, toErrorString } from "./utils/auth";
-import { alertGroupControllerName, routingTreeKVKey } from "./utils/kv";
-import { matcherMatches } from "../utils/matcher";
-import { getAnchoredRegex } from "../utils/regex";
+} from "../../types/alertmanager";
+import { fingerprint } from "../utils/fingerprinting";
+import { checkAPIKey, toErrorString } from "../utils/auth";
+import { alertGroupControllerName, routingTreeKVKey } from "../utils/kv";
+import { matcherMatches } from "../../utils/matcher";
+import { getAnchoredRegex } from "../../utils/regex";
 
 const REGEX_CACHE: Record<string, RegExp> = {};
 

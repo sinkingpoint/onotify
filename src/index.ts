@@ -2,7 +2,7 @@ import { fromHono } from "chanfana";
 import { Hono } from "hono";
 import { Bindings } from "./types/internal";
 import { PostConfig } from "./endpoints/uploadConfig";
-import { PostAlerts } from "./endpoints/pushAlerts";
+import { PostAlerts } from "./endpoints/postAlerts";
 import { PostSilence } from "./endpoints/postSilences";
 import { GetAlerts } from "./endpoints/getAlerts";
 import { GetSilences } from "./endpoints/getSilences";

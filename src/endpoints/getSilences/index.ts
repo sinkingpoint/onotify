@@ -1,10 +1,10 @@
 import { OpenAPIRoute } from "chanfana";
-import { GettableSilencesSpec } from "../types/api";
-import { Errors, HTTPResponses } from "../types/http";
+import { GettableSilencesSpec } from "../../types/api";
+import { Errors, HTTPResponses } from "../../types/http";
 import { Context } from "hono";
-import { accountControllerName } from "./utils/kv";
-import { Bindings } from "../types/internal";
-import { checkAPIKey, toErrorString } from "./utils/auth";
+import { accountControllerName } from "../utils/kv";
+import { Bindings } from "../../types/internal";
+import { checkAPIKey, toErrorString } from "../utils/auth";
 
 export class GetSilences extends OpenAPIRoute {
   schema = {

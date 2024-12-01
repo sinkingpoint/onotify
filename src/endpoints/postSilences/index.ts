@@ -1,10 +1,10 @@
 import { OpenAPIRoute } from "chanfana";
-import { PostableSilenceSpec } from "../types/api";
-import { Errors, HTTPResponses } from "../types/http";
-import { Bindings } from "../types/internal";
+import { PostableSilenceSpec } from "../../types/api";
+import { Errors, HTTPResponses } from "../../types/http";
+import { Bindings } from "../../types/internal";
 import { Context } from "hono";
-import { checkAPIKey, toErrorString } from "./utils/auth";
-import { accountControllerName } from "./utils/kv";
+import { checkAPIKey, toErrorString } from "../utils/auth";
+import { accountControllerName } from "../utils/kv";
 
 export class PostSilence extends OpenAPIRoute {
   schema = {
