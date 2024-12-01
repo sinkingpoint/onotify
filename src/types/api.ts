@@ -30,8 +30,7 @@ export const MatcherSpec = z.object({
 
 export type Matcher = z.infer<typeof MatcherSpec>;
 
-export const PostableSilenceSpec = z.object({
-  id: z.string().optional(),
+const silence = z.object({
   matchers: z.array(MatcherSpec),
   startsAt: z
     .string()
@@ -43,6 +42,10 @@ export const PostableSilenceSpec = z.object({
     .transform((s) => Date.parse(s)),
   createdBy: z.string().optional(),
   comment: z.string().optional(),
+});
+
+export const PostableSilenceSpec = silence.extend({
+  id: z.string().optional(),
 });
 
 export type PostableSilence = z.infer<typeof PostableSilenceSpec>;
@@ -69,3 +72,12 @@ export const GettableAlertSpec = z.object({
 });
 
 export const GettableAlertsSpec = z.array(GettableAlertSpec);
+
+const SilenceStatusSpec = z.enum(["expired", "active", "pending"]);
+export const GettableSilenceSpec = silence.extend({
+  id: z.string(),
+  status: SilenceStatusSpec,
+  updatedAt: z.string().datetime({ precision: 3, offset: true }),
+});
+
+export const GettableSilencesSpec = z.array(GettableSilenceSpec);

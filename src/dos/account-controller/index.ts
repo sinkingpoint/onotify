@@ -4,6 +4,7 @@ import { SilenceDB } from "./silence-db";
 import { getAllAlerts, getAllSilences } from "./util";
 import { AlertDB } from "./alert-db";
 import { GetAlertsOptions, ReceiveredAlert } from "../../types/internal";
+import { Matcher } from "../../types/api";
 
 export class AccountController extends DurableObject {
   silenceStorage: SilenceDB;
@@ -33,7 +34,15 @@ export class AccountController extends DurableObject {
     return this.alertStorage.getAlert(fingerprint);
   }
 
-  getAlerts(options: GetAlertsOptions) {
+  async getAlerts(options: GetAlertsOptions) {
     return this.alertStorage.getAlerts(options);
+  }
+
+  async getSilence(id: string) {
+    return this.silenceStorage.getSilences({ id });
+  }
+
+  async getSilences(matchers: Matcher[]) {
+    return this.silenceStorage.getSilences({ matchers });
   }
 }

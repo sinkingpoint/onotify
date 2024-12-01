@@ -1,7 +1,12 @@
-import { PostableSilence } from "../../types/api";
+import { Matcher, PostableSilence } from "../../types/api";
 import { Alert, Silence } from "../../types/internal";
 import { matcherIsSame, matcherMatches } from "../../utils/matcher";
 const REGEX_CACHE = {};
+
+export interface GetSilenceOptions {
+  id?: string;
+  matchers?: Matcher[];
+}
 
 // Return true if the given silence matches the given alert.
 const silenceMatches = (s: Silence, a: Alert) => {
@@ -53,6 +58,19 @@ export class SilenceDB {
     return [true, newSilence.id];
   }
 
+  async getSilences({ id, matchers }: GetSilenceOptions) {
+    let silences = id ? [this.silences.get(id)] : [...this.silences.values()];
+    if (matchers) {
+      silences = silences.filter((s) => {
+        return matchers.every((m1) =>
+          s?.matchers.some((m2) => isMatchersEqual(m1, m2))
+        );
+      });
+    }
+
+    return silences;
+  }
+
   isSilenced(a: Alert) {
     return [...this.silences.values()].some((s) => silenceMatches(s, a));
   }
@@ -77,6 +95,15 @@ export const isSilenceSame = (s1: Silence, s2: Silence) => {
     s1.createdBy === s2.createdBy &&
     s1.matchers.length === s2.matchers.length &&
     s1.matchers.every((m, i) => matcherIsSame(m, s2.matchers[i]))
+  );
+};
+
+const isMatchersEqual = (m1: Matcher, m2: Matcher) => {
+  return (
+    m1.isEqual === m2.isEqual &&
+    m1.isRegex === m2.isRegex &&
+    m1.name === m2.name &&
+    m1.value === m2.value
   );
 };
 
