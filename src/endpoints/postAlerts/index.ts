@@ -1,5 +1,5 @@
 import { OpenAPIRoute } from "chanfana";
-import { PostableAlerts, PostableAlertsSpec } from "../../types/api";
+import { PostableAlertsSpec } from "../../types/api";
 import { Errors, HTTPResponses } from "../../types/http";
 import { Bindings } from "../../types/internal";
 import { Context } from "hono";
