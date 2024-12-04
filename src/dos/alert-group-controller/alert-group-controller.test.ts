@@ -1,10 +1,7 @@
 import { fingerprint } from "../../endpoints/utils/fingerprinting";
-import { Alert } from "../../types/internal";
+import { AlertState, DehydratedAlert } from "../../types/internal";
 import { AlertStateMachine } from "./state-machine";
-
-type GroupedAlert = Alert & {
-  state: "pending" | "firing" | "resolved";
-};
+import { GroupedAlert } from "./util";
 
 class MockAlertStorage {
   alerts: Map<string, GroupedAlert>;
@@ -34,37 +31,30 @@ const newStateMachine = () => {
 
 const firingAlert = (
   labels: Record<string, string>,
-  annotations: Record<string, string>
-): Alert => {
+): DehydratedAlert => {
   return {
     fingerprint: fingerprint(labels).toString(16),
-    startsAt: start,
-    labels,
-    annotations,
+    state: AlertState.Firing,
   };
 };
 
 const resolvedAlert = (
   labels: Record<string, string>,
-  annotations: Record<string, string>
-): Alert => {
+): DehydratedAlert => {
   return {
     fingerprint: fingerprint(labels).toString(16),
-    startsAt: start,
-    endsAt: end,
-    labels,
-    annotations,
+    state: AlertState.Resolved
   };
 };
 
 test("state machine fires once", async () => {
   const state = newStateMachine();
-  const alert = firingAlert({ test: "true" }, {});
+  const alert = firingAlert({ test: "true" });
   await state.handlePendingAlert(alert);
 
   const alerts = await state.flushPendingAlerts();
   expect(alerts.length).toEqual(1);
-  expect(alerts[0]).toEqual({ ...alert, state: "firing" });
+  expect(alerts[0]).toEqual({ ...alert, state: AlertState.Firing });
 
   // Once it's fired once, it shouldn't fire again.
   await state.handlePendingAlert(alert);
@@ -74,25 +64,25 @@ test("state machine fires once", async () => {
 
 test("state machine fires resolve", async () => {
   const state = newStateMachine();
-  const alert = firingAlert({ test: "true" }, {});
-  const rAlert = resolvedAlert({ test: "true" }, {});
+  const alert = firingAlert({ test: "true" });
+  const rAlert = resolvedAlert({ test: "true" });
   await state.handlePendingAlert(alert);
 
   const alerts = await state.flushPendingAlerts();
   expect(alerts.length).toEqual(1);
-  expect(alerts[0]).toEqual({ ...alert, state: "firing" });
+  expect(alerts[0]).toEqual({ ...alert, state: AlertState.Firing });
 
   await state.handlePendingAlert(rAlert);
 
   const secondAlerts = await state.flushPendingAlerts();
   expect(secondAlerts.length).toEqual(1);
-  expect(secondAlerts[0]).toEqual({ ...rAlert, state: "resolved" });
+  expect(secondAlerts[0]).toEqual({ ...rAlert, state: AlertState.Resolved });
 });
 
 test("state machine doesn't fire resolve for non-sent alert", async () => {
   const state = newStateMachine();
-  const alert = firingAlert({ test: "true" }, {});
-  const rAlert = resolvedAlert({ test: "true" }, {});
+  const alert = firingAlert({ test: "true" });
+  const rAlert = resolvedAlert({ test: "true" });
   await state.handlePendingAlert(alert);
   await state.handlePendingAlert(rAlert);
 
@@ -102,15 +92,15 @@ test("state machine doesn't fire resolve for non-sent alert", async () => {
 
 test("state machine paginates", async () => {
   const state = newStateMachine();
-  const alert = firingAlert({ test: "true" }, {});
-  const alert2 = firingAlert({ test: "true2" }, {});
+  const alert = firingAlert({ test: "true" });
+  const alert2 = firingAlert({ test: "true2" });
   await state.handlePendingAlert(alert);
   await state.handlePendingAlert(alert2);
 
   expect(await state.flushPendingAlerts(1)).toEqual([
-    { ...alert, state: "firing" },
+    { ...alert, state: AlertState.Firing },
   ]);
   expect(await state.flushPendingAlerts(1)).toEqual([
-    { ...alert2, state: "firing" },
+    { ...alert2, state: AlertState.Firing },
   ]);
 });

@@ -1,5 +1,5 @@
 import { DurableObject } from "cloudflare:workers";
-import { AlertGroup, Bindings } from "../../types/internal";
+import { AlertGroup, AlertState, Bindings } from "../../types/internal";
 import { FlatRouteConfig } from "../../types/alertmanager";
 import { AlertStateMachine } from "./state-machine";
 import {
@@ -25,12 +25,12 @@ const getAlertFingerprints = async (storage: DurableObjectStorage) => {
   while (page.size > 0) {
     const pending_fingerprints = page
       .keys()
-      .filter((k) => page.get(k)!.state === "pending")
+      .filter((k) => page.get(k)!.pending)
       .map((kvKey) => extractFingerprint(kvKey));
 
     const active_fingerprints = page
       .keys()
-      .filter((k) => page.get(k)!.state === "firing")
+      .filter((k) => !page.get(k)!.pending)
       .map((kvKey) => extractFingerprint(kvKey));
 
     pending_alerts.push(...pending_fingerprints);

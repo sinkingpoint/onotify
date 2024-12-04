@@ -20,10 +20,6 @@ type Params = {
   groupLabels: Record<string, string>;
 };
 
-// name: string,
-// config: WebhookConfig,
-// alerts: CachedAlert[],
-// groupLabels: Record<string, string>
 type DispatchFunction<T> = (
   name: string,
   conf: T,

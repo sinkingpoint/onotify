@@ -4,7 +4,7 @@ import {
   RouteConfig,
 } from "../../types/alertmanager";
 import { PostableAlerts } from "../../types/api";
-import { Alert, AlertGroup, ReceiveredAlert } from "../../types/internal";
+import { Alert, AlertGroup, alertState, ReceiveredAlert } from "../../types/internal";
 import { matcherMatches } from "../../utils/matcher";
 import { getAnchoredRegex } from "../../utils/regex";
 import { fingerprint } from "../utils/fingerprinting";
@@ -71,10 +71,11 @@ const groupAlert = (
       g.labels.every((n, i) => labels[i] === n)
   );
 
+  const dehydratedAlert = {fingerprint: alert.fingerprint, state: alertState(alert)};
   if (groupIdx === -1) {
-    groups[nodeID].push({ labels, alerts: [alert] });
+    groups[nodeID].push({ labels, alerts: [dehydratedAlert] });
   } else {
-    groups[nodeID][groupIdx].alerts.push(alert);
+    groups[nodeID][groupIdx].alerts.push(dehydratedAlert);
   }
 };
 

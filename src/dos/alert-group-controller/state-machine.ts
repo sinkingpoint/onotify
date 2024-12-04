@@ -1,4 +1,4 @@
-import { Alert, AlertState, alertState } from "../../types/internal";
+import { Alert, AlertState, alertState, DehydratedAlert } from "../../types/internal";
 import { alertKVKey, AlertStorage, GroupedAlert } from "./util";
 
 // A StateMachine that handles alerts and whether they should be notified.
@@ -21,7 +21,7 @@ export class AlertStateMachine {
   // Gets the first n pending alerts (or, all of them if n doesn't exist),
   // moving any pending and active alerts into the active fingerprints and
   // deleting any pending and resolved alerts after sending the resolved notification.
-  async flushPendingAlerts(n?: number) {
+  async flushPendingAlerts(n?: number): Promise<DehydratedAlert[]> {
     n ??= this.pending_alert_fingerprints.length;
 
     let fingerprints = this.pending_alert_fingerprints.slice(
@@ -29,17 +29,15 @@ export class AlertStateMachine {
       Math.min(n, this.pending_alert_fingerprints.length)
     );
 
-    let alerts: GroupedAlert[] = await Promise.all(
+    let alerts: DehydratedAlert[] = await Promise.all(
       fingerprints.map((f) =>
         (async () => {
           const alert = await this.storage.get(alertKVKey(f));
           if (!alert) {
             throw `got ID ${f}, but couldn't load it`;
           }
-          const state =
-            alertState(alert) === AlertState.Firing ? "firing" : "resolved";
 
-          return { ...alert, state };
+          return {fingerprint: alert.fingerprint, state: alert.state};
         })()
       )
     );
@@ -47,8 +45,8 @@ export class AlertStateMachine {
     const newFingerprints = (
       await Promise.all(
         alerts.map(async (a) => {
-          if (a.state === "firing") {
-            await this.storage.put(alertKVKey(a.fingerprint), a);
+          if (a.state === AlertState.Firing) {
+            await this.storage.put(alertKVKey(a.fingerprint), {...a, pending: false});
 
             return a.fingerprint;
           } else {
@@ -77,14 +75,14 @@ export class AlertStateMachine {
   }
 
   // Adds this alert to the state machine, moving things around according to the state rules.
-  async handlePendingAlert(newAlert: Alert) {
+  async handlePendingAlert(newAlert: DehydratedAlert) {
     const fingerprint = newAlert.fingerprint;
     const kvKey = alertKVKey(fingerprint);
-    const isNowResolved = alertState(newAlert) === AlertState.Resolved;
+    const isNowResolved = newAlert.state === AlertState.Resolved;
     const current: GroupedAlert | undefined = await this.storage.get(kvKey);
     if (!current) {
       if (!isNowResolved) {
-        await this.storage.put(kvKey, { state: "pending", ...newAlert });
+        await this.storage.put(kvKey, { ...newAlert, pending: true });
         // We currently don't have the alert, so just add it.
         this.pending_alert_fingerprints.push(fingerprint);
       }
@@ -92,7 +90,7 @@ export class AlertStateMachine {
       return;
     }
 
-    const wasResolved = alertState(current) === AlertState.Resolved;
+    const wasResolved = current.state === AlertState.Resolved;
 
     if (isNowResolved) {
       // If the alert is now resolved, remove it from the pending list if it's there, or
@@ -107,7 +105,7 @@ export class AlertStateMachine {
         }
       } else if (!wasResolved && isNowResolved) {
         // The alert has fired, move it back to pending to send a resolved notification.
-        await this.storage.put(kvKey, { ...newAlert, state: "pending" });
+        await this.storage.put(kvKey, { ...newAlert, pending: true });
         this.pending_alert_fingerprints.push(fingerprint);
         this.active_alert_fingerprints = this.active_alert_fingerprints.filter(
           (f) => f !== fingerprint
@@ -116,8 +114,9 @@ export class AlertStateMachine {
     } else {
       // The alert is just outdated, update it.
       await this.storage.put(kvKey, {
-        state: current.state,
         ...newAlert,
+        state: current.state,
+        pending: current.pending
       });
     }
   }

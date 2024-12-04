@@ -18,8 +18,8 @@ export interface Alert {
 }
 
 export enum AlertState {
-  Firing,
-  Resolved,
+  Firing = "firing",
+  Resolved = "resolved",
 }
 
 export const alertState = (a: Alert) => alertStateAt(a, Date.now());
@@ -32,9 +32,14 @@ export const alertStateAt = (a: Alert, time: number): AlertState => {
   return AlertState.Firing;
 };
 
+export interface DehydratedAlert {
+  fingerprint: string;
+  state: AlertState;  
+}
+
 export interface AlertGroup {
   labels: string[];
-  alerts: Alert[];
+  alerts: DehydratedAlert[];
 }
 
 export type Silence = PostableSilence & {

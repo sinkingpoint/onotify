@@ -1,9 +1,8 @@
+import { AlertState } from "../../types/internal";
 import {
   AlertmanagerConfigSpec,
   collapseRoutingTree,
 } from "../../types/alertmanager";
-import { PostableAlert } from "../../types/api";
-import { AlertGroup } from "../../types/internal";
 import { fingerprint } from "../utils/fingerprinting";
 import { groupAlerts } from "./group";
 import { load } from "js-yaml";
@@ -77,12 +76,8 @@ receivers:
       labels: ["foo"],
       alerts: [
         {
-          startsAt: activeStartsAt,
-          endsAt: activeEndsAt,
-          annotations: {},
           fingerprint: fingerprint({ alertname: "foo" }).toString(16),
-          labels: { alertname: "foo" },
-          receivers: ["web.hook"],
+          state: AlertState.Firing
         },
       ],
     },
@@ -118,12 +113,8 @@ receivers:
       labels: ["foo"],
       alerts: [
         {
-          startsAt: activeStartsAt,
-          endsAt: activeEndsAt,
-          annotations: {},
           fingerprint: fingerprint({ alertname: "foo" }).toString(16),
-          labels: { alertname: "foo" },
-          receivers: ["web.hook"],
+          state: AlertState.Firing
         },
       ],
     },
@@ -161,12 +152,8 @@ receivers:
       labels: ["foo"],
       alerts: [
         {
-          startsAt: activeStartsAt,
-          endsAt: activeEndsAt,
-          annotations: {},
           fingerprint: fingerprint({ alertname: "foo" }).toString(16),
-          labels: { alertname: "foo" },
-          receivers: ["web.hook", "web.hook2"],
+          state: AlertState.Firing
         },
       ],
     },
@@ -177,12 +164,8 @@ receivers:
       labels: ["foo"],
       alerts: [
         {
-          startsAt: activeStartsAt,
-          endsAt: activeEndsAt,
-          annotations: {},
           fingerprint: fingerprint({ alertname: "foo" }).toString(16),
-          labels: { alertname: "foo" },
-          receivers: ["web.hook", "web.hook2"],
+          state: AlertState.Firing
         },
       ],
     },
@@ -212,32 +195,18 @@ receivers:
       labels: ["foo"],
       alerts: [
         {
-          startsAt: activeStartsAt,
-          endsAt: activeEndsAt,
-          annotations: {},
           fingerprint: fingerprint({
             alertname: "foo",
             service: "test0",
           }).toString(16),
-          labels: {
-            alertname: "foo",
-            service: "test0",
-          },
-          receivers: ["web.hook"],
+          state: AlertState.Firing
         },
         {
-          startsAt: activeStartsAt,
-          endsAt: activeEndsAt,
-          annotations: {},
           fingerprint: fingerprint({
             alertname: "foo",
             service: "test1",
           }).toString(16),
-          labels: {
-            alertname: "foo",
-            service: "test1",
-          },
-          receivers: ["web.hook"],
+          state: AlertState.Firing
         },
       ],
     },
@@ -267,18 +236,11 @@ test("multiple groups", () => {
       labels: ["test0"],
       alerts: [
         {
-          startsAt: activeStartsAt,
-          endsAt: activeEndsAt,
-          annotations: {},
           fingerprint: fingerprint({
             alertname: "foo",
             service: "test0",
           }).toString(16),
-          labels: {
-            alertname: "foo",
-            service: "test0",
-          },
-          receivers: ["web.hook"],
+          state: AlertState.Firing
         },
       ],
     },
@@ -286,18 +248,11 @@ test("multiple groups", () => {
       labels: ["test1"],
       alerts: [
         {
-          startsAt: activeStartsAt,
-          endsAt: activeEndsAt,
-          annotations: {},
           fingerprint: fingerprint({
             alertname: "foo",
             service: "test1",
           }).toString(16),
-          labels: {
-            alertname: "foo",
-            service: "test1",
-          },
-          receivers: ["web.hook"],
+          state: AlertState.Firing
         },
       ],
     },

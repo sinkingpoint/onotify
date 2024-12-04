@@ -1,6 +1,6 @@
 // Used to control the maximum number of alerts in a given batch to send/receive.
 
-import { Alert } from "../../types/internal";
+import { Alert, AlertState, DehydratedAlert } from "../../types/internal";
 
 // If set to > 0, we will only ever send that number of alerts.
 export const PAGE_SIZE = 0;
@@ -10,8 +10,10 @@ export const LABELS_KV_KEY = "labels";
 export const ROUTE_KV_KEY = "route";
 export const ACCOUNT_ID_KEY = "account-id";
 
-export type GroupedAlert = Alert & {
-  state: "pending" | "firing" | "resolved";
+export type GroupedAlert = {
+  fingerprint: string;
+  state: AlertState;
+  pending: boolean;
 };
 
 // Gets the key used to store the alert with the given fingerprint in storage.
