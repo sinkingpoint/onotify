@@ -5,16 +5,19 @@ import { getAllAlerts, getAllSilences } from "./util";
 import { AlertDB } from "./alert-db";
 import { GetAlertsOptions, ReceiveredAlert } from "../../types/internal";
 import { Matcher } from "../../types/api";
+import { AlertGroupDB } from "./alert-group-db";
 
 export class AccountController extends DurableObject {
   silenceStorage: SilenceDB;
   alertStorage: AlertDB;
+  alertGroupStorage: AlertGroupDB;
 
   constructor(state: DurableObjectState, env: Bindings) {
     super(state, env);
 
     this.silenceStorage = new SilenceDB(state.storage);
     this.alertStorage = new AlertDB(state.storage, this.silenceStorage);
+    this.alertGroupStorage = new AlertGroupDB(state.storage);
     state.blockConcurrencyWhile(async () => {
       const silences = await getAllSilences(state.storage);
       this.silenceStorage.init(silences);

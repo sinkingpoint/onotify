@@ -52,3 +52,13 @@ export const fingerprint = (r: Record<string, string>): Fingerprint => {
 
   return sum;
 };
+
+export const fingerprintArray = (a: string[]) => {
+  let sum = newFingerprint();
+  for(const val of a) {
+    sum = hashAdd(sum, val);
+    sum = hashAddByte(sum, seperatorByte);
+  }
+
+  return sum;
+}

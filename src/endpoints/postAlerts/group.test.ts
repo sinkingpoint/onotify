@@ -73,6 +73,7 @@ receivers:
   // We should get one group, pointing to web.hook.
   expect(groups[nodeID]).toEqual([
     {
+      nodeID,
       labels: ["foo"],
       alerts: [
         {
@@ -110,6 +111,7 @@ receivers:
   // We should get one group, pointing to web.hook.
   expect(groups[nodeID]).toEqual([
     {
+      nodeID,
       labels: ["foo"],
       alerts: [
         {
@@ -149,6 +151,7 @@ receivers:
   // We should get two groups, one pointing to web.hook and one pointin to web.hook2.
   expect(groups[nodeID]).toEqual([
     {
+      nodeID,
       labels: ["foo"],
       alerts: [
         {
@@ -161,6 +164,7 @@ receivers:
 
   expect(groups[nodeID2]).toEqual([
     {
+      nodeID: nodeID2,
       labels: ["foo"],
       alerts: [
         {
@@ -192,6 +196,7 @@ receivers:
   // We should get one group, pointing to web.hook, with two alerts.
   expect(groups[nodeID]).toEqual([
     {
+      nodeID,
       labels: ["foo"],
       alerts: [
         {
@@ -233,6 +238,7 @@ test("multiple groups", () => {
   // We should get two groups, pointing to web.hook, with two alerts.
   expect(groups[nodeID]).toEqual([
     {
+      nodeID,
       labels: ["test0"],
       alerts: [
         {
@@ -245,6 +251,7 @@ test("multiple groups", () => {
       ],
     },
     {
+      nodeID,
       labels: ["test1"],
       alerts: [
         {

@@ -73,7 +73,7 @@ const groupAlert = (
 
   const dehydratedAlert = {fingerprint: alert.fingerprint, state: alertState(alert)};
   if (groupIdx === -1) {
-    groups[nodeID].push({ labels, alerts: [dehydratedAlert] });
+    groups[nodeID].push({ nodeID, labels, alerts: [dehydratedAlert] });
   } else {
     groups[nodeID][groupIdx].alerts.push(dehydratedAlert);
   }

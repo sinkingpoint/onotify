@@ -38,6 +38,7 @@ export interface DehydratedAlert {
 }
 
 export interface AlertGroup {
+  nodeID: string;
   labels: string[];
   alerts: DehydratedAlert[];
 }

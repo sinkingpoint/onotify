@@ -22,24 +22,26 @@ const firingAlert = (
   };
 };
 
-class MockSilenceStorage {
-  silences: Map<string, Silence>;
+class MockStorage<T> {
+  vals: Map<string, T>;
   constructor() {
-    this.silences = new Map();
+    this.vals = new Map();
   }
 
   async get(id: string) {
-    return this.silences.get(id);
+    return this.vals.get(id);
   }
 
-  async put(id: string, s: Silence) {
-    this.silences.set(id, s);
+  async put(id: string, s: T) {
+    this.vals.set(id, s);
   }
 
   async delete(id: string) {
-    return this.silences.delete(id);
+    return this.vals.delete(id);
   }
 }
+
+class MockSilenceStorage extends MockStorage<Silence> {}
 
 const activeSilence = (...matchers: string[]): PostableSilence => {
   return {
