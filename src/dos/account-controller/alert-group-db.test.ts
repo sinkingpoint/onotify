@@ -33,6 +33,7 @@ test("new group is gettable", async () => {
   const group = {
     nodeID: randomID(),
     labels: ["foo"],
+    receiver: "web.hook",
     alerts: [
       {
         fingerprint: randomID(),
@@ -61,6 +62,7 @@ test("store expires resolved alerts", async () => {
   const firstGroup = {
     nodeID: randomID(),
     labels: ["foo"],
+    receiver: "web.hook",
     alerts: [
       {
         fingerprint: randomID(),
@@ -76,6 +78,7 @@ test("store expires resolved alerts", async () => {
   const secondGroup = {
     nodeID: firstGroup.nodeID,
     labels: firstGroup.labels,
+    receiver: firstGroup.receiver,
     alerts: [
       {
         ...firstGroup.alerts[0],
@@ -105,6 +108,7 @@ test("store deletes empty groups", async () => {
   const firstGroup = {
     nodeID: randomID(),
     labels: ["foo"],
+    receiver: "web.hook",
     alerts: [
       {
         fingerprint: randomID(),
@@ -132,6 +136,7 @@ test("storage adds new alerts", async () => {
   const firstGroup = {
     nodeID: randomID(),
     labels: ["foo"],
+    receiver: "web.hook",
     alerts: [
       {
         fingerprint: randomID(),
@@ -143,6 +148,7 @@ test("storage adds new alerts", async () => {
   const secondGroup = {
     nodeID: firstGroup.nodeID,
     labels: firstGroup.labels,
+    receiver: firstGroup.receiver,
     alerts: [
       {
         fingerprint: randomID(),

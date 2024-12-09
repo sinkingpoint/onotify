@@ -4,7 +4,12 @@ import {
   RouteConfig,
 } from "../../types/alertmanager";
 import { PostableAlerts } from "../../types/api";
-import { Alert, AlertGroup, alertState, ReceiveredAlert } from "../../types/internal";
+import {
+  Alert,
+  AlertGroup,
+  alertState,
+  ReceiveredAlert,
+} from "../../types/internal";
 import { matcherMatches } from "../../utils/matcher";
 import { getAnchoredRegex } from "../../utils/regex";
 import { fingerprint } from "../utils/fingerprinting";
@@ -58,6 +63,10 @@ const groupAlert = (
   node: FlatRouteConfig,
   alert: Alert
 ) => {
+  if (!node.receiver) {
+    throw `cannot group alert for node ${nodeID} without a receiver`;
+  }
+
   if (!groups[nodeID]) {
     groups[nodeID] = [];
   }
@@ -71,9 +80,17 @@ const groupAlert = (
       g.labels.every((n, i) => labels[i] === n)
   );
 
-  const dehydratedAlert = {fingerprint: alert.fingerprint, state: alertState(alert)};
+  const dehydratedAlert = {
+    fingerprint: alert.fingerprint,
+    state: alertState(alert),
+  };
   if (groupIdx === -1) {
-    groups[nodeID].push({ nodeID, labels, alerts: [dehydratedAlert] });
+    groups[nodeID].push({
+      nodeID,
+      receiver: node.receiver,
+      labels,
+      alerts: [dehydratedAlert],
+    });
   } else {
     groups[nodeID][groupIdx].alerts.push(dehydratedAlert);
   }

@@ -75,10 +75,11 @@ receivers:
     {
       nodeID,
       labels: ["foo"],
+      receiver: "web.hook",
       alerts: [
         {
           fingerprint: fingerprint({ alertname: "foo" }).toString(16),
-          state: AlertState.Firing
+          state: AlertState.Firing,
         },
       ],
     },
@@ -113,10 +114,11 @@ receivers:
     {
       nodeID,
       labels: ["foo"],
+      receiver: "web.hook",
       alerts: [
         {
           fingerprint: fingerprint({ alertname: "foo" }).toString(16),
-          state: AlertState.Firing
+          state: AlertState.Firing,
         },
       ],
     },
@@ -153,10 +155,11 @@ receivers:
     {
       nodeID,
       labels: ["foo"],
+      receiver: "web.hook",
       alerts: [
         {
           fingerprint: fingerprint({ alertname: "foo" }).toString(16),
-          state: AlertState.Firing
+          state: AlertState.Firing,
         },
       ],
     },
@@ -166,10 +169,11 @@ receivers:
     {
       nodeID: nodeID2,
       labels: ["foo"],
+      receiver: "web.hook2",
       alerts: [
         {
           fingerprint: fingerprint({ alertname: "foo" }).toString(16),
-          state: AlertState.Firing
+          state: AlertState.Firing,
         },
       ],
     },
@@ -198,20 +202,21 @@ receivers:
     {
       nodeID,
       labels: ["foo"],
+      receiver: "web.hook",
       alerts: [
         {
           fingerprint: fingerprint({
             alertname: "foo",
             service: "test0",
           }).toString(16),
-          state: AlertState.Firing
+          state: AlertState.Firing,
         },
         {
           fingerprint: fingerprint({
             alertname: "foo",
             service: "test1",
           }).toString(16),
-          state: AlertState.Firing
+          state: AlertState.Firing,
         },
       ],
     },
@@ -240,26 +245,28 @@ test("multiple groups", () => {
     {
       nodeID,
       labels: ["test0"],
+      receiver: "web.hook",
       alerts: [
         {
           fingerprint: fingerprint({
             alertname: "foo",
             service: "test0",
           }).toString(16),
-          state: AlertState.Firing
+          state: AlertState.Firing,
         },
       ],
     },
     {
       nodeID,
       labels: ["test1"],
+      receiver: "web.hook",
       alerts: [
         {
           fingerprint: fingerprint({
             alertname: "foo",
             service: "test1",
           }).toString(16),
-          state: AlertState.Firing
+          state: AlertState.Firing,
         },
       ],
     },

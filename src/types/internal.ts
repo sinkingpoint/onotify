@@ -34,11 +34,12 @@ export const alertStateAt = (a: Alert, time: number): AlertState => {
 
 export interface DehydratedAlert {
   fingerprint: string;
-  state: AlertState;  
+  state: AlertState;
 }
 
 export interface AlertGroup {
   nodeID: string;
+  receiver: string;
   labels: string[];
   alerts: DehydratedAlert[];
 }

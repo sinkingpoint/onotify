@@ -40,6 +40,18 @@ export class AlertGroupDB {
     return group;
   }
 
+  async getAlertGroups(receiver?: RegExp) {
+    if (!receiver) {
+      return [...this.groups.values()];
+    }
+
+    return [
+      ...this.groups.values().filter((g) => {
+        return receiver.test(g.receiver);
+      }),
+    ];
+  }
+
   async mergeAlertGroup(newGroup: AlertGroup) {
     const currentGroup = await this.getAlertGroup(
       newGroup.nodeID,
