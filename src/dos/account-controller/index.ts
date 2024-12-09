@@ -8,7 +8,7 @@ import {
   GetAlertsOptions,
   ReceiveredAlert,
 } from "../../types/internal";
-import { Matcher } from "../../types/api";
+import { GetAlertGroupsOptions, Matcher } from "../../types/api";
 import { AlertGroupDB } from "./alert-group-db";
 
 export class AccountController extends DurableObject {
@@ -57,5 +57,38 @@ export class AccountController extends DurableObject {
     for (const group of groups) {
       this.alertGroupStorage.mergeAlertGroup(group);
     }
+  }
+
+  async getAlertGroups({
+    active,
+    silenced,
+    inhibited,
+    muted,
+    filter,
+    receiver,
+  }: GetAlertGroupsOptions) {
+    const dehydratedGroups = await this.alertGroupStorage.getAlertGroups({
+      receiver,
+      filter,
+    });
+
+    const hydratedGroups = await Promise.all(
+      dehydratedGroups.map(async (g) => {
+        const alerts = await this.getAlerts({
+          fingerprints: g.alerts.map((a) => a.fingerprint),
+          active,
+          muted,
+          silenced,
+          inhibited,
+        });
+
+        return {
+          ...g,
+          alerts,
+        };
+      })
+    );
+
+    return hydratedGroups.filter((g) => g.alerts.length > 0);
   }
 }

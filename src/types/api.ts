@@ -1,4 +1,6 @@
 import { z } from "zod";
+import { StringMatcherSpec } from "./alertmanager";
+import { getAnchoredRegex } from "../utils/regex";
 
 // An alert that comes in over the API.
 export const PostableAlertSpec = z.object({
@@ -81,3 +83,21 @@ export const GettableSilenceSpec = silence.extend({
 });
 
 export const GettableSilencesSpec = z.array(GettableSilenceSpec);
+
+export const GetAlertGroupsOptionsSpec = z.object({
+  active: z.boolean().describe("Show active alerts").default(true),
+  silenced: z.boolean().describe("Show silenced alerts").default(true),
+  inhibited: z.boolean().describe("Show inhibited alerts").default(true),
+  muted: z.boolean().describe("Show muted alerts").default(true),
+  filter: z
+    .array(StringMatcherSpec)
+    .describe("A list of matchers to filter alerts by")
+    .default([]),
+  receiver: z
+    .string()
+    .describe("A regex matching receivers to filter by")
+    .transform((r) => getAnchoredRegex(r))
+    .optional(),
+});
+
+export type GetAlertGroupsOptions = z.infer<typeof GetAlertGroupsOptionsSpec>;
