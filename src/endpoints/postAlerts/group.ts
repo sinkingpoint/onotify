@@ -76,8 +76,8 @@ const groupAlert = (
 
   const groupIdx = groups[nodeID].findIndex(
     (g) =>
-      g.labels.length === labels.length &&
-      g.labels.every((n, i) => labels[i] === n)
+      g.labelValues.length === labels.length &&
+      g.labelValues.every((n, i) => labels[i] === n)
   );
 
   const dehydratedAlert = {
@@ -88,7 +88,8 @@ const groupAlert = (
     groups[nodeID].push({
       nodeID,
       receiver: node.receiver,
-      labels,
+      labelNames: node.group_by ?? [],
+      labelValues: labels,
       alerts: [dehydratedAlert],
     });
   } else {

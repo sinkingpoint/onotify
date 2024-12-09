@@ -32,7 +32,8 @@ test("new group is gettable", async () => {
 
   const group = {
     nodeID: randomID(),
-    labels: ["foo"],
+    labelNames: ["alertname"],
+    labelValues: ["foo"],
     receiver: "web.hook",
     alerts: [
       {
@@ -47,10 +48,11 @@ test("new group is gettable", async () => {
   };
 
   await db.mergeAlertGroup(group);
-  const receivedGroup = await db.getAlertGroup(group.nodeID, group.labels);
+  const receivedGroup = await db.getAlertGroup(group.nodeID, group.labelValues);
   expect(receivedGroup).toBeDefined();
   expect(receivedGroup?.nodeID).toEqual(group.nodeID);
-  expect(receivedGroup?.labels).toEqual(group.labels);
+  expect(receivedGroup?.labelNames).toEqual(group.labelNames);
+  expect(receivedGroup?.labelValues).toEqual(group.labelValues);
   expect(receivedGroup?.alerts.length).toEqual(1);
   expect(receivedGroup?.alerts[0]).toBe(group.alerts[0]);
 });
@@ -61,7 +63,8 @@ test("store expires resolved alerts", async () => {
 
   const firstGroup = {
     nodeID: randomID(),
-    labels: ["foo"],
+    labelNames: ["alertname"],
+    labelValues: ["foo"],
     receiver: "web.hook",
     alerts: [
       {
@@ -77,7 +80,8 @@ test("store expires resolved alerts", async () => {
 
   const secondGroup = {
     nodeID: firstGroup.nodeID,
-    labels: firstGroup.labels,
+    labelNames: firstGroup.labelNames,
+    labelValues: firstGroup.labelValues,
     receiver: firstGroup.receiver,
     alerts: [
       {
@@ -92,11 +96,12 @@ test("store expires resolved alerts", async () => {
 
   const receivedGroup = await db.getAlertGroup(
     firstGroup.nodeID,
-    firstGroup.labels
+    firstGroup.labelValues
   );
   expect(receivedGroup).toBeDefined();
   expect(receivedGroup?.nodeID).toEqual(firstGroup.nodeID);
-  expect(receivedGroup?.labels).toEqual(firstGroup.labels);
+  expect(receivedGroup?.labelNames).toEqual(firstGroup.labelNames);
+  expect(receivedGroup?.labelValues).toEqual(firstGroup.labelValues);
   expect(receivedGroup?.alerts.length).toEqual(1);
   expect(receivedGroup?.alerts[0]).toBe(firstGroup.alerts[1]);
 });
@@ -107,7 +112,8 @@ test("store deletes empty groups", async () => {
 
   const firstGroup = {
     nodeID: randomID(),
-    labels: ["foo"],
+    labelNames: ["alertname"],
+    labelValues: ["foo"],
     receiver: "web.hook",
     alerts: [
       {
@@ -124,7 +130,7 @@ test("store deletes empty groups", async () => {
 
   const receivedGroup = await db.getAlertGroup(
     firstGroup.nodeID,
-    firstGroup.labels
+    firstGroup.labelValues
   );
   expect(receivedGroup).toBeUndefined();
 });
@@ -135,7 +141,8 @@ test("storage adds new alerts", async () => {
 
   const firstGroup = {
     nodeID: randomID(),
-    labels: ["foo"],
+    labelNames: ["alertname"],
+    labelValues: ["foo"],
     receiver: "web.hook",
     alerts: [
       {
@@ -147,7 +154,8 @@ test("storage adds new alerts", async () => {
 
   const secondGroup = {
     nodeID: firstGroup.nodeID,
-    labels: firstGroup.labels,
+    labelNames: firstGroup.labelNames,
+    labelValues: firstGroup.labelValues,
     receiver: firstGroup.receiver,
     alerts: [
       {
@@ -162,11 +170,11 @@ test("storage adds new alerts", async () => {
 
   const receivedGroup = await db.getAlertGroup(
     firstGroup.nodeID,
-    firstGroup.labels
+    firstGroup.labelValues
   );
   expect(receivedGroup).toBeDefined();
   expect(receivedGroup?.nodeID).toEqual(firstGroup.nodeID);
-  expect(receivedGroup?.labels).toEqual(firstGroup.labels);
+  expect(receivedGroup?.labelValues).toEqual(firstGroup.labelValues);
   expect(receivedGroup?.alerts.length).toEqual(2);
   expect(receivedGroup?.alerts[0]).toBe(firstGroup.alerts[0]);
   expect(receivedGroup?.alerts[1]).toBe(secondGroup.alerts[0]);

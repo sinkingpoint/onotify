@@ -74,7 +74,8 @@ receivers:
   expect(groups[nodeID]).toEqual([
     {
       nodeID,
-      labels: ["foo"],
+      labelNames: ["alertname"],
+      labelValues: ["foo"],
       receiver: "web.hook",
       alerts: [
         {
@@ -113,7 +114,8 @@ receivers:
   expect(groups[nodeID]).toEqual([
     {
       nodeID,
-      labels: ["foo"],
+      labelNames: ["alertname"],
+      labelValues: ["foo"],
       receiver: "web.hook",
       alerts: [
         {
@@ -154,7 +156,8 @@ receivers:
   expect(groups[nodeID]).toEqual([
     {
       nodeID,
-      labels: ["foo"],
+      labelNames: ["alertname"],
+      labelValues: ["foo"],
       receiver: "web.hook",
       alerts: [
         {
@@ -168,7 +171,8 @@ receivers:
   expect(groups[nodeID2]).toEqual([
     {
       nodeID: nodeID2,
-      labels: ["foo"],
+      labelNames: ["alertname"],
+      labelValues: ["foo"],
       receiver: "web.hook2",
       alerts: [
         {
@@ -201,7 +205,8 @@ receivers:
   expect(groups[nodeID]).toEqual([
     {
       nodeID,
-      labels: ["foo"],
+      labelNames: ["alertname"],
+      labelValues: ["foo"],
       receiver: "web.hook",
       alerts: [
         {
@@ -244,7 +249,8 @@ test("multiple groups", () => {
   expect(groups[nodeID]).toEqual([
     {
       nodeID,
-      labels: ["test0"],
+      labelNames: ["service"],
+      labelValues: ["test0"],
       receiver: "web.hook",
       alerts: [
         {
@@ -258,7 +264,8 @@ test("multiple groups", () => {
     },
     {
       nodeID,
-      labels: ["test1"],
+      labelNames: ["service"],
+      labelValues: ["test1"],
       receiver: "web.hook",
       alerts: [
         {

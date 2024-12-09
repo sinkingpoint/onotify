@@ -71,12 +71,12 @@ export class AlertGroupController extends DurableObject<Bindings> {
     group: AlertGroup
   ) {
     this.account_id = account_id;
-    this.labels = this.labels ?? group.labels;
+    this.labels = this.labels ?? group.labelValues;
     this.route = route;
 
-    const equalLabels = arraysEqual(this.labels, group.labels);
+    const equalLabels = arraysEqual(this.labels, group.labelValues);
     if (!equalLabels) {
-      throw `Expected the given labels (${group.labels}) to be the same as the existing labels (${this.labels})`;
+      throw `Expected the given labels (${group.labelValues}) to be the same as the existing labels (${this.labels})`;
     }
 
     await this.ctx.storage.put(LABELS_KV_KEY, this.labels);

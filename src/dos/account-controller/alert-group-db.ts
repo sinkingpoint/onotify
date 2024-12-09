@@ -55,9 +55,9 @@ export class AlertGroupDB {
   async mergeAlertGroup(newGroup: AlertGroup) {
     const currentGroup = await this.getAlertGroup(
       newGroup.nodeID,
-      newGroup.labels
+      newGroup.labelValues
     );
-    const key = alertGroupKey(newGroup.nodeID, newGroup.labels);
+    const key = alertGroupKey(newGroup.nodeID, newGroup.labelValues);
     if (!currentGroup) {
       // For new groups, we only store the firing alerts.
       const newAlerts = newGroup.alerts.filter(

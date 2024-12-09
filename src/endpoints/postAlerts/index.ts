@@ -58,7 +58,7 @@ export class PostAlerts extends OpenAPIRoute {
         const controllerName = alertGroupControllerName(
           account_id,
           nodeID,
-          group.labels
+          group.labelValues
         );
 
         const alertGroupControllerID =
