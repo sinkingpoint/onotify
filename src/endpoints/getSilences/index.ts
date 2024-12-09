@@ -11,7 +11,7 @@ export class GetSilences extends OpenAPIRoute {
     tags: ["config"],
     summary: "Upload an Alertmanager config",
     request: {
-      // TODO: Support matchers here.
+      // TODO (https://github.com/sinkingpoint/onotify/issues/2): Support matchers here.
     },
     responses: {
       "200": {

@@ -101,7 +101,7 @@ export class PostConfig extends OpenAPIRoute {
     );
 
     await Promise.all(promises);
-    // TODO: Handle custom templates + `mute_time_intervals`
+    // TODO(https://github.com/sinkingpoint/onotify/issues/4, https://github.com/sinkingpoint/onotify/issues/5): Handle custom templates + `mute_time_intervals`
 
     return c.text("ok");
   }

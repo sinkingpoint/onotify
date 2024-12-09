@@ -81,7 +81,7 @@ export class AlertDB {
       const isSilenced = f.silencedBy.length > 0;
       const isInhibited = f.inhibitedBy.length > 0;
       const isActive = !isSilenced && !isInhibited;
-      // TODO: Support muted alerts here.
+      // TODO(https://github.com/sinkingpoint/onotify/issues/3): Support muted alerts here.
 
       if (!silenced && isSilenced) {
         return false;
