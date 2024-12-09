@@ -84,7 +84,9 @@ export class PostAlerts extends OpenAPIRoute {
 
     const accountController = c.env.ACCOUNT_CONTROLLER.get(accountControllerID);
     promises.push(accountController.addAlerts(receiveredAlerts));
-
+    for (const groupKey of Object.keys(groups)) {
+      promises.push(accountController.addAlertGroups(groups[groupKey]));
+    }
     c.executionCtx.waitUntil(Promise.all(promises));
 
     c.status(HTTPResponses.OK);

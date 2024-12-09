@@ -3,7 +3,11 @@ import { Bindings } from "hono/types";
 import { SilenceDB } from "./silence-db";
 import { getAllAlerts, getAllSilences } from "./util";
 import { AlertDB } from "./alert-db";
-import { GetAlertsOptions, ReceiveredAlert } from "../../types/internal";
+import {
+  AlertGroup,
+  GetAlertsOptions,
+  ReceiveredAlert,
+} from "../../types/internal";
 import { Matcher } from "../../types/api";
 import { AlertGroupDB } from "./alert-group-db";
 
@@ -47,5 +51,11 @@ export class AccountController extends DurableObject {
 
   async getSilences(matchers: Matcher[]) {
     return this.silenceStorage.getSilences({ matchers });
+  }
+
+  async addAlertGroups(groups: AlertGroup[]) {
+    for (const group of groups) {
+      this.alertGroupStorage.mergeAlertGroup(group);
+    }
   }
 }
