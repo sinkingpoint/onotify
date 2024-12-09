@@ -10,7 +10,7 @@ interface AlertGroupStorage {
 
 const alertGroupKey = (nodeID: string, labels: string[]) => {
   return `${ALERT_GROUP_KV_PREFIX}-${nodeID}-${fingerprintArray(labels)}`;
-}
+};
 
 export class AlertGroupDB {
   groups: Map<string, AlertGroup>;
@@ -28,12 +28,12 @@ export class AlertGroupDB {
   async getAlertGroup(nodeID: string, labels: string[]) {
     const key = alertGroupKey(nodeID, labels);
 
-    if(this.groups.has(key)) {
+    if (this.groups.has(key)) {
       return this.groups.get(key);
     }
 
     const group = await this.storage.get(key);
-    if(group) {
+    if (group) {
       this.groups.set(key, group);
     }
 
@@ -41,12 +41,17 @@ export class AlertGroupDB {
   }
 
   async mergeAlertGroup(newGroup: AlertGroup) {
-    const currentGroup = await this.getAlertGroup(newGroup.nodeID, newGroup.labels);
+    const currentGroup = await this.getAlertGroup(
+      newGroup.nodeID,
+      newGroup.labels
+    );
     const key = alertGroupKey(newGroup.nodeID, newGroup.labels);
-    if(!currentGroup) {
+    if (!currentGroup) {
       // For new groups, we only store the firing alerts.
-      const newAlerts = newGroup.alerts.filter((n) => n.state === AlertState.Firing);
-      newGroup = {...newGroup, alerts: newAlerts};
+      const newAlerts = newGroup.alerts.filter(
+        (n) => n.state === AlertState.Firing
+      );
+      newGroup = { ...newGroup, alerts: newAlerts };
       this.storage.put(key, newGroup);
       this.groups.set(key, newGroup);
       return;
@@ -54,19 +59,23 @@ export class AlertGroupDB {
 
     // Filter out newly resolved alerts from the existing alert group.
     currentGroup.alerts = currentGroup.alerts.filter((a) => {
-      const newAlert = newGroup.alerts.find((newA) => newA.fingerprint === a.fingerprint);
+      const newAlert = newGroup.alerts.find(
+        (newA) => newA.fingerprint === a.fingerprint
+      );
       return !newAlert || newAlert.state !== AlertState.Resolved;
     });
 
     // Find the new alerts that are firing, but not in the current group.
     const newAlerts = newGroup.alerts.filter((a) => {
       const resolved = a.state === AlertState.Resolved;
-      const exists = currentGroup.alerts.map((a) => a.fingerprint).includes(a.fingerprint);
+      const exists = currentGroup.alerts
+        .map((a) => a.fingerprint)
+        .includes(a.fingerprint);
       return !resolved && !exists;
     });
 
     currentGroup.alerts.push(...newAlerts);
-    if(currentGroup.alerts.length === 0) {
+    if (currentGroup.alerts.length === 0) {
       this.storage.delete(key);
       this.groups.delete(key);
     } else {

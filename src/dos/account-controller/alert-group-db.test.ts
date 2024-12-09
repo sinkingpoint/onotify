@@ -1,5 +1,5 @@
 import { AlertGroup, AlertState } from "../../types/internal";
-import { AlertGroupDB } from "./alert-group-db"
+import { AlertGroupDB } from "./alert-group-db";
 
 class MockStorage<T> {
   vals: Map<string, T>;
@@ -24,7 +24,7 @@ class MockAlertGroupStorage extends MockStorage<AlertGroup> {}
 
 const randomID = () => {
   return Math.floor(Math.pow(2, 64) * Math.random()).toString(16);
-}
+};
 
 test("new group is gettable", async () => {
   const storage = new MockAlertGroupStorage();
@@ -41,7 +41,7 @@ test("new group is gettable", async () => {
       {
         fingerprint: randomID(),
         state: AlertState.Resolved,
-      }
+      },
     ],
   };
 
@@ -69,7 +69,7 @@ test("store expires resolved alerts", async () => {
       {
         fingerprint: randomID(),
         state: AlertState.Firing,
-      }
+      },
     ],
   };
 
@@ -79,15 +79,18 @@ test("store expires resolved alerts", async () => {
     alerts: [
       {
         ...firstGroup.alerts[0],
-        state: AlertState.Resolved
-      }
-    ]
+        state: AlertState.Resolved,
+      },
+    ],
   };
 
   await db.mergeAlertGroup(firstGroup);
   await db.mergeAlertGroup(secondGroup);
 
-  const receivedGroup = await db.getAlertGroup(firstGroup.nodeID, firstGroup.labels);
+  const receivedGroup = await db.getAlertGroup(
+    firstGroup.nodeID,
+    firstGroup.labels
+  );
   expect(receivedGroup).toBeDefined();
   expect(receivedGroup?.nodeID).toEqual(firstGroup.nodeID);
   expect(receivedGroup?.labels).toEqual(firstGroup.labels);
@@ -115,11 +118,14 @@ test("store deletes empty groups", async () => {
   firstGroup.alerts[0].state = AlertState.Resolved;
   await db.mergeAlertGroup(firstGroup);
 
-  const receivedGroup = await db.getAlertGroup(firstGroup.nodeID, firstGroup.labels);
+  const receivedGroup = await db.getAlertGroup(
+    firstGroup.nodeID,
+    firstGroup.labels
+  );
   expect(receivedGroup).toBeUndefined();
 });
 
-test("storage adds new alerts", async() => {
+test("storage adds new alerts", async () => {
   const storage = new MockAlertGroupStorage();
   const db = new AlertGroupDB(storage);
 
@@ -148,7 +154,10 @@ test("storage adds new alerts", async() => {
   await db.mergeAlertGroup(firstGroup);
   await db.mergeAlertGroup(secondGroup);
 
-  const receivedGroup = await db.getAlertGroup(firstGroup.nodeID, firstGroup.labels);
+  const receivedGroup = await db.getAlertGroup(
+    firstGroup.nodeID,
+    firstGroup.labels
+  );
   expect(receivedGroup).toBeDefined();
   expect(receivedGroup?.nodeID).toEqual(firstGroup.nodeID);
   expect(receivedGroup?.labels).toEqual(firstGroup.labels);
