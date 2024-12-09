@@ -1,14 +1,13 @@
 import { Matcher } from "../types/api";
-import { Alert } from "../types/internal";
 import { getAnchoredRegex } from "./regex";
 
 // Returns true if the given matcher matches the given alert.
 export const matcherMatches = (
   m: Matcher,
-  a: Alert,
+  labels: Record<string, string>,
   regexCache?: Record<string, RegExp>
 ) => {
-  const labelValue = a.labels[m.name] || "";
+  const labelValue = labels[m.name] || "";
   let test = false;
   if (m.isRegex) {
     const regex = getAnchoredRegex(m.value, regexCache);

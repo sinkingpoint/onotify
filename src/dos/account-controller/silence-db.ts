@@ -14,7 +14,7 @@ const silenceMatches = (s: Silence, a: Alert) => {
     return false;
   }
 
-  return s.matchers.every((m) => matcherMatches(m, a, REGEX_CACHE));
+  return s.matchers.every((m) => matcherMatches(m, a.labels, REGEX_CACHE));
 };
 
 export const newSilenceID = () => {

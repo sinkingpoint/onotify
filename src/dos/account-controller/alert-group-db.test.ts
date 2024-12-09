@@ -179,3 +179,83 @@ test("storage adds new alerts", async () => {
   expect(receivedGroup?.alerts[0]).toBe(firstGroup.alerts[0]);
   expect(receivedGroup?.alerts[1]).toBe(secondGroup.alerts[0]);
 });
+
+describe("get alert groups", () => {
+  const storage = new MockAlertGroupStorage();
+  const db = new AlertGroupDB(storage);
+
+  const firstGroup = {
+    nodeID: randomID(),
+    labelNames: ["alertname"],
+    labelValues: ["foo"],
+    receiver: "web.hook",
+    alerts: [
+      {
+        fingerprint: randomID(),
+        state: AlertState.Firing,
+      },
+    ],
+  };
+
+  const secondGroup = {
+    nodeID: randomID(),
+    labelNames: ["alertname"],
+    labelValues: ["foo2"],
+    receiver: "web2.hook",
+    alerts: [
+      {
+        fingerprint: randomID(),
+        state: AlertState.Firing,
+      },
+    ],
+  };
+
+  beforeAll(async () => {
+    await db.mergeAlertGroup(firstGroup);
+    await db.mergeAlertGroup(secondGroup);
+  });
+
+  test("get all groups", async () => {
+    const receivedGroups = await db.getAlertGroups({});
+    expect(receivedGroups).toBeDefined();
+    expect(receivedGroups.length).toEqual(2);
+    expect(receivedGroups[0]).toStrictEqual(firstGroup);
+    expect(receivedGroups[1]).toStrictEqual(secondGroup);
+  });
+
+  test("get web.hook alerts", async () => {
+    const receivedGroups = await db.getAlertGroups({
+      receiver: new RegExp("web.hook"),
+    });
+    expect(receivedGroups).toBeDefined();
+    expect(receivedGroups.length).toEqual(1);
+    expect(receivedGroups[0]).toStrictEqual(firstGroup);
+  });
+
+  test("get alerts with regex receiver", async () => {
+    const receivedGroups = await db.getAlertGroups({
+      receiver: new RegExp("web[2]?.hook"),
+    });
+    expect(receivedGroups).toBeDefined();
+    expect(receivedGroups.length).toEqual(2);
+    expect(receivedGroups[0]).toStrictEqual(firstGroup);
+    expect(receivedGroups[1]).toStrictEqual(secondGroup);
+  });
+
+  test("get alerts with filter", async () => {
+    const receivedGroups = await db.getAlertGroups({
+      filter: [
+        {
+          name: "alertname",
+          value: "foo2",
+          isEqual: true,
+          isRegex: false,
+        },
+      ],
+    });
+
+    expect(receivedGroups).toBeDefined();
+    expect(receivedGroups.length).toEqual(1);
+    expect(receivedGroups[0]).toStrictEqual(secondGroup);
+  });
+});

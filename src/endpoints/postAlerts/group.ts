@@ -115,7 +115,7 @@ const doesAlertMatchRoute = (
   }
 
   for (const m of r.matchers) {
-    if (!matcherMatches(m, a, REGEX_CACHE)) {
+    if (!matcherMatches(m, a.labels, REGEX_CACHE)) {
       return false;
     }
   }

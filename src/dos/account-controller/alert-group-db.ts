@@ -1,5 +1,7 @@
 import { fingerprintArray } from "../../endpoints/utils/fingerprinting";
+import { GetAlertGroupsOptions } from "../../types/api";
 import { AlertGroup, AlertState } from "../../types/internal";
+import { matcherMatches } from "../../utils/matcher";
 import { ALERT_GROUP_KV_PREFIX } from "./util";
 
 interface AlertGroupStorage {
@@ -40,16 +42,29 @@ export class AlertGroupDB {
     return group;
   }
 
-  async getAlertGroups(receiver?: RegExp) {
-    if (!receiver) {
-      return [...this.groups.values()];
+  async getAlertGroups({
+    receiver,
+    filter,
+  }: Partial<Pick<GetAlertGroupsOptions, "receiver" | "filter">>) {
+    let groups: AlertGroup[] = [...this.groups.values()];
+    if (receiver) {
+      groups = groups.filter((g) => {
+        return receiver.test(g.receiver);
+      });
     }
 
-    return [
-      ...this.groups.values().filter((g) => {
-        return receiver.test(g.receiver);
-      }),
-    ];
+    if (filter) {
+      groups = groups.filter((g) => {
+        const labels: Record<string, string> = {};
+        for (let i = 0; i < g.labelNames.length; i++) {
+          labels[g.labelNames[i]] = g.labelValues[i];
+        }
+
+        return filter.every((f) => matcherMatches(f, labels));
+      });
+    }
+
+    return [...groups];
   }
 
   async mergeAlertGroup(newGroup: AlertGroup) {
