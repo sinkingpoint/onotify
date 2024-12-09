@@ -60,6 +60,8 @@ export type ReceiveredAlert = Alert & { receivers: string[] };
 
 export interface GetAlertsOptions {
   fingerprints?: string[];
+  active?: boolean;
   silenced?: boolean;
   inhibited?: boolean;
+  muted?: boolean;
 }

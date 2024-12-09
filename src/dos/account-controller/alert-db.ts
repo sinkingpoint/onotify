@@ -62,23 +62,36 @@ export class AlertDB {
   }
 
   getAlerts({
+    active,
     fingerprints,
     silenced,
+    muted,
     inhibited,
   }: GetAlertsOptions): CachedAlert[] {
     silenced ??= true;
     inhibited ??= true;
+    active ??= true;
+    muted ??= true;
 
     return [...this.alerts.values()].filter((f) => {
       if (fingerprints && !fingerprints.includes(f.fingerprint)) {
         return false;
       }
 
-      if (!silenced && f.silencedBy.length > 0) {
+      const isSilenced = f.silencedBy.length > 0;
+      const isInhibited = f.inhibitedBy.length > 0;
+      const isActive = !isSilenced && !isInhibited;
+      // TODO: Support muted alerts here.
+
+      if (!silenced && isSilenced) {
         return false;
       }
 
-      if (!inhibited && f.inhibitedBy.length > 0) {
+      if (!inhibited && isInhibited) {
+        return false;
+      }
+
+      if (!active && isActive) {
         return false;
       }
 
