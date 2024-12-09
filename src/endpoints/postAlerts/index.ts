@@ -10,8 +10,8 @@ import { groupAlerts } from "./group";
 
 export class PostAlerts extends OpenAPIRoute {
   schema = {
-    tags: ["config"],
-    summary: "Upload an Alertmanager config",
+    tags: ["alerts"],
+    summary: "Add alerts to the system",
     request: {
       body: {
         content: {

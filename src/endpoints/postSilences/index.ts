@@ -8,8 +8,8 @@ import { accountControllerName } from "../utils/kv";
 
 export class PostSilence extends OpenAPIRoute {
   schema = {
-    tags: ["config"],
-    summary: "Upload an Alertmanager config",
+    tags: ["silences"],
+    summary: "Add silences to the system",
     request: {
       body: {
         content: {
@@ -21,7 +21,7 @@ export class PostSilence extends OpenAPIRoute {
     },
     responses: {
       "200": {
-        description: "Sucessfully pushed alerts",
+        description: "Sucessfully pushed silences",
       },
       ...Errors,
     },

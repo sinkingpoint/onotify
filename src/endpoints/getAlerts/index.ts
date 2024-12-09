@@ -8,11 +8,11 @@ import { accountControllerName } from "../utils/kv";
 
 export class GetAlerts extends OpenAPIRoute {
   schema = {
-    tags: ["config"],
-    summary: "Upload an Alertmanager config",
+    tags: ["alerts"],
+    summary: "Get a list of alerts",
     responses: {
       "200": {
-        description: "Sucessfully pushed alerts",
+        description: "Successfully got alerts",
         content: {
           "application/json": {
             schema: GettableAlertsSpec,

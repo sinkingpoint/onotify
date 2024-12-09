@@ -8,14 +8,14 @@ import { checkAPIKey, toErrorString } from "../utils/auth";
 
 export class GetSilences extends OpenAPIRoute {
   schema = {
-    tags: ["config"],
-    summary: "Upload an Alertmanager config",
+    tags: ["silences"],
+    summary: "Get a list of silences",
     request: {
       // TODO (https://github.com/sinkingpoint/onotify/issues/2): Support matchers here.
     },
     responses: {
       "200": {
-        description: "Sucessfully pushed alerts",
+        description: "Sucessfully pushed silences",
         content: {
           "application/json": {
             schema: GettableSilencesSpec,
