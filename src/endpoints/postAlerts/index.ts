@@ -41,7 +41,7 @@ export class PostAlerts extends OpenAPIRoute {
     }
 
     const data = await this.getValidatedData<typeof this.schema>();
-    const { account_id } = authResult;
+    const { accountID: account_id } = authResult;
     const rawConfig = await c.env.CONFIGS.get(routingTreeKVKey(account_id));
     if (!rawConfig) {
       c.status(HTTPResponses.InternalServerError);

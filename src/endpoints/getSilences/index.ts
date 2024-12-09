@@ -37,7 +37,7 @@ export class GetSilences extends OpenAPIRoute {
       return c.text(toErrorString(authResult));
     }
 
-    const controllerName = accountControllerName(authResult.account_id);
+    const controllerName = accountControllerName(authResult.accountID);
     const controllerID = c.env.ACCOUNT_CONTROLLER.idFromName(controllerName);
     const controller = c.env.ACCOUNT_CONTROLLER.get(controllerID);
 

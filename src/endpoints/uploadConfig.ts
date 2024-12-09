@@ -49,7 +49,7 @@ export class PostConfig extends OpenAPIRoute {
       return c.text(toErrorString(authResult));
     }
 
-    const { account_id } = authResult;
+    const { accountID: account_id } = authResult;
 
     // Get validated data
     const data = await this.getValidatedData<typeof this.schema>();

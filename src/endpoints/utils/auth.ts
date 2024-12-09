@@ -28,8 +28,8 @@ export const toErrorString = (e: APIKeyError) => {
 
 interface APIKey {
   result: "ok";
-  account_id: string;
-  user_id: string;
+  accountID: string;
+  userID: string;
   scopes: string[];
 }
 
@@ -118,8 +118,8 @@ export const checkAPIKey = async (
 
   return {
     result: "ok",
-    account_id: result["account_id"],
-    user_id: result["user_id"],
+    accountID: result["account_id"],
+    userID: result["user_id"],
     scopes: scopes,
   };
 };

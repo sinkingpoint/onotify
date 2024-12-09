@@ -39,7 +39,7 @@ export class PostSilence extends OpenAPIRoute {
     }
 
     const data = await this.getValidatedData<typeof this.schema>();
-    const controllerName = accountControllerName(authResult.account_id);
+    const controllerName = accountControllerName(authResult.accountID);
     const controllerID = c.env.ACCOUNT_CONTROLLER.idFromName(controllerName);
     const controller = c.env.ACCOUNT_CONTROLLER.get(controllerID);
 
