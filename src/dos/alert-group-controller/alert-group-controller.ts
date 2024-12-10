@@ -23,27 +23,29 @@ const getAlertFingerprints = async (storage: DurableObjectStorage) => {
 
   let page = await storage.list<GroupedAlert>(options);
   while (page.size > 0) {
-    const pending_fingerprints = page
-      .keys()
-      .filter((k) => page.get(k)!.pending)
-      .map((kvKey) => extractFingerprint(kvKey));
+    let pending_fingerprints: string[] = [];
+    let active_fingerprints: string[] = [];
+    let last;
+    for (const [k, v] of page) {
+      if (v.pending) {
+        pending_alerts.push(k);
+      } else {
+        active_alerts.push(k);
+      }
 
-    const active_fingerprints = page
-      .keys()
-      .filter((k) => !page.get(k)!.pending)
-      .map((kvKey) => extractFingerprint(kvKey));
+      last = k;
+    }
 
     pending_alerts.push(...pending_fingerprints);
     active_alerts.push(...active_fingerprints);
     page = await storage.list({
       ...options,
-      startAfter: pending_alerts[pending_alerts.length - 1],
+      startAfter: last,
     });
   }
 
   return [pending_alerts, active_alerts];
 };
-
 export class AlertGroupController extends DurableObject<Bindings> {
   route: FlatRouteConfig | undefined;
   labels: string[] | undefined;
