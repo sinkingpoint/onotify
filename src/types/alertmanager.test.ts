@@ -1,6 +1,5 @@
 import {
   AlertmanagerConfigSpec,
-  collapseRoutingTree,
   DaysOfMonthRange,
   DurationSpec,
   StringMatcherSpec,
