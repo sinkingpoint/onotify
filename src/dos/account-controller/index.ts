@@ -1,7 +1,7 @@
 import { DurableObject } from "cloudflare:workers";
 import { Bindings } from "hono/types";
 import { SilenceDB } from "./silence-db";
-import { getAllAlerts, getAllSilences } from "./util";
+import { getAllAlertGroups, getAllAlerts, getAllSilences } from "./util";
 import { AlertDB } from "./alert-db";
 import {
   AlertGroup,
@@ -28,6 +28,9 @@ export class AccountController extends DurableObject {
 
       const alerts = await getAllAlerts(state.storage);
       this.alertStorage.init(alerts);
+
+      const alertGroups = await getAllAlertGroups(state.storage);
+      this.alertGroupStorage.init(alertGroups);
     });
   }
 
