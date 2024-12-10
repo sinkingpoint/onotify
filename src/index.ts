@@ -6,6 +6,7 @@ import { PostAlerts } from "./endpoints/postAlerts";
 import { PostSilence } from "./endpoints/postSilences";
 import { GetAlerts } from "./endpoints/getAlerts";
 import { GetSilences } from "./endpoints/getSilences";
+import { GetAlertGroups } from "./endpoints/getAlertGroups";
 export { AlertGroupController } from "./dos/alert-group-controller/alert-group-controller";
 export { AccountController } from "./dos/account-controller";
 export { AlertDispatch } from "./alert-dispatch";
@@ -20,6 +21,7 @@ const openapi = fromHono(app, {
 
 // Register OpenAPI endpoints
 openapi.get("/api/v2/alerts", GetAlerts);
+openapi.get("/api/v2/alerts/groups", GetAlertGroups);
 openapi.post("/api/v2/alerts", PostAlerts);
 openapi.post("/api/v1/upload-config", PostConfig);
 openapi.get("/api/v2/silences", GetSilences);
