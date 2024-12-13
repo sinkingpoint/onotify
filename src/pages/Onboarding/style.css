@@ -1,0 +1,31 @@
+.home {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
+.home section {
+  margin-top: 5rem;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  column-gap: 1.5rem;
+}
+
+@media (max-width: 639px) {
+  .home section {
+    margin-top: 5rem;
+    grid-template-columns: 1fr;
+    row-gap: 1rem;
+  }
+}
+
+.config-input {
+  resize: none;
+}
+
+.btn {
+  font-weight: bold;
+  text-decoration-line: underline;
+  color: #ff6f61;
+  cursor: pointer;
+}

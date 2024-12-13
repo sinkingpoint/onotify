@@ -7,14 +7,23 @@
 		"preview": "vite preview"
 	},
 	"dependencies": {
+		"@asteasolutions/zod-to-openapi": "^7.3.0",
+		"@heroicons/react": "^2.2.0",
+		"js-yaml": "^4.1.0",
 		"preact": "^10.22.1",
 		"preact-iso": "^2.8.1",
-		"preact-render-to-string": "^6.5.11"
+		"preact-render-to-string": "^6.5.11",
+		"zod": "^3.24.1"
 	},
 	"devDependencies": {
 		"@preact/preset-vite": "^2.9.0",
+		"@types/js-yaml": "^4.0.9",
+		"@types/object-hash": "^3.0.6",
+		"autoprefixer": "^10.4.20",
 		"eslint": "^8.57.1",
 		"eslint-config-preact": "^1.5.0",
+		"postcss": "^8.4.49",
+		"tailwindcss": "^3.4.16",
 		"typescript": "^5.7.2",
 		"vite": "^5.3.3"
 	},
