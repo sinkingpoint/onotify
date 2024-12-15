@@ -1,7 +1,11 @@
 import { AccountController, AlertGroupController } from "..";
 import { PostableSilence } from "./api";
 
-export interface Bindings {
+interface EnvVars {
+  WORKERS_ENV?: string;
+}
+
+export interface Bindings extends EnvVars {
   DB: D1Database;
   CONFIGS: KVNamespace;
   ALERT_GROUP_CONTROLLER: DurableObjectNamespace<AlertGroupController>;
