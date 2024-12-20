@@ -1806,12 +1806,23 @@ export const GlobalConfigSpec = z
   })
   .strict();
 
+export const TemplatePathSpec = z.string().refine((p) => {
+  const parts = p.split(new RegExp(`/\\\\`));
+  for (let i = 0; i < parts.length; i++) {
+    if (parts[i].includes("*") && i != parts.length - 1) {
+      return false;
+    }
+  }
+
+  return true;
+}, "only last component of the template path can contain a wildcard");
+
 export const AlertmanagerConfigSpec = z
   .object({
     global: GlobalConfigSpec.default(GlobalConfigSpec.parse({})),
     // Files from which custom notification template definitions are read.
     // The last component may use a wildcard matcher, e.g. 'templates/*.tmpl'.
-    templates: z.array(z.string()).default([]),
+    templates: z.array(TemplatePathSpec).default([]),
 
     // The root node of the routing tree.
     route: RouteConfigSpec,
