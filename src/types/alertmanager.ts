@@ -12,6 +12,10 @@ export const enforceMutuallyExclusive = (
   k2: string,
   require_one: boolean = false
 ): [(val: any) => boolean, string] => {
+  let msg = `${k1} and ${k2} are mutually exclusive`;
+  if (require_one) {
+    msg += " and one must exist";
+  }
   return [
     (val: any) => {
       if (!val) {
@@ -27,7 +31,7 @@ export const enforceMutuallyExclusive = (
         return mutuallyExclusive || (!hasK1 && !hasK2);
       }
     },
-    `${k1} and ${k2} are mutually exclusive`,
+    msg,
   ];
 };
 
@@ -1480,7 +1484,7 @@ export const ReceiverSpec = z
     name: z.string(),
     discord_configs: z.array(DiscordConfigSpec).optional(),
     email_configs: z.array(EmailConfigSpec).optional(),
-    msteams_config: z.array(MSTeamsConfigSpec).optional(),
+    msteams_configs: z.array(MSTeamsConfigSpec).optional(),
     opsgenie_configs: z.array(OpsGenieConfigSpec).optional(),
     pagerduty_configs: z.array(PagerdutyConfigSpec).optional(),
     pushover_configs: z.array(PushoverConfigSpec).optional(),
@@ -1972,4 +1976,44 @@ export const collapseRoutingTree = (c: AlertmanagerConfig) => {
 
   const roots = Object.keys(flatNodes).filter((id) => !hasParents.get(id));
   return { roots: roots, tree: flatNodes };
+};
+
+type RequiredFiles = {
+  secrets: string[];
+  templates: {
+    path: string;
+    isDir: boolean;
+  }[];
+};
+
+// getRequiredFiles takes a config and returns a list of auxillary files that
+// are needed to assemble the config. This includes secret files, certs, and templates
+// that are referenced in various bits of the config.
+export const getRequiredFiles = (conf: AlertmanagerConfig): RequiredFiles => {
+  let toScan = [conf.global, ...conf.receivers];
+  const requiredFilesSet = new Set<string>();
+  for (const scan of toScan) {
+    for (const key of Object.keys(scan)) {
+      const val = scan[key as keyof typeof scan];
+      // Rather than being super strict here, we simply pull out anything that has a _file suffix.
+      // That should capture everything except templates.
+      if (key.endsWith("_file")) {
+        requiredFilesSet.add(val);
+      } else if (Array.isArray(val)) {
+        toScan.push(...(val as Array<any>));
+      } else if (typeof val === "object") {
+        toScan.push(val);
+      }
+    }
+  }
+
+  return {
+    secrets: [...requiredFilesSet.values()].sort(),
+    templates: conf.templates.map((s) => {
+      return {
+        path: s,
+        isDir: s.includes("*"),
+      };
+    }),
+  };
 };

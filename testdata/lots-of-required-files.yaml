@@ -1,0 +1,51 @@
+global:
+  smtp_auth_password_file: 'smtp_password.secret'
+  slack_api_url_file: 'slack.secret'
+  victorops_api_key_file: 'victorops.secret'
+  opsgenie_api_key_file: 'opsgenie.secret'
+
+route: {}
+
+receivers:
+  - name: 'team-X-mails'
+    discord_configs:
+      - webhook_url_file: 'discord_webhook.secret'
+    email_configs:
+      - auth_password_file: 'email_auth.secret'
+        to: test@test.com
+        tls_config:
+          ca_file: 'tls-ca.cert'
+          cert_file: 'cert.cert'
+          key_file: 'key.pem'
+    msteams_configs:
+      - webhook_url_file: 'msteams.secret'
+    opsgenie_configs:
+      - api_key_file: 'opsgenie.secret'
+    pagerduty_configs:
+      - routing_key_file: 'pagerduty.secret'
+        service_key_file: 'pagerduty_service_key.secret'
+    pushover_configs:
+      - token_file: 'pushover.secret'
+        user_key_file: 'pushover.user.secret'
+    slack_configs:
+      - api_url_file: 'slack.secret'
+        channel: test
+    telegram_configs:
+      - bot_token_file: 'telegram.secret'
+    victorops_configs:
+      - api_key_file: 'victorops2.secret'
+        routing_key: test
+    webhook_configs:
+      - url_file: 'webhook.secret'
+        http_config:
+          basic_auth:
+            username: test
+            password_file: webhook_password.secret
+      - url_file: 'webhook.secret'
+        http_config:
+          authorization:
+            credentials_file: webhook_credentials.secret
+# The directory from which notification templates are read.
+templates:
+  - '/etc/alertmanager/template/*.tmpl'
+  - '/var/log/alertmanager.tmpl'

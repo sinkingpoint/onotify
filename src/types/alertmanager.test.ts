@@ -7,6 +7,7 @@ import {
   TimeSpec,
   WeekdayRangeSpec,
   YearRange,
+  getRequiredFiles,
 } from "./alertmanager";
 
 import fs from "fs";
@@ -275,4 +276,62 @@ test("duration unsupported units", () => {
   // We don't support ns, or microseconds.
   expect(() => DurationSpec.parse("500ns")).toThrow();
   expect(() => DurationSpec.parse("500us")).toThrow();
+});
+
+test("simple.yaml getRequiredFiles", () => {
+  const config = AlertmanagerConfigSpec.parse(
+    readYamlFile("testdata/simple.yaml")
+  );
+
+  const files = getRequiredFiles(config);
+  expect(files).toEqual({
+    secrets: [],
+    templates: [
+      {
+        path: "/etc/alertmanager/template/*.tmpl",
+        isDir: true,
+      },
+    ],
+  });
+});
+
+test("lots-of-required-files getRequiredFiles", () => {
+  const config = AlertmanagerConfigSpec.parse(
+    readYamlFile("testdata/lots-of-required-files.yaml")
+  );
+
+  const files = getRequiredFiles(config);
+  expect(files).toEqual({
+    secrets: [
+      "cert.cert",
+      "tls-ca.cert",
+      "key.pem",
+      "smtp_password.secret",
+      "victorops.secret",
+      "victorops2.secret",
+      "opsgenie.secret",
+      "discord_webhook.secret",
+      "email_auth.secret",
+      "msteams.secret",
+      "pagerduty.secret",
+      "pagerduty_service_key.secret",
+      "pushover.secret",
+      "pushover.user.secret",
+      "slack.secret",
+      "telegram.secret",
+      "webhook_password.secret",
+      "webhook.secret",
+      "webhook_credentials.secret",
+    ].sort(),
+    templates: [
+      {
+        path: "/etc/alertmanager/template/*.tmpl",
+        isDir: true,
+      },
+      {
+        path: "/var/log/alertmanager.tmpl",
+        isDir: false,
+      },
+    ],
+  });
 });
