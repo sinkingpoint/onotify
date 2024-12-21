@@ -18,6 +18,14 @@ export const timeIntervalsKVKey = (account_id: string): string => {
   return `onotify-${account_id}-time-intervals`;
 };
 
+export const requiredFilesKey = (account_id: string): string => {
+  return `onotify-${account_id}-required-files`;
+};
+
+export const uploadedFilesKey = (account_id: string): string => {
+  return `onotify-${account_id}-uploaded-files`;
+};
+
 export const alertGroupControllerName = (
   accountID: string,
   nodeID: string,

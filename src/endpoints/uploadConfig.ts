@@ -1,7 +1,9 @@
 import { OpenAPIRoute } from "chanfana";
 import {
+  AlertmanagerConfig,
   AlertmanagerConfigSpec,
   collapseRoutingTree,
+  getRequiredFiles,
   Receiver,
   TimeInterval,
 } from "../types/alertmanager";
@@ -13,8 +15,10 @@ import {
   globalTreeKVKey,
   inhibitionsKVKey,
   receiversKVKey,
+  requiredFilesKey,
   routingTreeKVKey,
   timeIntervalsKVKey,
+  uploadedFilesKey,
 } from "./utils/kv";
 
 export class PostConfig extends OpenAPIRoute {
@@ -44,6 +48,7 @@ export class PostConfig extends OpenAPIRoute {
       c.req.header("Authorization"),
       "upload-config"
     );
+
     if (authResult.result !== "ok") {
       c.status(HTTPResponses.Unauthorized);
       return c.text(toErrorString(authResult));
@@ -99,6 +104,19 @@ export class PostConfig extends OpenAPIRoute {
         JSON.stringify(timeIntervals)
       )
     );
+
+    const requiredFiles = getRequiredFiles(config);
+    promises.push(
+      c.env.CONFIGS.put(
+        requiredFilesKey(account_id),
+        JSON.stringify(requiredFiles)
+      )
+    );
+
+    const uploadedFiles = uploadedFilesKey(account_id);
+    if (!(await c.env.CONFIGS.get(uploadedFiles))) {
+      promises.push(c.env.CONFIGS.put(uploadedFiles, "{}"));
+    }
 
     await Promise.all(promises);
     // TODO(https://github.com/sinkingpoint/onotify/issues/4, https://github.com/sinkingpoint/onotify/issues/5): Handle custom templates + `mute_time_intervals`

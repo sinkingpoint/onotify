@@ -1978,7 +1978,7 @@ export const collapseRoutingTree = (c: AlertmanagerConfig) => {
   return { roots: roots, tree: flatNodes };
 };
 
-type RequiredFiles = {
+export type RequiredFiles = {
   secrets: string[];
   templates: {
     path: string;

@@ -11,6 +11,7 @@ export { AlertGroupController } from "./dos/alert-group-controller/alert-group-c
 export { AccountController } from "./dos/account-controller";
 export { AlertDispatch } from "./alert-dispatch";
 import { cors } from "hono/cors";
+import { GetRequiredFiles } from "./endpoints/getRequiredFiles";
 
 const LOCAL_ORIGIN = "http://localhost:5173";
 const PROD_ORIGIN = "https://dash.onotify.com";
@@ -48,6 +49,7 @@ openapi.get("/api/v2/alerts", GetAlerts);
 openapi.get("/api/v2/alerts/groups", GetAlertGroups);
 openapi.post("/api/v2/alerts", PostAlerts);
 openapi.post("/api/v1/upload-config", PostConfig);
+openapi.get("/api/v1/upload-config/required-files", GetRequiredFiles);
 openapi.get("/api/v2/silences", GetSilences);
 openapi.post("/api/v2/silences", PostSilence);
 
