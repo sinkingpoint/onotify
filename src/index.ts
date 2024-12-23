@@ -21,27 +21,27 @@ const app = new Hono<{ Bindings: Bindings }>();
 
 // Setup OpenAPI registry
 const openapi = fromHono(app, {
-  docs_url: "/",
+	docs_url: "/",
 });
 
 const corsOptions = {
-  allowedMethods: ["GET", "POST"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-  credentials: true,
+	allowedMethods: ["GET", "POST"],
+	allowedHeaders: ["Content-Type", "Authorization"],
+	credentials: true,
 };
 
 openapi.use("*", async (c, next) => {
-  let origin = PROD_ORIGIN;
-  if (c.env.WORKERS_ENV === "local") {
-    origin = LOCAL_ORIGIN;
-  }
+	let origin = PROD_ORIGIN;
+	if (c.env.WORKERS_ENV === "local") {
+		origin = LOCAL_ORIGIN;
+	}
 
-  const corsOpts = {
-    ...corsOptions,
-    origin: [origin],
-  };
+	const corsOpts = {
+		...corsOptions,
+		origin: [origin],
+	};
 
-  return cors(corsOpts)(c, next);
+	return cors(corsOpts)(c, next);
 });
 
 // Register OpenAPI endpoints

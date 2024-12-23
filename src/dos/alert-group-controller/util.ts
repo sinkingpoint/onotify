@@ -11,27 +11,27 @@ export const ROUTE_KV_KEY = "route";
 export const ACCOUNT_ID_KEY = "account-id";
 
 export type GroupedAlert = {
-  fingerprint: string;
-  state: AlertState;
-  pending: boolean;
+	fingerprint: string;
+	state: AlertState;
+	pending: boolean;
 };
 
 // Gets the key used to store the alert with the given fingerprint in storage.
 export const alertKVKey = (fingerprint: string): string => {
-  return `${ALERTS_PREFIX}-${fingerprint}`;
+	return `${ALERTS_PREFIX}-${fingerprint}`;
 };
 
 // Gets the fingerprint of an alert, given the KV key.
 export const extractFingerprint = (kvKey: string): string => {
-  if (kvKey.startsWith(`${ALERTS_PREFIX}-`)) {
-    return kvKey.slice(ALERTS_PREFIX.length + 1);
-  }
+	if (kvKey.startsWith(`${ALERTS_PREFIX}-`)) {
+		return kvKey.slice(ALERTS_PREFIX.length + 1);
+	}
 
-  return kvKey;
+	return kvKey;
 };
 
 export interface AlertStorage {
-  get: (fingerprint: string) => Promise<GroupedAlert | undefined>;
-  put: (fingerprint: string, alert: GroupedAlert) => Promise<void>;
-  delete: (fingerprint: string) => Promise<boolean>;
+	get: (fingerprint: string) => Promise<GroupedAlert | undefined>;
+	put: (fingerprint: string, alert: GroupedAlert) => Promise<void>;
+	delete: (fingerprint: string) => Promise<boolean>;
 }
