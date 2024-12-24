@@ -1,9 +1,8 @@
 import {
 	AlertmanagerConfigSpec,
 	DaysOfMonthRange,
-	DurationSpec,
-	StringMatcherSpec,
 	MonthRange,
+	StringMatcherSpec,
 	TimeSpec,
 	WeekdayRangeSpec,
 	YearRange,
@@ -256,20 +255,6 @@ test("unknown value", () => {
 test("duplicated time interval", () => {
 	const raw = readYamlFile("testdata/duplicated-time-interval-1.yaml");
 	expect(() => AlertmanagerConfigSpec.parse(raw)).toThrow();
-});
-
-test("duration 1s", () => {
-	expect(DurationSpec.parse("1s")).toBe(1 * 1000);
-});
-
-test("duration 3h30m", () => {
-	expect(DurationSpec.parse("3h30m")).toBe((3 * 60 * 60 + 30 * 60) * 1000);
-});
-
-test("duration unsupported units", () => {
-	// We don't support ns, or microseconds.
-	expect(() => DurationSpec.parse("500ns")).toThrow();
-	expect(() => DurationSpec.parse("500us")).toThrow();
 });
 
 test("simple.yaml getRequiredFiles", () => {

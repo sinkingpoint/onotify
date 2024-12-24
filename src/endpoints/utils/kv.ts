@@ -1,4 +1,4 @@
-export const globalTreeKVKey = (account_id: string) => {
+export const globalConfigKVKey = (account_id: string) => {
 	return `onotify-${account_id}-global`;
 };
 
@@ -32,4 +32,13 @@ export const alertGroupControllerName = (accountID: string, nodeID: string, grou
 
 export const accountControllerName = (accountID: string) => {
 	return `account-controller-${accountID}`;
+};
+
+export const loadJSONKVKey = async (config: KVNamespace, key: string) => {
+	const rawConfig = await config.get(key);
+	if (!rawConfig) {
+		return null;
+	}
+
+	return JSON.parse(rawConfig);
 };

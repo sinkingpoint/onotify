@@ -1,6 +1,6 @@
 import { OpenAPIRoute } from "chanfana";
+import { Context } from "hono";
 import {
-	AlertmanagerConfig,
 	AlertmanagerConfigSpec,
 	collapseRoutingTree,
 	getRequiredFiles,
@@ -8,11 +8,10 @@ import {
 	TimeInterval,
 } from "../types/alertmanager";
 import { Errors, HTTPResponses } from "../types/http";
-import { Context } from "hono";
 import { Bindings } from "../types/internal";
 import { checkAPIKey, toErrorString } from "./utils/auth";
 import {
-	globalTreeKVKey,
+	globalConfigKVKey,
 	inhibitionsKVKey,
 	receiversKVKey,
 	requiredFilesKey,
@@ -69,14 +68,10 @@ export class PostConfig extends OpenAPIRoute {
 
 		const promises = [];
 
-		promises.push(c.env.CONFIGS.put(globalTreeKVKey(account_id), JSON.stringify(config.global)));
-
+		promises.push(c.env.CONFIGS.put(globalConfigKVKey(account_id), JSON.stringify(config.global)));
 		promises.push(c.env.CONFIGS.put(routingTreeKVKey(account_id), JSON.stringify(routingTree)));
-
 		promises.push(c.env.CONFIGS.put(receiversKVKey(account_id), JSON.stringify(receivers)));
-
 		promises.push(c.env.CONFIGS.put(inhibitionsKVKey(account_id), JSON.stringify(config.inhibit_rules)));
-
 		promises.push(c.env.CONFIGS.put(timeIntervalsKVKey(account_id), JSON.stringify(timeIntervals)));
 
 		const requiredFiles = getRequiredFiles(config);

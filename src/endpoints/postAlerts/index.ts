@@ -1,9 +1,9 @@
 import { OpenAPIRoute } from "chanfana";
+import { Context } from "hono";
+import { collapseRoutingTree } from "../../types/alertmanager";
 import { PostableAlertsSpec } from "../../types/api";
 import { Errors, HTTPResponses } from "../../types/http";
 import { Bindings } from "../../types/internal";
-import { Context } from "hono";
-import { collapseRoutingTree } from "../../types/alertmanager";
 import { checkAPIKey, toErrorString } from "../utils/auth";
 import { alertGroupControllerName, routingTreeKVKey } from "../utils/kv";
 import { groupAlerts } from "./group";
@@ -51,9 +51,7 @@ export class PostAlerts extends OpenAPIRoute {
 		for (const nodeID of Object.keys(groups)) {
 			for (const group of groups[nodeID]) {
 				const controllerName = alertGroupControllerName(account_id, nodeID, group.labelValues);
-
 				const alertGroupControllerID = c.env.ALERT_GROUP_CONTROLLER.idFromName(controllerName);
-
 				const alertGroupController = c.env.ALERT_GROUP_CONTROLLER.get(alertGroupControllerID);
 
 				promises.push(alertGroupController.initialize(account_id, routingTree.tree[nodeID], group));

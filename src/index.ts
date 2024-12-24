@@ -1,17 +1,18 @@
 import { fromHono } from "chanfana";
 import { Hono } from "hono";
-import { Bindings } from "./types/internal";
-import { PostConfig } from "./endpoints/uploadConfig";
+import { cors } from "hono/cors";
+import { GetAlertGroups } from "./endpoints/getAlertGroups";
+import { GetAlerts } from "./endpoints/getAlerts";
+import { GetConfig } from "./endpoints/getConfig";
+import { GetRequiredFiles } from "./endpoints/getRequiredFiles";
+import { GetSilences } from "./endpoints/getSilences";
 import { PostAlerts } from "./endpoints/postAlerts";
 import { PostSilence } from "./endpoints/postSilences";
-import { GetAlerts } from "./endpoints/getAlerts";
-import { GetSilences } from "./endpoints/getSilences";
-import { GetAlertGroups } from "./endpoints/getAlertGroups";
-export { AlertGroupController } from "./dos/alert-group-controller/alert-group-controller";
-export { AccountController } from "./dos/account-controller";
+import { PostConfig } from "./endpoints/uploadConfig";
+import { Bindings } from "./types/internal";
 export { AlertDispatch } from "./alert-dispatch";
-import { cors } from "hono/cors";
-import { GetRequiredFiles } from "./endpoints/getRequiredFiles";
+export { AccountController } from "./dos/account-controller";
+export { AlertGroupController } from "./dos/alert-group-controller/alert-group-controller";
 
 const LOCAL_ORIGIN = "http://localhost:5173";
 const PROD_ORIGIN = "https://dash.onotify.com";
@@ -48,8 +49,9 @@ openapi.use("*", async (c, next) => {
 openapi.get("/api/v2/alerts", GetAlerts);
 openapi.get("/api/v2/alerts/groups", GetAlertGroups);
 openapi.post("/api/v2/alerts", PostAlerts);
-openapi.post("/api/v1/upload-config", PostConfig);
-openapi.get("/api/v1/upload-config/required-files", GetRequiredFiles);
+openapi.post("/api/v1/config", PostConfig);
+openapi.get("/api/v1/config/required-files", GetRequiredFiles);
+openapi.get("/api/v1/config", GetConfig);
 openapi.get("/api/v2/silences", GetSilences);
 openapi.post("/api/v2/silences", PostSilence);
 
