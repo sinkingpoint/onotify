@@ -111,10 +111,6 @@ export const milliSecondsToDuration = (s: number) => {
 		}
 	}
 
-	if (time === "") {
-		throw `BUG: failed to get time for ${s} milliseconds`;
-	}
-
 	return time;
 };
 

@@ -50,7 +50,9 @@ export const reconstituteConfig = async (ctx: Context<{ Bindings: Bindings }>, a
 		global: removeDefaults(GlobalConfigSpec.parse({}), global),
 		receivers,
 		inhibit_rules: inhibitRules.map((i: InhibitRule) => removeDefaults(InhibitRuleSpec.parse({}), i)),
-		time_intervals: timeIntervals.map((t) => removeDefaults(TimeIntervalSpec.parse({}), t)),
+		time_intervals: timeIntervals.map((t) =>
+			removeDefaults(TimeIntervalSpec.parse({ name: "BUG: This shouldn't be here...", time_intervals: [] }), t)
+		),
 		route: reconstitutedRoutingTree,
 	};
 };
