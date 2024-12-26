@@ -1,6 +1,7 @@
 import { extendZodWithOpenApi } from "@asteasolutions/zod-to-openapi";
-import { z, ZodTypeDef } from "zod";
 import hash from "object-hash";
+import { z, ZodTypeDef } from "zod";
+import { DurationSpec } from "./duration";
 
 extendZodWithOpenApi(z);
 
@@ -11,6 +12,10 @@ export const enforceMutuallyExclusive = (
   k2: string,
   require_one: boolean = false
 ): [(val: any) => boolean, string] => {
+  let msg = `${k1} and ${k2} are mutually exclusive`;
+  if (require_one) {
+    msg += " and one must exist";
+  }
   return [
     (val: any) => {
       if (!val) {
@@ -26,7 +31,7 @@ export const enforceMutuallyExclusive = (
         return mutuallyExclusive || (!hasK1 && !hasK2);
       }
     },
-    `${k1} and ${k2} are mutually exclusive`,
+    msg,
   ];
 };
 
@@ -296,177 +301,6 @@ export const StringMatcherSpec = z
   .openapi({
     description: "a matcher to match labels against",
     examples: [`a="b"`, `a!="b"`, `a=~"b"`, `a!~"b"`],
-  });
-
-const leadingInt = (s: string): [number, string] => {
-  let i = 0;
-  let x = 0;
-  for (; i < s.length; i++) {
-    const c = s[i];
-    if (
-      c.charCodeAt(0) < "0".charCodeAt(0) ||
-      c.charCodeAt(0) > "9".charCodeAt(0)
-    ) {
-      break;
-    }
-
-    x = x * 10 + (c.charCodeAt(0) - "0".charCodeAt(0));
-  }
-
-  return [x, s.substring(i)];
-};
-
-const leadingFraction = (s: string): [number, number, string] => {
-  let i = 0;
-  let scale = 1;
-  let x = 0;
-  for (; i < s.length; i++) {
-    const c = s[i];
-    if (
-      c.charCodeAt(0) < "0".charCodeAt(0) ||
-      c.charCodeAt(0) > "9".charCodeAt(0)
-    ) {
-      break;
-    }
-
-    x = x * 10 + (c.charCodeAt(0) - "0".charCodeAt(0));
-    scale *= 10;
-  }
-
-  return [x, scale, s.substring(i)];
-};
-
-// Returns false if the given string is technically a valid duration unit in Go,
-// but we choose not to support it here.
-const isUnitAllowed = (s: string): boolean => {
-  switch (s) {
-    case "ns":
-    case "us":
-    case "µs":
-    case "μs":
-    case "ms":
-      return false;
-  }
-
-  return true;
-};
-
-// Returns the number of microseconds in one of the given unit.
-const unitMap = (s: string): number | null => {
-  const millisecond = 1;
-  const second = 1000 * millisecond;
-  const minute = 60 * second;
-  const hour = 60 * minute;
-  switch (s) {
-    case "ms":
-      return millisecond;
-    case "s":
-      return second;
-    case "m":
-      return minute;
-    case "h":
-      return hour;
-  }
-
-  return null;
-};
-
-// Handles Go duration types, like 30s, 3h1m, or 0.5m.
-export const DurationSpec = z
-  .string()
-  .transform((s) => {
-    let d = 0;
-    let neg = false;
-    let orig = s;
-
-    if (s !== "") {
-      const c = s[0];
-      if (c === "-" || c === "+") {
-        neg = c === "-";
-        s = s.substring(1);
-      }
-    }
-
-    if (s === "0") {
-      return 0;
-    }
-
-    if (s === "") {
-      throw `invalid duration: "${orig}`;
-    }
-
-    while (s !== "") {
-      let scale = 1;
-      let f = 0;
-      if (!(s[0] === "." || ("0" <= s[0] && s[0] <= "9"))) {
-        throw `invalid duration: "${orig}"`;
-      }
-
-      let pl = s.length;
-      const leading = leadingInt(s);
-      let v = leading[0];
-      s = leading[1];
-
-      const pre = pl != s.length;
-      let post = false;
-      if (s !== "" && s[0] === ".") {
-        s = s.substring(1);
-        pl = s.length;
-        const [newF, newScale, newS] = leadingFraction(s);
-        s = newS;
-        post = pl != s.length;
-        f = newF;
-        scale = newScale;
-      }
-
-      if (!pre && !post) {
-        // no digits (e.g. ".s" or "-.s")
-        throw `invalid duration: "${orig}"`;
-      }
-
-      let i = 0;
-      for (; i < s.length; i++) {
-        const c = s[i];
-        if (
-          c === "." ||
-          ("0".charCodeAt(0) <= c.charCodeAt(0) &&
-            c.charCodeAt(0) <= "9".charCodeAt(0))
-        ) {
-          break;
-        }
-      }
-
-      if (i === 0) {
-        throw `missing unit in duration: "${orig}"`;
-      }
-
-      const u = s.substring(0, i);
-      s = s.substring(i);
-      const unit = unitMap(u);
-      if (!isUnitAllowed(u)) {
-        throw `unsupported unit ${u}`;
-      }
-
-      if (unit === null) {
-        throw `unknown unit '${u}' in duration: ${orig}`;
-      }
-
-      v *= unit;
-      if (f > 0) {
-        v += f * (unit / scale);
-      }
-
-      d += v;
-    }
-    if (neg) {
-      return -d;
-    }
-
-    return d;
-  })
-  .openapi({
-    description: "a string duration",
-    examples: ["2h", "5m30s"],
   });
 
 const baseRouteSpec = z
@@ -1479,7 +1313,7 @@ export const ReceiverSpec = z
     name: z.string(),
     discord_configs: z.array(DiscordConfigSpec).optional(),
     email_configs: z.array(EmailConfigSpec).optional(),
-    msteams_config: z.array(MSTeamsConfigSpec).optional(),
+    msteams_configs: z.array(MSTeamsConfigSpec).optional(),
     opsgenie_configs: z.array(OpsGenieConfigSpec).optional(),
     pagerduty_configs: z.array(PagerdutyConfigSpec).optional(),
     pushover_configs: z.array(PushoverConfigSpec).optional(),
@@ -1521,6 +1355,8 @@ export const InhibitRuleSpec = z
     equal: z.array(LabelNameSpec).default([]),
   })
   .strict();
+
+export type InhibitRule = z.infer<typeof InhibitRuleSpec>;
 
 export const TimeSpec = z.string().transform((val) => {
   let parts = val.split(":").map((n) => parseInt(n));
@@ -1805,12 +1641,23 @@ export const GlobalConfigSpec = z
   })
   .strict();
 
+export const TemplatePathSpec = z.string().refine((p) => {
+  const parts = p.split(new RegExp(`/\\\\`));
+  for (let i = 0; i < parts.length; i++) {
+    if (parts[i].includes("*") && i != parts.length - 1) {
+      return false;
+    }
+  }
+
+  return true;
+}, "only last component of the template path can contain a wildcard");
+
 export const AlertmanagerConfigSpec = z
   .object({
     global: GlobalConfigSpec.default(GlobalConfigSpec.parse({})),
     // Files from which custom notification template definitions are read.
     // The last component may use a wildcard matcher, e.g. 'templates/*.tmpl'.
-    templates: z.array(z.string()).default([]),
+    templates: z.array(TemplatePathSpec).default([]),
 
     // The root node of the routing tree.
     route: RouteConfigSpec,
@@ -1960,4 +1807,44 @@ export const collapseRoutingTree = (c: AlertmanagerConfig) => {
 
   const roots = Object.keys(flatNodes).filter((id) => !hasParents.get(id));
   return { roots: roots, tree: flatNodes };
+};
+
+export type RequiredFiles = {
+  secrets: string[];
+  templates: {
+    path: string;
+    isDir: boolean;
+  }[];
+};
+
+// getRequiredFiles takes a config and returns a list of auxillary files that
+// are needed to assemble the config. This includes secret files, certs, and templates
+// that are referenced in various bits of the config.
+export const getRequiredFiles = (conf: AlertmanagerConfig): RequiredFiles => {
+  let toScan = [conf.global, ...conf.receivers];
+  const requiredFilesSet = new Set<string>();
+  for (const scan of toScan) {
+    for (const key of Object.keys(scan)) {
+      const val = scan[key as keyof typeof scan];
+      // Rather than being super strict here, we simply pull out anything that has a _file suffix.
+      // That should capture everything except templates.
+      if (key.endsWith("_file")) {
+        requiredFilesSet.add(val);
+      } else if (Array.isArray(val)) {
+        toScan.push(...(val as Array<any>));
+      } else if (typeof val === "object") {
+        toScan.push(val);
+      }
+    }
+  }
+
+  return {
+    secrets: [...requiredFilesSet.values()].sort(),
+    templates: conf.templates.map((s) => {
+      return {
+        path: s,
+        isDir: s.includes("*"),
+      };
+    }),
+  };
 };

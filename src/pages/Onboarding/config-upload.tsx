@@ -7,6 +7,7 @@ import {
 } from "@heroicons/react/16/solid";
 import yaml from "js-yaml";
 import { useRef, useState } from "preact/hooks";
+import { JSX } from "preact/jsx-runtime";
 import { APIClient } from "../../pkg/api";
 import {
   AlertmanagerConfig,
@@ -21,11 +22,18 @@ enum UploadingStatus {
   Uploaded,
 }
 
-const uploadConfig = (config: AlertmanagerConfig) => {
-  return new APIClient().uploadConfig(config);
+const uploadConfig = (configYAML: string) => {
+  const loadedConfig = yaml.load(configYAML);
+  return new APIClient().uploadConfig(JSON.stringify(loadedConfig));
 };
 
-export const ConfigUpload = () => {
+interface ConfigUploadProps {
+  uploadSucessCallback?: () => void;
+}
+
+export const ConfigUpload = ({
+  uploadSucessCallback: uploadSuccessCallback,
+}: ConfigUploadProps) => {
   const [config, setConfig] = useState<string>("");
   const [parseStatus, setParseStatus] = useState<ConfigStatusProps>({});
   const [uploadingStatus, setUploadingStatus] = useState<UploadingStatus>(
@@ -65,9 +73,10 @@ export const ConfigUpload = () => {
     }
 
     try {
-      const resp = await uploadConfig(parsedConfig.config);
+      const resp = await uploadConfig(config);
       if (resp.ok) {
         setUploadingStatus(UploadingStatus.Uploaded);
+        uploadSuccessCallback();
       } else {
         setUploadingStatus(UploadingStatus.Error);
       }
@@ -76,7 +85,7 @@ export const ConfigUpload = () => {
     }
   };
 
-  let uploadIcon;
+  let uploadIcon: JSX.Element;
   if (uploadingStatus === UploadingStatus.NotUploaded) {
     uploadIcon = <ArrowUpTrayIcon class="inline size-5" />;
   } else if (uploadingStatus === UploadingStatus.Uploading) {
@@ -97,41 +106,44 @@ export const ConfigUpload = () => {
   }
 
   return (
-    <span class="flex flex-row grow">
-      <span class="flex flex-col grow">
-        <span class="text-lg my-3">
-          <h3>
-            Paste your Alertmanager config, or{" "}
-            <label for="config-file" class="btn">
-              upload one
-            </label>
-          </h3>
-        </span>
-        <span class="flex flex-row grow">
-          <span class="flex flex-row basis-2/3 grow">
-            <input
-              id="config-file"
-              type="file"
-              accept=".yml,.yaml"
-              ref={uploadInputRef}
-              onChange={openFile}
-              style="display: none;"
-            />
-            <textarea
-              value={config}
-              class="config-input grow mb-5 mr-5 p-3"
-              ref={configTextBoxRef}
-              onInput={handleConfigChange}
-            />
+    <>
+      <h1 class="text-3xl font-bold my-3">Get started sending your alerts</h1>
+      <span class="flex flex-row grow">
+        <span class="flex flex-col grow">
+          <span class="text-lg my-3">
+            <h3>
+              Paste your Alertmanager config, or{" "}
+              <label for="config-file" class="btn">
+                upload one
+              </label>
+            </h3>
           </span>
+          <span class="flex flex-row grow">
+            <span class="flex flex-row basis-2/3 grow">
+              <input
+                id="config-file"
+                type="file"
+                accept=".yml,.yaml"
+                ref={uploadInputRef}
+                onChange={openFile}
+                style="display: none;"
+              />
+              <textarea
+                value={config}
+                class="config-input grow mb-5 mr-5 p-3"
+                ref={configTextBoxRef}
+                onInput={handleConfigChange}
+              />
+            </span>
 
-          <span class="basis-1/3">
-            <ConfigStatus {...parseStatus} />
-            {uploadButton}
+            <span class="basis-1/3">
+              <ConfigStatus {...parseStatus} />
+              {uploadButton}
+            </span>
           </span>
         </span>
       </span>
-    </span>
+    </>
   );
 };
 
@@ -139,6 +151,7 @@ const parseConfig = (rawConfig: string) => {
   try {
     const parsedConfig = yaml.load(rawConfig);
     const config = AlertmanagerConfigSpec.parse(parsedConfig);
+    console.log("sucessfully parsed: ", config);
     return {
       config,
     };
@@ -174,6 +187,7 @@ const numToHumanString = (
 
 const ConfigStatus = ({ parseError, config }: ConfigStatusProps) => {
   if (parseError) {
+    console.log(parseError);
     return (
       <>
         <XCircleIcon class="size-6 inline" style={{ color: "red" }} />
@@ -207,39 +221,28 @@ const ConfigStatus = ({ parseError, config }: ConfigStatusProps) => {
       "mute time interval"
     );
 
-    let templatesStrIcon = (
-      <CheckCircleIcon class="size-6 inline bg-green-600" />
-    );
+    let templatesStrIcon = <CheckCircleIcon class="size-5 inline" />;
     if (config.templates?.length) {
-      templatesStrIcon = (
-        <QuestionMarkCircleIcon
-          class="size-6 inline"
-          style={{ color: "yellow" }}
-        />
-      );
+      templatesStrIcon = <QuestionMarkCircleIcon class="size-5 inline" />;
     }
 
     return (
       <>
         <ul>
           <li>
-            <CheckCircleIcon class="size-6 inline text-green-600" />{" "}
-            {numReceiversStr}
+            <CheckCircleIcon class="size-5 inline" /> {numReceiversStr}
           </li>
           <li>
-            <CheckCircleIcon class="size-6 inline text-green-600" />{" "}
-            {numRoutesStr}
+            <CheckCircleIcon class="size-5 inline" /> {numRoutesStr}
           </li>
           <li>
             {templatesStrIcon} {numTemplatesStr}
           </li>
           <li>
-            <CheckCircleIcon class="size-6 inline text-green-600" />{" "}
-            {numInhibitionsStr}
+            <CheckCircleIcon class="size-5 inline" /> {numInhibitionsStr}
           </li>
           <li>
-            <CheckCircleIcon class="size-6 inline text-green-600" />{" "}
-            {numMuteTimesStr}
+            <CheckCircleIcon class="size-5 inline" /> {numMuteTimesStr}
           </li>
         </ul>
       </>

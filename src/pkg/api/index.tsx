@@ -1,13 +1,31 @@
-import { AlertmanagerConfig } from "../types/alertmanager";
-
-const API_HOST = "";
+const API_HOST = "http://localhost:8787/api/v1";
 export class APIClient {
-  async uploadConfig(conf: AlertmanagerConfig) {
-    return fetch(this.apiURL("/upload-config"), {
+  async uploadConfig(config: string) {
+    return fetch(this.apiURL("/config"), {
       method: "POST",
+      body: config,
       headers: {
-        "Authorization": "Bearer notify-test",
-      }
+        Authorization: "Bearer notify-test",
+        "Content-Type": "application/json",
+      },
+    });
+  }
+
+  async getConfig() {
+    return fetch(this.apiURL("/config"), {
+      method: "GET",
+      headers: {
+        Authorization: "Bearer notify-test",
+      },
+    });
+  }
+
+  async getRequiredConfigFiles() {
+    return fetch(this.apiURL("/config/required-files"), {
+      method: "GET",
+      headers: {
+        Authorization: "Bearer notify-test",
+      },
     });
   }
 
