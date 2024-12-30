@@ -1,4 +1,5 @@
 import { buildTrie } from "./trie";
+import { UploadStatus } from "./upload";
 
 test("no nodes", () => {
   expect(buildTrie([])).toEqual([]);
@@ -6,12 +7,18 @@ test("no nodes", () => {
 
 test("one node", () => {
   expect(
-    buildTrie([{ path: "/etc/test/foo", isDir: false, uploaded: false }])
+    buildTrie([
+      {
+        path: "/etc/test/foo",
+        isDir: false,
+        uploaded: UploadStatus.NotUploaded,
+      },
+    ])
   ).toEqual([
     {
       path: "/etc/test/foo",
       isDir: false,
-      uploaded: false,
+      uploaded: UploadStatus.NotUploaded,
       children: [],
     },
   ]);
@@ -20,32 +27,44 @@ test("one node", () => {
 test("common prefix", () => {
   expect(
     buildTrie([
-      { path: "/etc/test/foo", isDir: false, uploaded: false },
-      { path: "/etc/test/bar", isDir: false, uploaded: false },
-      { path: "/etc/test/baz", isDir: false, uploaded: false },
+      {
+        path: "/etc/test/foo",
+        isDir: false,
+        uploaded: UploadStatus.NotUploaded,
+      },
+      {
+        path: "/etc/test/bar",
+        isDir: false,
+        uploaded: UploadStatus.NotUploaded,
+      },
+      {
+        path: "/etc/test/baz",
+        isDir: false,
+        uploaded: UploadStatus.NotUploaded,
+      },
     ])
   ).toEqual([
     {
       path: "/etc/test",
       isDir: true,
-      uploaded: false,
+      uploaded: UploadStatus.NotUploaded,
       children: [
         {
           path: "foo",
           isDir: false,
-          uploaded: false,
+          uploaded: UploadStatus.NotUploaded,
           children: [],
         },
         {
           path: "bar",
           isDir: false,
-          uploaded: false,
+          uploaded: UploadStatus.NotUploaded,
           children: [],
         },
         {
           path: "baz",
           isDir: false,
-          uploaded: false,
+          uploaded: UploadStatus.NotUploaded,
           children: [],
         },
       ],
@@ -56,26 +75,38 @@ test("common prefix", () => {
 test("two prefixs", () => {
   expect(
     buildTrie([
-      { path: "/etc/test/foo", isDir: false, uploaded: false },
-      { path: "/etc/test/bar", isDir: false, uploaded: false },
-      { path: "/var/log/baz", isDir: false, uploaded: false },
+      {
+        path: "/etc/test/foo",
+        isDir: false,
+        uploaded: UploadStatus.NotUploaded,
+      },
+      {
+        path: "/etc/test/bar",
+        isDir: false,
+        uploaded: UploadStatus.NotUploaded,
+      },
+      {
+        path: "/var/log/baz",
+        isDir: false,
+        uploaded: UploadStatus.NotUploaded,
+      },
     ])
   ).toEqual([
     {
       path: "/etc/test",
       isDir: true,
-      uploaded: false,
+      uploaded: UploadStatus.NotUploaded,
       children: [
         {
           path: "foo",
           isDir: false,
-          uploaded: false,
+          uploaded: UploadStatus.NotUploaded,
           children: [],
         },
         {
           path: "bar",
           isDir: false,
-          uploaded: false,
+          uploaded: UploadStatus.NotUploaded,
           children: [],
         },
       ],
@@ -83,7 +114,7 @@ test("two prefixs", () => {
     {
       path: "/var/log/baz",
       isDir: false,
-      uploaded: false,
+      uploaded: UploadStatus.NotUploaded,
       children: [],
     },
   ]);
@@ -92,44 +123,60 @@ test("two prefixs", () => {
 test("files and dirs", () => {
   expect(
     buildTrie([
-      { path: "/etc/test/foo", isDir: false, uploaded: false },
-      { path: "/etc/test/bar", isDir: false, uploaded: false },
-      { path: "/etc/test/baz/foo", isDir: false, uploaded: false },
-      { path: "/etc/test/baz/bar", isDir: false, uploaded: false },
+      {
+        path: "/etc/test/foo",
+        isDir: false,
+        uploaded: UploadStatus.NotUploaded,
+      },
+      {
+        path: "/etc/test/bar",
+        isDir: false,
+        uploaded: UploadStatus.NotUploaded,
+      },
+      {
+        path: "/etc/test/baz/foo",
+        isDir: false,
+        uploaded: UploadStatus.NotUploaded,
+      },
+      {
+        path: "/etc/test/baz/bar",
+        isDir: false,
+        uploaded: UploadStatus.NotUploaded,
+      },
     ])
   ).toEqual([
     {
       path: "/etc/test",
       isDir: true,
-      uploaded: false,
+      uploaded: UploadStatus.NotUploaded,
       children: [
         {
           path: "foo",
           isDir: false,
-          uploaded: false,
+          uploaded: UploadStatus.NotUploaded,
           children: [],
         },
         {
           path: "bar",
           isDir: false,
-          uploaded: false,
+          uploaded: UploadStatus.NotUploaded,
           children: [],
         },
         {
           path: "baz",
           isDir: true,
-          uploaded: false,
+          uploaded: UploadStatus.NotUploaded,
           children: [
             {
               path: "foo",
               isDir: false,
-              uploaded: false,
+              uploaded: UploadStatus.NotUploaded,
               children: [],
             },
             {
               path: "bar",
               isDir: false,
-              uploaded: false,
+              uploaded: UploadStatus.NotUploaded,
               children: [],
             },
           ],
@@ -142,27 +189,36 @@ test("files and dirs", () => {
 test("relative files", () => {
   expect(
     buildTrie([
-      { path: "/etc/foo/bar", isDir: false, uploaded: false },
-      { path: "./foo", isDir: false, uploaded: false },
-      { path: "./bar", isDir: false, uploaded: false },
+      {
+        path: "/etc/foo/bar",
+        isDir: false,
+        uploaded: UploadStatus.NotUploaded,
+      },
+      { path: "./foo", isDir: false, uploaded: UploadStatus.NotUploaded },
+      { path: "./bar", isDir: false, uploaded: UploadStatus.NotUploaded },
     ])
   ).toEqual([
-    { path: "/etc/foo/bar", isDir: false, uploaded: false, children: [] },
+    {
+      path: "/etc/foo/bar",
+      isDir: false,
+      uploaded: UploadStatus.NotUploaded,
+      children: [],
+    },
     {
       path: ".",
       isDir: true,
-      uploaded: false,
+      uploaded: UploadStatus.NotUploaded,
       children: [
         {
           path: "foo",
           isDir: false,
-          uploaded: false,
+          uploaded: UploadStatus.NotUploaded,
           children: [],
         },
         {
           path: "bar",
           isDir: false,
-          uploaded: false,
+          uploaded: UploadStatus.NotUploaded,
           children: [],
         },
       ],

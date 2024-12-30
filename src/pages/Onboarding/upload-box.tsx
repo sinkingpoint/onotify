@@ -11,7 +11,7 @@ interface UploadBoxProps {
 }
 
 export const UploadBox = ({ selected }: UploadBoxProps) => {
-  let contents = <></>;
+  let contents = <span class="font-bold">Select a file to upload!</span>;
   if (selected) {
     const { path, isDir } = selected;
     let icon;
@@ -36,6 +36,7 @@ export const UploadBox = ({ selected }: UploadBoxProps) => {
         type="file"
         multiple={selected ? selected.isDir : false}
         style={{ display: "none" }}
+        disabled={!selected}
       />
 
       <label for="upload">

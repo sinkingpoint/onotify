@@ -46,7 +46,7 @@
   border: 5px solid #ff6f61;
   border-radius: 10px;
   flex-grow: 1;
-  max-width: 75%;
+  max-width: 70%;
 }
 
 .selected {
@@ -81,12 +81,6 @@
 
   &:last-child {
     border-color: transparent; /* hide (not remove!) border on last li element*/
-  }
-  & span {
-    font-size: 0.8rem;
-    font-style: italic;
-    font-weight: 100;
-    opacity: 0.65;
   }
   &::before {
     content: "";

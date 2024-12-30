@@ -2,6 +2,7 @@ import { MouseEventHandler } from "preact/compat";
 import { useEffect, useState } from "preact/hooks";
 import { APIClient } from "../../pkg/api";
 import { buildTrie, NeededFile, trieNode } from "./trie";
+import { getUploadIcon } from "./upload";
 import { UploadBox } from "./upload-box";
 
 const trieToList = (
@@ -18,13 +19,19 @@ const trieToList = (
     if (r.children.length === 0) {
       return (
         <li data-file-path={filePath} data-is-dir={r.isDir} onClick={onClick}>
-          {r.path}
+          <span>
+            {getUploadIcon(r.uploaded)}
+            {r.path}
+          </span>
         </li>
       );
     } else {
       return (
         <li data-file-path={filePath} data-is-dir={r.isDir} onClick={onClick}>
-          {r.path}
+          <span>
+            {getUploadIcon(r.uploaded)}
+            {r.path}
+          </span>
           <ul>{trieToList(filePath, r.children, onClick)}</ul>
         </li>
       );
@@ -79,12 +86,13 @@ export const ExtraFilesUpload = () => {
 
   const selectedClass = "selected";
   const onClick = (e: MouseEvent) => {
+    e.stopPropagation();
     if (selected) {
       selected.classList.remove(selectedClass);
     }
 
-    (e.target as HTMLLIElement).classList.add(selectedClass);
-    setSelected(e.target as HTMLLIElement);
+    (e.currentTarget as HTMLLIElement).classList.add(selectedClass);
+    setSelected(e.currentTarget as HTMLLIElement);
   };
 
   let selectedData;

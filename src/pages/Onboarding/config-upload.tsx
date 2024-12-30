@@ -1,26 +1,17 @@
 import {
-  ArrowPathIcon,
-  ArrowUpTrayIcon,
   CheckCircleIcon,
   QuestionMarkCircleIcon,
   XCircleIcon,
 } from "@heroicons/react/16/solid";
 import yaml from "js-yaml";
 import { useRef, useState } from "preact/hooks";
-import { JSX } from "preact/jsx-runtime";
 import { APIClient } from "../../pkg/api";
 import {
   AlertmanagerConfig,
   AlertmanagerConfigSpec,
   collapseRoutingTree,
 } from "../../pkg/types/alertmanager";
-
-enum UploadingStatus {
-  NotUploaded,
-  Uploading,
-  Error,
-  Uploaded,
-}
+import { getUploadIcon, UploadStatus } from "./upload";
 
 const uploadConfig = (configYAML: string) => {
   const loadedConfig = yaml.load(configYAML);
@@ -36,8 +27,8 @@ export const ConfigUpload = ({
 }: ConfigUploadProps) => {
   const [config, setConfig] = useState<string>("");
   const [parseStatus, setParseStatus] = useState<ConfigStatusProps>({});
-  const [uploadingStatus, setUploadingStatus] = useState<UploadingStatus>(
-    UploadingStatus.NotUploaded
+  const [uploadingStatus, setUploadingStatus] = useState<UploadStatus>(
+    UploadStatus.NotUploaded
   );
   const uploadInputRef = useRef<HTMLInputElement>();
   const configTextBoxRef = useRef<HTMLTextAreaElement>();
@@ -64,10 +55,10 @@ export const ConfigUpload = ({
   };
 
   const upload = async () => {
-    setUploadingStatus(UploadingStatus.Uploading);
+    setUploadingStatus(UploadStatus.Uploading);
     const parsedConfig = parseConfig(config);
     if (parsedConfig.parseError) {
-      setUploadingStatus(UploadingStatus.Error);
+      setUploadingStatus(UploadStatus.Error);
       // Fail
       return;
     }
@@ -75,26 +66,17 @@ export const ConfigUpload = ({
     try {
       const resp = await uploadConfig(config);
       if (resp.ok) {
-        setUploadingStatus(UploadingStatus.Uploaded);
+        setUploadingStatus(UploadStatus.Uploaded);
         uploadSuccessCallback();
       } else {
-        setUploadingStatus(UploadingStatus.Error);
+        setUploadingStatus(UploadStatus.Error);
       }
     } catch {
-      setUploadingStatus(UploadingStatus.Error);
+      setUploadingStatus(UploadStatus.Error);
     }
   };
 
-  let uploadIcon: JSX.Element;
-  if (uploadingStatus === UploadingStatus.NotUploaded) {
-    uploadIcon = <ArrowUpTrayIcon class="inline size-5" />;
-  } else if (uploadingStatus === UploadingStatus.Uploading) {
-    uploadIcon = <ArrowPathIcon class="animate-spin inline size-5" />;
-  } else if (uploadingStatus === UploadingStatus.Uploaded) {
-    uploadIcon = <CheckCircleIcon class="size-5 inline" />;
-  } else if (uploadingStatus === UploadingStatus.Error) {
-    uploadIcon = <XCircleIcon class="size-5 inline" />;
-  }
+  let uploadIcon = getUploadIcon(uploadingStatus);
 
   let uploadButton = <></>;
   if (parseStatus?.config) {

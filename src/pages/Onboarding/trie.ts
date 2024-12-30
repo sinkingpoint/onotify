@@ -1,5 +1,7 @@
+import { UploadStatus } from "./upload";
+
 export interface NeededFile {
-  uploaded: boolean;
+  uploaded: UploadStatus;
   isDir: boolean;
   path: string;
 }
@@ -21,7 +23,7 @@ export const buildTrie = (files: NeededFile[]) => {
     let next = roots.find((r) => r.path === components[0]);
     if (!next) {
       next = {
-        uploaded: false,
+        uploaded: UploadStatus.NotUploaded,
         isDir: true,
         path: components[0],
         children: [],
@@ -34,7 +36,7 @@ export const buildTrie = (files: NeededFile[]) => {
       let nextNext = next.children.find((c) => c.path === components[i]);
       if (!nextNext) {
         const newNode = {
-          uploaded: false,
+          uploaded: UploadStatus.NotUploaded,
           isDir: i < components.length - 1 ? true : file.isDir,
           path: components[i],
           children: [],
