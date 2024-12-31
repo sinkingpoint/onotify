@@ -1,6 +1,6 @@
 import { OpenAPIRoute } from "chanfana";
 import { Context } from "hono";
-import { RequiredFiles } from "../../types/alertmanager";
+import { RequiredFile, RequiredFiles, RequiredFilesSpec } from "../../types/api";
 import { Errors, HTTPResponses } from "../../types/http";
 import { Bindings } from "../../types/internal";
 import { checkAPIKey, toErrorString } from "../utils/auth";
@@ -14,7 +14,11 @@ export class GetRequiredFiles extends OpenAPIRoute {
 		responses: {
 			"200": {
 				description: "Sucessfully retrieved files",
-				content: {},
+				content: {
+					"application/json": {
+						schema: RequiredFilesSpec,
+					},
+				},
 			},
 			...Errors,
 		},
@@ -42,8 +46,8 @@ export class GetRequiredFiles extends OpenAPIRoute {
 
 		const requiredFiles: RequiredFiles = JSON.parse(rawRequiredFiles);
 
-		requiredFiles.templates.forEach((t) => (t.uploaded = alreadyUploadedFiles.includes(t.path)));
-		requiredFiles.secrets.forEach((s) => (s.uploaded = alreadyUploadedFiles.includes(s.path)));
+		requiredFiles.templates.forEach((t: RequiredFile) => (t.uploaded = alreadyUploadedFiles.includes(t.path)));
+		requiredFiles.secrets.forEach((s: RequiredFile) => (s.uploaded = alreadyUploadedFiles.includes(s.path)));
 
 		c.status(HTTPResponses.OK);
 		return c.json(requiredFiles);

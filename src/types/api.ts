@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { StringMatcherSpec } from "./alertmanager";
 import { getAnchoredRegex } from "../utils/regex";
+import { StringMatcherSpec } from "./alertmanager";
 
 // An alert that comes in over the API.
 export const PostableAlertSpec = z
@@ -178,3 +178,18 @@ export const GetAlertGroupsOptionsSpec = z.object({
 });
 
 export type GetAlertGroupsOptions = z.infer<typeof GetAlertGroupsOptionsSpec>;
+
+export const RequiredFileSpec = z.object({
+	path: z.string().openapi({ description: "the path in the alertmanager config" }),
+	isDir: z.boolean().openapi({ description: "whether the path takes a directory (e.g. it's a glob)" }),
+	uploaded: z.boolean().openapi({ description: "whether the file has already been uploaded" }),
+});
+
+export type RequiredFile = z.infer<typeof RequiredFileSpec>;
+
+export const RequiredFilesSpec = z.object({
+	secrets: z.array(RequiredFileSpec).openapi({ description: "the secret files that need to be uploaded" }),
+	templates: z.array(RequiredFileSpec).openapi({ description: "the templates that need to be uploaded" }),
+});
+
+export type RequiredFiles = z.infer<typeof RequiredFilesSpec>;
