@@ -35,8 +35,9 @@ export class GetRequiredFiles extends OpenAPIRoute {
 		const { accountID } = authResult;
 
 		const rawRequiredFiles = await c.env.CONFIGS.get(requiredFilesKey(accountID));
-		const alreadyUploadedFiles = [...(await c.env.CONFIGS.list({ prefix: uploadedFilesKey(accountID) })).keys].map(
-			(k) => k.name
+		const prefix = uploadedFilesKey(accountID);
+		const alreadyUploadedFiles = [...(await c.env.CONFIGS.list({ prefix })).keys].map((k) =>
+			k.name.substring(prefix.length + 1)
 		);
 
 		if (!rawRequiredFiles) {

@@ -193,3 +193,8 @@ export const RequiredFilesSpec = z.object({
 });
 
 export type RequiredFiles = z.infer<typeof RequiredFilesSpec>;
+
+export const PostableRequiredFileSpec = z.object({
+	path: z.string().openapi({ description: "the path that this file comes from" }),
+	contents: z.string().openapi({ description: "the contents of the file" }),
+});
