@@ -1508,13 +1508,16 @@ export const collapseRoutingTree = (c: AlertmanagerConfig) => {
 	return { roots: roots, tree: flatNodes };
 };
 
-export type RequiredFiles = {
-	secrets: string[];
-	templates: {
-		path: string;
-		isDir: boolean;
-	}[];
-};
+interface RequiredFile {
+	path: string;
+	isDir: boolean;
+	uploaded: boolean;
+}
+
+export interface RequiredFiles {
+	secrets: RequiredFile[];
+	templates: RequiredFile[];
+}
 
 // getRequiredFiles takes a config and returns a list of auxillary files that
 // are needed to assemble the config. This includes secret files, certs, and templates
@@ -1538,11 +1541,18 @@ export const getRequiredFiles = (conf: AlertmanagerConfig): RequiredFiles => {
 	}
 
 	return {
-		secrets: [...requiredFilesSet.values()].sort(),
-		templates: conf.templates.map((s) => {
+		secrets: [...requiredFilesSet.values()].sort().map((s) => {
+			return {
+				path: s,
+				isDir: false, // Secrets are never directories.
+				uploaded: false, // We don't actually know this, but it'll get filled in by the API before we export it.
+			};
+		}),
+		templates: conf.templates.sort().map((s) => {
 			return {
 				path: s,
 				isDir: s.includes("*"),
+				uploaded: false,
 			};
 		}),
 	};

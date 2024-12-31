@@ -23,7 +23,7 @@ export const requiredFilesKey = (account_id: string): string => {
 };
 
 export const uploadedFilesKey = (account_id: string): string => {
-	return `onotify-${account_id}-uploaded-files`;
+	return `onotify-${account_id}-uploaded-file`;
 };
 
 export const alertGroupControllerName = (accountID: string, nodeID: string, groupLabels: string[]) => {

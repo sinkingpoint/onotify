@@ -17,7 +17,6 @@ import {
 	requiredFilesKey,
 	routingTreeKVKey,
 	timeIntervalsKVKey,
-	uploadedFilesKey,
 } from "./utils/kv";
 
 export class PostConfig extends OpenAPIRoute {
@@ -76,11 +75,6 @@ export class PostConfig extends OpenAPIRoute {
 
 		const requiredFiles = getRequiredFiles(config);
 		promises.push(c.env.CONFIGS.put(requiredFilesKey(account_id), JSON.stringify(requiredFiles)));
-
-		const uploadedFiles = uploadedFilesKey(account_id);
-		if (!(await c.env.CONFIGS.get(uploadedFiles))) {
-			promises.push(c.env.CONFIGS.put(uploadedFiles, "{}"));
-		}
 
 		await Promise.all(promises);
 		// TODO(https://github.com/sinkingpoint/onotify/issues/4, https://github.com/sinkingpoint/onotify/issues/5): Handle custom templates + `mute_time_intervals`

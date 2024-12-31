@@ -1,10 +1,10 @@
 import { OpenAPIRoute } from "chanfana";
-import { Errors, HTTPResponses } from "../../types/http";
 import { Context } from "hono";
+import { RequiredFiles } from "../../types/alertmanager";
+import { Errors, HTTPResponses } from "../../types/http";
 import { Bindings } from "../../types/internal";
 import { checkAPIKey, toErrorString } from "../utils/auth";
 import { requiredFilesKey, uploadedFilesKey } from "../utils/kv";
-import { RequiredFiles } from "../../types/alertmanager";
 
 export class GetRequiredFiles extends OpenAPIRoute {
 	schema = {
@@ -31,23 +31,19 @@ export class GetRequiredFiles extends OpenAPIRoute {
 		const { accountID } = authResult;
 
 		const rawRequiredFiles = await c.env.CONFIGS.get(requiredFilesKey(accountID));
-		const rawAlreadyUploadedFiles = await c.env.CONFIGS.get(uploadedFilesKey(accountID));
+		const alreadyUploadedFiles = [...(await c.env.CONFIGS.list({ prefix: uploadedFilesKey(accountID) })).keys].map(
+			(k) => k.name
+		);
+
 		if (!rawRequiredFiles) {
 			c.status(HTTPResponses.OK);
-			return c.json("[]");
-		}
-
-		if (!rawAlreadyUploadedFiles) {
-			c.status(HTTPResponses.OK);
-			return c.json(rawRequiredFiles);
+			return c.json({ secrets: [], templates: [] });
 		}
 
 		const requiredFiles: RequiredFiles = JSON.parse(rawRequiredFiles);
-		const alreadyUploadedFiles: Record<string, string> = JSON.parse(rawAlreadyUploadedFiles);
 
-		requiredFiles.templates = requiredFiles.templates.filter((t) => !alreadyUploadedFiles[t.path]);
-
-		requiredFiles.secrets = requiredFiles.secrets.filter((s) => !alreadyUploadedFiles[s]);
+		requiredFiles.templates.forEach((t) => (t.uploaded = alreadyUploadedFiles.includes(t.path)));
+		requiredFiles.secrets.forEach((s) => (s.uploaded = alreadyUploadedFiles.includes(s.path)));
 
 		c.status(HTTPResponses.OK);
 		return c.json(requiredFiles);

@@ -16,7 +16,7 @@ receivers:
         tls_config:
           ca_file: 'tls-ca.cert'
           cert_file: 'cert.cert'
-          key_file: 'key.pem'
+          key_file: '/etc/foo/bar/key.pem'
     msteams_configs:
       - webhook_url_file: 'msteams.secret'
     opsgenie_configs:
