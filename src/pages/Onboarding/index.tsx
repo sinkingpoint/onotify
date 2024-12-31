@@ -22,9 +22,11 @@ const getOnboardingState = async () => {
   const requiredFiles = await (
     await new APIClient().getRequiredConfigFiles()
   ).json();
+
+  console.log(requiredFiles);
   if (
-    requiredFiles.secrets.length !== 0 ||
-    requiredFiles.templates.length !== 0
+    requiredFiles.secrets.some((s) => !s.uploaded) ||
+    requiredFiles.templates.some((t) => !t.uploaded)
   ) {
     return OnboardingState.ExtraFilesUpload;
   }

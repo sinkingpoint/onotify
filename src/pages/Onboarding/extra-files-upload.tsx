@@ -52,13 +52,14 @@ export const ExtraFilesUpload = () => {
       setSecrets(
         secrets.map((s) => {
           if (
-            !s.startsWith("/") &&
-            !s.startsWith("./") &&
-            !s.startsWith("../")
+            !s.path.startsWith("/") &&
+            !s.path.startsWith("./") &&
+            !s.path.startsWith("../")
           ) {
-            s = `./${s}`;
+            s.path = `./${s.path}`;
           }
-          return { path: s, uploaded: false };
+
+          return { path: s.path, isDir: s.isDir, uploaded: s.uploaded };
         })
       );
 
@@ -73,9 +74,9 @@ export const ExtraFilesUpload = () => {
           }
 
           return {
-            isDir: t.isDir,
             path: t.path,
-            uploaded: false,
+            isDir: t.isDir,
+            uploaded: t.uploaded,
           };
         })
       );
