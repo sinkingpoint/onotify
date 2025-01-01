@@ -92,8 +92,12 @@ export const UploadBox = ({ selected, uploadCallback }: UploadBoxProps) => {
         onChange={openFile}
       />
 
-      <label for="upload">
-        <div class="flex flex-col justify-center items-center">{contents}</div>
+      <label
+        for="upload"
+        class="flex flex-grow flex-col justify-center items-center"
+        style={{ width: "100%", height: "100%" }}
+      >
+        {contents}
       </label>
     </span>
   );
