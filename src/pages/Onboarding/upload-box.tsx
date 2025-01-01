@@ -35,6 +35,40 @@ export const UploadBox = ({ selected, uploadCallback }: UploadBoxProps) => {
 
   const uploadInputRef = useRef<HTMLInputElement>();
 
+  const uploadFile = (localFile: Blob, resolvedPath: string) => {
+    const reader = new FileReader();
+    reader.onloadend = (ev) => {
+      let path = resolvedPath;
+      if (path.startsWith("./")) {
+        path = path.substring(2);
+      }
+
+      if (uploadCallback) {
+        uploadCallback(resolvedPath, UploadStatus.Uploading);
+      }
+
+      new APIClient()
+        .uploadFile(path, ev.target.result.toString())
+        .then((v) => {
+          if (uploadCallback) {
+            if (v.status === 200) {
+              uploadCallback(resolvedPath, UploadStatus.Uploaded);
+            } else {
+              uploadCallback(resolvedPath, UploadStatus.Error);
+              // TODO: Toast the error here.
+            }
+          }
+        })
+        .catch(() => {
+          if (uploadCallback) {
+            uploadCallback(resolvedPath, UploadStatus.Error);
+          }
+        });
+    };
+
+    reader.readAsText(localFile);
+  };
+
   const openFile = async () => {
     if (!uploadInputRef.current) {
       return;
@@ -44,39 +78,19 @@ export const UploadBox = ({ selected, uploadCallback }: UploadBoxProps) => {
       return;
     }
 
-    const file = uploadInputRef.current.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = (ev) => {
-        let path = selected.path;
-        if (path.startsWith("./")) {
-          path = path.substring(2);
-        }
-
-        if (uploadCallback) {
-          uploadCallback(selected.path, UploadStatus.Uploading);
-        }
-
-        new APIClient()
-          .uploadFile(path, ev.target.result.toString())
-          .then((v) => {
-            if (uploadCallback) {
-              if (v.status === 200) {
-                uploadCallback(selected.path, UploadStatus.Uploaded);
-              } else {
-                uploadCallback(selected.path, UploadStatus.Error);
-                // TODO: Toast the error here.
-              }
-            }
-          })
-          .catch(() => {
-            if (uploadCallback) {
-              uploadCallback(selected.path, UploadStatus.Error);
-            }
-          });
-      };
-
-      reader.readAsText(file);
+    if (!selected.isDir) {
+      // We only have one file to upload
+      const file = uploadInputRef.current.files[0];
+      if (file) {
+        uploadFile(file, selected.path);
+      }
+    } else {
+      for (const file of uploadInputRef.current.files) {
+        // TODO: check if this is an actual file we need.
+        const resolvedPath = `${selected.path}/${file.name}`;
+        console.log("resolved", resolvedPath);
+        uploadFile(file, resolvedPath);
+      }
     }
   };
 
