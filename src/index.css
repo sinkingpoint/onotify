@@ -3,77 +3,77 @@
 @tailwind utilities;
 
 :root {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+	font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+	line-height: 1.5;
+	font-weight: 400;
 
-  --text-color: #fcfaf7;
-  --text-two: #3a5a40;
-  --background-color: #344e41;
-  --background-two: #a3b18a;
-  --background-three: #588157;
+	--text-color: #fcfaf7;
+	--text-two: #3a5a40;
+	--background-color: #344e41;
+	--background-two: #a3b18a;
+	--background-three: #588157;
 
-  color: var(--background-color);
-  background-color: var(--text-color);
+	color: var(--background-color);
+	background-color: var(--text-color);
 
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  -webkit-text-size-adjust: 100%;
+	font-synthesis: none;
+	text-rendering: optimizeLegibility;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+	-webkit-text-size-adjust: 100%;
 }
 
 body {
-  margin: 0;
+	margin: 0;
 }
 
 #app {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
+	display: flex;
+	flex-direction: column;
+	min-height: 100vh;
 }
 
 header {
-  display: flex;
-  justify-content: flex-end;
-  background-color: var(--background-three);
+	display: flex;
+	justify-content: flex-end;
+	background-color: var(--background-three);
 }
 
 header nav {
-  display: flex;
+	display: flex;
 }
 
 header a {
-  color: var(--text-color);
-  padding: 0.75rem;
-  text-decoration: none;
+	color: var(--text-color);
+	padding: 0.75rem;
+	text-decoration: none;
 }
 
 header a.active {
-  background-color: #0005;
+	background-color: #0005;
 }
 
 header a:hover {
-  background-color: #0008;
+	background-color: #0008;
 }
 
 main {
-  flex: auto;
-  display: flex;
-  max-width: 1280px;
-  margin: 0 auto;
-  min-width: 50%;
+	flex: auto;
+	display: flex;
+	max-width: 1280px;
+	margin: 0 auto;
+	min-width: 50%;
 }
 
 @media (max-width: 639px) {
-  main {
-    margin: 2rem;
-  }
+	main {
+		margin: 2rem;
+	}
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
-    color: var(--text-color);
-    background-color: var(--background-color);
-  }
+	:root {
+		color: var(--text-color);
+		background-color: var(--background-color);
+	}
 }

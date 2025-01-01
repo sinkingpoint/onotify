@@ -1,114 +1,111 @@
 .home {
-  display: flex;
-  flex-direction: column;
-  flex-grow: 1;
+	display: flex;
+	flex-direction: column;
+	flex-grow: 1;
 }
 
 .home section {
-  margin-top: 5rem;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  column-gap: 1.5rem;
+	margin-top: 5rem;
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);
+	column-gap: 1.5rem;
 }
 
 @media (max-width: 639px) {
-  .home section {
-    margin-top: 5rem;
-    grid-template-columns: 1fr;
-    row-gap: 1rem;
-  }
+	.home section {
+		margin-top: 5rem;
+		grid-template-columns: 1fr;
+		row-gap: 1rem;
+	}
 }
 
 .config-input {
-  resize: none;
+	resize: none;
 }
 
 .btn {
-  font-weight: bold;
-  text-decoration-line: underline;
-  color: #ff6f61;
-  cursor: pointer;
+	font-weight: bold;
+	text-decoration-line: underline;
+	color: #ff6f61;
+	cursor: pointer;
 }
 
 .extra-files-upload {
-  border-radius: 10px;
-  border-color: #ff6f61;
-  border-width: 2px;
-  width: 100%;
-  height: 90%;
-  margin-right: 20px;
-  justify-content: center;
-  align-items: center;
-  flex-direction: column;
+	border-radius: 10px;
+	border-color: #ff6f61;
+	border-width: 2px;
+	width: 100%;
+	height: 90%;
+	margin-right: 20px;
+	justify-content: center;
+	align-items: center;
+	flex-direction: column;
 }
 
 .upload-box {
-  border: 5px solid #ff6f61;
-  border-radius: 10px;
-  flex-grow: 1;
-  max-width: 70%;
+	border: 5px solid #ff6f61;
+	border-radius: 10px;
+	flex-grow: 1;
+	max-width: 70%;
 }
 
 .selected {
-  font-weight: bolder;
-  color: #ff6f61;
+	font-weight: bolder;
+	color: #ff6f61;
 }
 
 .list-tree {
-  --tree-clr: #ff6f61;
-  --tree-font-size: 1rem;
-  --tree-item-height: 1.5;
-  --tree-offset: 1.5rem;
-  --tree-thickness: 2px;
-  --tree-style: solid;
-  margin: 0 5px;
+	--tree-clr: #ff6f61;
+	--tree-font-size: 1rem;
+	--tree-item-height: 1.5;
+	--tree-offset: 1.5rem;
+	--tree-thickness: 2px;
+	--tree-style: solid;
+	margin: 0 5px;
 }
 
 .list-tree ul {
-  display: grid;
-  list-style: none;
-  font-size: var(--tree-font-size);
+	display: grid;
+	list-style: none;
+	font-size: var(--tree-font-size);
 }
 
 .list-tree li {
-  line-height: var(--tree-item-height);
-  padding-inline-start: var(--tree-offset);
-  padding-right: 10px;
-  border-left: var(--tree-thickness) var(--tree-style) var(--tree-clr);
-  position: relative;
-  text-indent: 0.5rem;
-  cursor: pointer;
+	line-height: var(--tree-item-height);
+	padding-inline-start: var(--tree-offset);
+	padding-right: 10px;
+	border-left: var(--tree-thickness) var(--tree-style) var(--tree-clr);
+	position: relative;
+	text-indent: 0.5rem;
+	cursor: pointer;
 
-  &:last-child {
-    border-color: transparent; /* hide (not remove!) border on last li element*/
-  }
-  &::before {
-    content: "";
-    position: absolute;
-    top: calc(
-      var(--tree-item-height) / 2 * -1 * var(--tree-font-size) +
-        var(--tree-thickness)
-    );
-    left: calc(var(--tree-thickness) * -1);
-    width: calc(var(--tree-offset) + var(--tree-thickness) * 2);
-    height: calc(var(--tree-item-height) * var(--tree-font-size));
-    border-left: var(--tree-thickness) var(--tree-style) var(--tree-clr);
-    border-bottom: var(--tree-thickness) var(--tree-style) var(--tree-clr);
-  }
+	&:last-child {
+		border-color: transparent; /* hide (not remove!) border on last li element*/
+	}
+	&::before {
+		content: "";
+		position: absolute;
+		top: calc(var(--tree-item-height) / 2 * -1 * var(--tree-font-size) + var(--tree-thickness));
+		left: calc(var(--tree-thickness) * -1);
+		width: calc(var(--tree-offset) + var(--tree-thickness) * 2);
+		height: calc(var(--tree-item-height) * var(--tree-font-size));
+		border-left: var(--tree-thickness) var(--tree-style) var(--tree-clr);
+		border-bottom: var(--tree-thickness) var(--tree-style) var(--tree-clr);
+	}
 
-  &::after {
-    content: "";
-    position: absolute;
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background-color: var(--tree-clr);
-    top: calc(var(--tree-item-height) / 2 * 1rem);
-    left: var(--tree-offset);
-    translate: calc(var(--tree-thickness) * -1) calc(var(--tree-thickness) * -1);
-  }
+	&::after {
+		content: "";
+		position: absolute;
+		width: 6px;
+		height: 6px;
+		border-radius: 50%;
+		background-color: var(--tree-clr);
+		top: calc(var(--tree-item-height) / 2 * 1rem);
+		left: var(--tree-offset);
+		translate: calc(var(--tree-thickness) * -1) calc(var(--tree-thickness) * -1);
+	}
 
-  & li li {
-    --tree-style: dotted;
-  }
+	& li li {
+		--tree-style: dotted;
+	}
 }
