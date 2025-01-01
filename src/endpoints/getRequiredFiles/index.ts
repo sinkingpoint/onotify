@@ -47,7 +47,19 @@ export class GetRequiredFiles extends OpenAPIRoute {
 
 		const requiredFiles: RequiredFiles = JSON.parse(rawRequiredFiles);
 
-		requiredFiles.templates.forEach((t: RequiredFile) => (t.uploaded = alreadyUploadedFiles.includes(t.path)));
+		requiredFiles.templates.forEach((t: RequiredFile) => {
+			if (alreadyUploadedFiles.includes(t.path)) {
+				t.uploaded = true;
+			}
+
+			// Templates might be a glob.
+			const parts = t.path.split(new RegExp(`[/\\\\]`));
+			if (parts[parts.length - 1].includes("*")) {
+				// We have a glob.
+				t.uploaded = alreadyUploadedFiles.some((p) => p.startsWith(t.path));
+			}
+		});
+
 		requiredFiles.secrets.forEach((s: RequiredFile) => (s.uploaded = alreadyUploadedFiles.includes(s.path)));
 
 		c.status(HTTPResponses.OK);

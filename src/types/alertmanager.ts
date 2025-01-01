@@ -1356,7 +1356,7 @@ export const GlobalConfigSpec = z
 	.strict();
 
 export const TemplatePathSpec = z.string().refine((p) => {
-	const parts = p.split(new RegExp(`/\\\\`));
+	const parts = p.split(new RegExp(`[/\\\\]`));
 	for (let i = 0; i < parts.length; i++) {
 		if (parts[i].includes("*") && i != parts.length - 1) {
 			return false;
