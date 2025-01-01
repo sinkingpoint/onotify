@@ -29,6 +29,16 @@ export class APIClient {
     });
   }
 
+  async uploadFile(path: string, contents: string) {
+    return fetch(this.apiURL("/config/required-files"), {
+      method: "POST",
+      headers: {
+        Authorization: "Bearer notify-test",
+      },
+      body: JSON.stringify({ path, contents }),
+    });
+  }
+
   private apiURL(path: string) {
     return `${API_HOST}${path}`;
   }

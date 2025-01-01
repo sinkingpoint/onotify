@@ -2,7 +2,7 @@ import { MouseEventHandler } from "preact/compat";
 import { useEffect, useState } from "preact/hooks";
 import { APIClient } from "../../pkg/api";
 import { buildTrie, NeededFile, trieNode } from "./trie";
-import { getUploadIcon } from "./upload";
+import { getUploadIcon, UploadStatus } from "./upload";
 import { UploadBox } from "./upload-box";
 
 const trieToList = (
@@ -59,7 +59,13 @@ export const ExtraFilesUpload = () => {
             s.path = `./${s.path}`;
           }
 
-          return { path: s.path, isDir: s.isDir, uploaded: s.uploaded };
+          return {
+            path: s.path,
+            isDir: s.isDir,
+            uploaded: s.uploaded
+              ? UploadStatus.Uploaded
+              : UploadStatus.NotUploaded,
+          };
         })
       );
 
@@ -76,7 +82,9 @@ export const ExtraFilesUpload = () => {
           return {
             path: t.path,
             isDir: t.isDir,
-            uploaded: t.uploaded,
+            uploaded: t.uploaded
+              ? UploadStatus.Uploaded
+              : UploadStatus.NotUploaded,
           };
         })
       );

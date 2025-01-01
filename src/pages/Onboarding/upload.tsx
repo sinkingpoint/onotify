@@ -6,10 +6,10 @@ import {
 } from "@heroicons/react/16/solid";
 
 export enum UploadStatus {
-  NotUploaded,
-  Uploading,
-  Uploaded,
-  Error,
+  NotUploaded = "not uploaded",
+  Uploading = "uploading",
+  Uploaded = "uploaded",
+  Error = "error",
 }
 
 export const getUploadIcon = (s: UploadStatus) => {

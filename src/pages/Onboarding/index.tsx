@@ -14,7 +14,6 @@ enum OnboardingState {
 
 const getOnboardingState = async () => {
   const config = await new APIClient().getConfig();
-  console.log(config);
   if (config.status !== 200 || !(await config.text())) {
     return OnboardingState.ConfigUpload;
   }
@@ -23,7 +22,6 @@ const getOnboardingState = async () => {
     await new APIClient().getRequiredConfigFiles()
   ).json();
 
-  console.log(requiredFiles);
   if (
     requiredFiles.secrets.some((s) => !s.uploaded) ||
     requiredFiles.templates.some((t) => !t.uploaded)

@@ -2,6 +2,8 @@ import {
   ArrowUpOnSquareIcon,
   ArrowUpOnSquareStackIcon,
 } from "@heroicons/react/16/solid";
+import { useRef } from "preact/hooks";
+import { APIClient } from "../../pkg/api";
 
 interface UploadBoxProps {
   selected?: {
@@ -29,6 +31,33 @@ export const UploadBox = ({ selected }: UploadBoxProps) => {
     );
   }
 
+  const uploadInputRef = useRef<HTMLInputElement>();
+
+  const openFile = async () => {
+    if (!uploadInputRef.current) {
+      return;
+    }
+
+    if (uploadInputRef.current.files.length === 0) {
+      return;
+    }
+
+    const file = uploadInputRef.current.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = (ev) => {
+        let path = selected.path;
+        if (path.startsWith("./")) {
+          path = path.substring(2);
+        }
+
+        new APIClient().uploadFile(path, ev.target.result.toString());
+      };
+
+      reader.readAsText(file);
+    }
+  };
+
   return (
     <span class="upload-box flex flex-col justify-center items-center">
       <input
@@ -37,6 +66,8 @@ export const UploadBox = ({ selected }: UploadBoxProps) => {
         multiple={selected ? selected.isDir : false}
         style={{ display: "none" }}
         disabled={!selected}
+        ref={uploadInputRef}
+        onChange={openFile}
       />
 
       <label for="upload">

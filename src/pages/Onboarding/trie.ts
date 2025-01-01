@@ -48,6 +48,8 @@ export const buildTrie = (files: NeededFile[]) => {
 
       next = nextNext;
     }
+
+    next.uploaded = file.uploaded;
   }
 
   return roots.map((r) => collapseTrie(r));
@@ -60,6 +62,11 @@ const collapseTrie = (parent: trieNode) => {
 
   if (parent.children.length > 1) {
     parent.children = parent.children.map((r) => collapseTrie(r));
+    parent.uploaded = parent.children.every(
+      (c) => c.uploaded === UploadStatus.Uploaded
+    )
+      ? UploadStatus.Uploaded
+      : UploadStatus.NotUploaded;
     return parent;
   }
 
