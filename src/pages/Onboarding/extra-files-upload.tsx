@@ -156,29 +156,52 @@ export const ExtraFilesUpload = () => {
     };
   }
 
+  const allUploaded =
+    secrets.every((s) => s.uploaded === UploadStatus.Uploaded) &&
+    templates.every((t) => t.uploaded === UploadStatus.Uploaded);
+
+  let progressButton;
+  if (allUploaded) {
+    progressButton = (
+      <button class="p-2 bg-green-600 rounded my-3">Let's go!</button>
+    );
+  } else {
+    progressButton = (
+      <button class="p-2 bg-yellow-600 rounded my-3">Skip!</button>
+    );
+  }
+
   return (
     <>
       <h1 class="text-3xl font-bold my-3">
         We're gonna need a few extra files
       </h1>
 
-      <h2 class="text-lg my-3">
-        Your config has a few external files that we'll need. You can upload
-        them now, or wait until later. Things will continue to work, but any
-        receivers that use un-uploaded files might not.
-      </h2>
+      <span class="flex flex-row justify-between">
+        <h2 class="text-lg my-3 basis-3/4">
+          Your config has a few external files that we'll need. You can upload
+          them now, or wait until later. Things will continue to work, but any
+          receivers that use un-uploaded files might not.
+        </h2>
 
-      <div class="flex flex-row justify-between">
+        {progressButton}
+      </span>
+
+      <div class="flex flex-row justify-between flex-grow">
         <div class="flex flex-col justify-between overflow-scroll">
-          <span class="list-tree">
-            <h2 class="text-lg my-3 font-bold">Templates</h2>
-            <ul>{trieToList("", buildTrie(templates), onClick)}</ul>
-          </span>
+          {templates.length > 0 && (
+            <span class="list-tree">
+              <h2 class="text-lg my-3 font-bold">Templates</h2>
+              <ul>{trieToList("", buildTrie(templates), onClick)}</ul>
+            </span>
+          )}
 
-          <span class="list-tree">
-            <h2 class="text-lg my-3 font-bold">Secrets</h2>
-            <ul>{trieToList("", buildTrie(secrets), onClick)}</ul>
-          </span>
+          {secrets.length > 0 && (
+            <span class="list-tree">
+              <h2 class="text-lg my-3 font-bold">Secrets</h2>
+              <ul>{trieToList("", buildTrie(secrets), onClick)}</ul>
+            </span>
+          )}
         </div>
 
         <UploadBox
