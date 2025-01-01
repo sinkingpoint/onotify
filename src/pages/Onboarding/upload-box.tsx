@@ -4,15 +4,17 @@ import {
 } from "@heroicons/react/16/solid";
 import { useRef } from "preact/hooks";
 import { APIClient } from "../../pkg/api";
+import { UploadStatus } from "./upload";
 
 interface UploadBoxProps {
   selected?: {
     path: string;
     isDir: boolean;
   };
+  uploadCallback?: (path: string, state: UploadStatus) => void;
 }
 
-export const UploadBox = ({ selected }: UploadBoxProps) => {
+export const UploadBox = ({ selected, uploadCallback }: UploadBoxProps) => {
   let contents = <span class="font-bold">Select a file to upload!</span>;
   if (selected) {
     const { path, isDir } = selected;
@@ -51,7 +53,27 @@ export const UploadBox = ({ selected }: UploadBoxProps) => {
           path = path.substring(2);
         }
 
-        new APIClient().uploadFile(path, ev.target.result.toString());
+        if (uploadCallback) {
+          uploadCallback(selected.path, UploadStatus.Uploading);
+        }
+
+        new APIClient()
+          .uploadFile(path, ev.target.result.toString())
+          .then((v) => {
+            if (uploadCallback) {
+              if (v.status === 200) {
+                uploadCallback(selected.path, UploadStatus.Uploaded);
+              } else {
+                uploadCallback(selected.path, UploadStatus.Error);
+                // TODO: Toast the error here.
+              }
+            }
+          })
+          .catch(() => {
+            if (uploadCallback) {
+              uploadCallback(selected.path, UploadStatus.Error);
+            }
+          });
       };
 
       reader.readAsText(file);

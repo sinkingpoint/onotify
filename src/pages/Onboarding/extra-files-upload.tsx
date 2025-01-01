@@ -93,6 +93,20 @@ export const ExtraFilesUpload = () => {
     fetchNeeded();
   }, []);
 
+  const uploadCallback = (path: string, state: UploadStatus) => {
+    const template = templates.find((f) => f.path === path);
+    if (template) {
+      template.uploaded = state;
+      setTemplates([...templates]);
+    }
+
+    const secret = secrets.find((f) => f.path === path);
+    if (secret) {
+      secret.uploaded = state;
+      setSecrets([...secrets]);
+    }
+  };
+
   const selectedClass = "selected";
   const onClick = (e: MouseEvent) => {
     e.stopPropagation();
@@ -137,7 +151,7 @@ export const ExtraFilesUpload = () => {
           </span>
         </div>
 
-        <UploadBox selected={selectedData} />
+        <UploadBox selected={selectedData} uploadCallback={uploadCallback} />
       </div>
     </>
   );
