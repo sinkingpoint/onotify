@@ -88,7 +88,6 @@ export const UploadBox = ({ selected, uploadCallback }: UploadBoxProps) => {
       for (const file of uploadInputRef.current.files) {
         // TODO: check if this is an actual file we need.
         const resolvedPath = `${selected.path}/${file.name}`;
-        console.log("resolved", resolvedPath);
         uploadFile(file, resolvedPath);
       }
     }

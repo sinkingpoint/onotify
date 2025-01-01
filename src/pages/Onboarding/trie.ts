@@ -62,11 +62,22 @@ const collapseTrie = (parent: trieNode) => {
 
   if (parent.children.length > 1) {
     parent.children = parent.children.map((r) => collapseTrie(r));
-    parent.uploaded = parent.children.every(
+    const allUploaded = parent.children.every(
       (c) => c.uploaded === UploadStatus.Uploaded
-    )
-      ? UploadStatus.Uploaded
-      : UploadStatus.NotUploaded;
+    );
+
+    const someUploading = parent.children.some(
+      (c) => c.uploaded === UploadStatus.Uploading
+    );
+
+    if (allUploaded) {
+      parent.uploaded = UploadStatus.Uploaded;
+    } else if (someUploading) {
+      parent.uploaded = UploadStatus.Uploading;
+    } else {
+      parent.uploaded = UploadStatus.NotUploaded;
+    }
+
     return parent;
   }
 
