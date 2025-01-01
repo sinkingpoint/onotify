@@ -12,9 +12,14 @@ interface UploadBoxProps {
     isDir: boolean;
   };
   uploadCallback?: (path: string, state: UploadStatus) => void;
+  validateFile?: (path: string) => boolean;
 }
 
-export const UploadBox = ({ selected, uploadCallback }: UploadBoxProps) => {
+export const UploadBox = ({
+  selected,
+  uploadCallback,
+  validateFile,
+}: UploadBoxProps) => {
   let contents = <span class="font-bold">Select a file to upload!</span>;
   if (selected) {
     const { path, isDir } = selected;
@@ -86,8 +91,11 @@ export const UploadBox = ({ selected, uploadCallback }: UploadBoxProps) => {
       }
     } else {
       for (const file of uploadInputRef.current.files) {
-        // TODO: check if this is an actual file we need.
         const resolvedPath = `${selected.path}/${file.name}`;
+        if (validateFile && !validateFile(resolvedPath)) {
+          // Skip this file if it's not one we need.
+          continue;
+        }
         uploadFile(file, resolvedPath);
       }
     }

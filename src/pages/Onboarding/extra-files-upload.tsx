@@ -107,6 +107,36 @@ export const ExtraFilesUpload = () => {
     }
   };
 
+  // Returns true if the given path is one that we expect to upload. Basic sanity
+  // check to make sure we're not gobbling up files that we don't want.
+  const validateFile = (path: string) => {
+    // Secrets are always single files.
+    if (secrets.map((s) => s.path).includes(path)) {
+      return true;
+    }
+
+    // Templates might be a glob, so first check single files.
+    if (templates.map((t) => t.path).includes(path)) {
+      return true;
+    }
+
+    const parts = path.split(new RegExp(`[/\\\\]`));
+    if (parts.length >= 2) {
+      const maybeGlob = parts[parts.length - 2];
+      if (maybeGlob.includes("*")) {
+        const globRegex = new RegExp(
+          maybeGlob.replace(".", "\\.").replace("*", ".*").replace("?", ".")
+        );
+
+        const fileName = parts[parts.length - 1];
+        console.log("testing", globRegex, "against", fileName);
+        return globRegex.test(fileName);
+      }
+    }
+
+    return false;
+  };
+
   const selectedClass = "selected";
   const onClick = (e: MouseEvent) => {
     e.stopPropagation();
@@ -151,7 +181,11 @@ export const ExtraFilesUpload = () => {
           </span>
         </div>
 
-        <UploadBox selected={selectedData} uploadCallback={uploadCallback} />
+        <UploadBox
+          selected={selectedData}
+          uploadCallback={uploadCallback}
+          validateFile={validateFile}
+        />
       </div>
     </>
   );
