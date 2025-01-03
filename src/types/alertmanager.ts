@@ -11,7 +11,7 @@ extendZodWithOpenApi(z);
 export const enforceMutuallyExclusive = (
 	k1: string,
 	k2: string,
-	require_one: boolean = false
+	require_one: boolean = false,
 ): [(val: any) => boolean, string] => {
 	let msg = `${k1} and ${k2} are mutually exclusive`;
 	if (require_one) {
@@ -1284,7 +1284,7 @@ export const TimeIntervalSpec = z
 				months: z.array(MonthRange).optional(),
 				years: z.array(YearRange).optional(),
 				location: z.string().default("UTC"), // TODO: Validate this.
-			})
+			}),
 		),
 	})
 	.strict();
@@ -1399,7 +1399,7 @@ export const AlertmanagerConfigSpec = z
 			Object.keys(val.route.match).length === 0 &&
 			Object.keys(val.route.match_re).length === 0 &&
 			val.route.matchers.length === 0,
-		`Root of the routing tree must not contain any matchers`
+		`Root of the routing tree must not contain any matchers`,
 	)
 	.superRefine((conf, ctx) => {
 		// Make sure that all the receivers in the routing tree exist.

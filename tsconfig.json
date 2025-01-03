@@ -21,12 +21,7 @@
 		"outDir": "",
 		"target": "esnext",
 		"module": "esnext",
-		"types": [
-			"@types/node",
-			"@types/jest",
-			"@types/service-worker-mock",
-			"@cloudflare/workers-types/2023-07-01"
-		]
+		"types": ["@types/node", "@types/jest", "@types/service-worker-mock", "@cloudflare/workers-types/2023-07-01"]
 	},
 	"exclude": ["node_modules", "dist", "tests"],
 	"include": ["src", "scripts"]

@@ -42,7 +42,7 @@ export const reconstituteConfig = async (ctx: Context<{ Bindings: Bindings }>, a
 	const inhibitRules = await loadJSONKVKey(ctx.env.CONFIGS, inhibitionsKVKey(accountID));
 	const timeIntervals = unRecord<TimeInterval>(
 		await loadJSONKVKey(ctx.env.CONFIGS, timeIntervalsKVKey(accountID)),
-		"name"
+		"name",
 	);
 
 	const reconstitutedRoutingTree = reconstituteRoutingTree(flattenedRoutingTree);
@@ -51,7 +51,7 @@ export const reconstituteConfig = async (ctx: Context<{ Bindings: Bindings }>, a
 		receivers,
 		inhibit_rules: inhibitRules.map((i: InhibitRule) => removeDefaults(InhibitRuleSpec.parse({}), i)),
 		time_intervals: timeIntervals.map((t) =>
-			removeDefaults(TimeIntervalSpec.parse({ name: "BUG: This shouldn't be here...", time_intervals: [] }), t)
+			removeDefaults(TimeIntervalSpec.parse({ name: "BUG: This shouldn't be here...", time_intervals: [] }), t),
 		),
 		route: reconstitutedRoutingTree,
 	};
