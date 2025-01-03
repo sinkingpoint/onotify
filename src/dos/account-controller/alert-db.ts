@@ -71,11 +71,22 @@ export class AlertDB {
 		muted ??= true;
 		unprocessed ??= true;
 
-		return [...this.alerts.values()].filter((f) => {
-			if (fingerprints && !fingerprints.includes(f.fingerprint)) {
-				return false;
+		// Special case fingerprints. Because we index by fingerprints, we can
+		// immediately pull out the requested fingerprints, saving us iterating the whole space.
+		let spectrum;
+		if (fingerprints) {
+			spectrum = [];
+			for (const finger of fingerprints) {
+				const alert = await this.getAlert(finger);
+				if (alert) {
+					spectrum.push(alert);
+				}
 			}
+		} else {
+			spectrum = [...this.alerts.values()];
+		}
 
+		return spectrum.filter((f) => {
 			if (receiver) {
 				if (!f.receivers.some((r) => receiver.test(r))) {
 					return false;
