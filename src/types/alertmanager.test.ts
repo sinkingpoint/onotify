@@ -6,11 +6,11 @@ import {
 	TimeSpec,
 	WeekdayRangeSpec,
 	YearRange,
-	getRequiredFiles,
 } from "./alertmanager";
 
 import fs from "fs";
 import yaml from "js-yaml";
+import { getRequiredFiles } from "../endpoints/uploadConfig";
 
 test("TimeSpec 01:23", () => {
 	expect(TimeSpec.parse("01:23")).toEqual({ hour: 1, minute: 23 });
@@ -267,6 +267,7 @@ test("simple.yaml getRequiredFiles", () => {
 			{
 				path: "/etc/alertmanager/template/*.tmpl",
 				isDir: true,
+				uploaded: false,
 			},
 		],
 	});
@@ -278,34 +279,112 @@ test("lots-of-required-files getRequiredFiles", () => {
 	const files = getRequiredFiles(config);
 	expect(files).toEqual({
 		secrets: [
-			"cert.cert",
-			"tls-ca.cert",
-			"key.pem",
-			"smtp_password.secret",
-			"victorops.secret",
-			"victorops2.secret",
-			"opsgenie.secret",
-			"discord_webhook.secret",
-			"email_auth.secret",
-			"msteams.secret",
-			"pagerduty.secret",
-			"pagerduty_service_key.secret",
-			"pushover.secret",
-			"pushover.user.secret",
-			"slack.secret",
-			"telegram.secret",
-			"webhook_password.secret",
-			"webhook.secret",
-			"webhook_credentials.secret",
+			{
+				isDir: false,
+				uploaded: false,
+				path: "/etc/foo/bar/key.pem",
+			},
+			{
+				isDir: false,
+				uploaded: false,
+				path: "cert.cert",
+			},
+			{
+				isDir: false,
+				uploaded: false,
+				path: "discord_webhook.secret",
+			},
+			{
+				isDir: false,
+				uploaded: false,
+				path: "email_auth.secret",
+			},
+			{
+				isDir: false,
+				uploaded: false,
+				path: "msteams.secret",
+			},
+			{
+				isDir: false,
+				uploaded: false,
+				path: "opsgenie.secret",
+			},
+			{
+				isDir: false,
+				uploaded: false,
+				path: "pagerduty.secret",
+			},
+			{
+				isDir: false,
+				uploaded: false,
+				path: "pagerduty_service_key.secret",
+			},
+			{
+				isDir: false,
+				uploaded: false,
+				path: "pushover.secret",
+			},
+			{
+				isDir: false,
+				uploaded: false,
+				path: "pushover.user.secret",
+			},
+			{
+				isDir: false,
+				uploaded: false,
+				path: "slack.secret",
+			},
+			{
+				isDir: false,
+				uploaded: false,
+				path: "smtp_password.secret",
+			},
+			{
+				isDir: false,
+				uploaded: false,
+				path: "telegram.secret",
+			},
+			{
+				isDir: false,
+				uploaded: false,
+				path: "tls-ca.cert",
+			},
+			{
+				isDir: false,
+				uploaded: false,
+				path: "victorops.secret",
+			},
+			{
+				isDir: false,
+				uploaded: false,
+				path: "victorops2.secret",
+			},
+			{
+				isDir: false,
+				uploaded: false,
+				path: "webhook.secret",
+			},
+			{
+				isDir: false,
+				uploaded: false,
+				path: "webhook_credentials.secret",
+			},
+			{
+				isDir: false,
+				uploaded: false,
+				path: "webhook_password.secret",
+			},
 		].sort(),
 		templates: [
 			{
 				path: "/etc/alertmanager/template/*.tmpl",
 				isDir: true,
+				uploaded: false,
 			},
 			{
 				path: "/var/log/alertmanager.tmpl",
 				isDir: false,
+				uploaded: false,
 			},
 		],
 	});
