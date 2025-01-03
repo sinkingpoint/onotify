@@ -74,12 +74,7 @@ export class SilenceDB {
 	}
 
 	silencedBy(a: Alert) {
-		return [
-			...this.silences
-				.values()
-				.filter((s) => silenceMatches(s, a))
-				.map((s) => s.id),
-		];
+		return [...this.silences.values()].filter((s) => silenceMatches(s, a)).map((s) => s.id);
 	}
 }
 

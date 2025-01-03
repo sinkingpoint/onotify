@@ -1,5 +1,5 @@
 import { AccountController, AlertGroupController } from "..";
-import { PostableSilence } from "./api";
+import { Matcher, PostableSilence } from "./api";
 
 interface EnvVars {
 	WORKERS_ENV?: string;
@@ -69,4 +69,7 @@ export interface GetAlertsOptions {
 	silenced?: boolean;
 	inhibited?: boolean;
 	muted?: boolean;
+	unprocessed?: boolean;
+	receiver?: RegExp;
+	filter?: Matcher[];
 }

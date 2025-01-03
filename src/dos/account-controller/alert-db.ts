@@ -1,5 +1,6 @@
-import { Alert, CachedAlert, GetAlertsOptions, ReceiveredAlert } from "../../types/internal";
+import { CachedAlert, GetAlertsOptions, ReceiveredAlert } from "../../types/internal";
 import { alertIsSame } from "../../utils/alert";
+import { matcherMatches } from "../../utils/matcher";
 import { SilenceDB } from "./silence-db";
 import { alertKVKey } from "./util";
 
@@ -54,21 +55,45 @@ export class AlertDB {
 		return loaded;
 	}
 
-	getAlerts({ active, fingerprints, silenced, muted, inhibited }: GetAlertsOptions): CachedAlert[] {
+	async getAlerts({
+		active,
+		fingerprints,
+		silenced,
+		muted,
+		inhibited,
+		unprocessed,
+		receiver,
+		filter,
+	}: GetAlertsOptions): Promise<CachedAlert[]> {
 		silenced ??= true;
 		inhibited ??= true;
 		active ??= true;
 		muted ??= true;
+		unprocessed ??= true;
 
 		return [...this.alerts.values()].filter((f) => {
 			if (fingerprints && !fingerprints.includes(f.fingerprint)) {
 				return false;
 			}
 
+			if (receiver) {
+				if (!f.receivers.some((r) => receiver.test(r))) {
+					return false;
+				}
+			}
+
+			if (filter) {
+				for (const matcher of filter) {
+					if (!matcherMatches(matcher, f.labels)) {
+						return false;
+					}
+				}
+			}
+
 			const isSilenced = f.silencedBy.length > 0;
 			const isInhibited = f.inhibitedBy.length > 0;
 			const isActive = !isSilenced && !isInhibited;
-			// TODO(https://github.com/sinkingpoint/onotify/issues/3): Support muted alerts here.
+			// TODO(https://github.com/sinkingpoint/onotify/issues/3): Support muted + unprocessed alerts here.
 
 			if (!silenced && isSilenced) {
 				return false;

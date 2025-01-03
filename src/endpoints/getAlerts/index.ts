@@ -1,8 +1,8 @@
 import { OpenAPIRoute } from "chanfana";
-import { GettableAlertsSpec } from "../../types/api";
+import { Context } from "hono";
+import { GetAlertsParamsSpec, GettableAlertsSpec } from "../../types/api";
 import { Errors, HTTPResponses } from "../../types/http";
 import { Bindings } from "../../types/internal";
-import { Context } from "hono";
 import { checkAPIKey, toErrorString } from "../utils/auth";
 import { accountControllerName } from "../utils/kv";
 
@@ -10,7 +10,9 @@ export class GetAlerts extends OpenAPIRoute {
 	schema = {
 		tags: ["alerts"],
 		summary: "Get a list of alerts",
-		// TODO (https://github.com/sinkingpoint/onotify/issues/6): Support filters here.
+		request: {
+			query: GetAlertsParamsSpec,
+		},
 		responses: {
 			"200": {
 				description: "Successfully got alerts",
@@ -31,12 +33,23 @@ export class GetAlerts extends OpenAPIRoute {
 			return c.text(toErrorString(authResult));
 		}
 
+		const data = await this.getValidatedData<typeof this.schema>();
+		const { fingerprints, active, silenced, inhibited, unprocessed, filter, receiver } = data.query;
+
 		const controllerName = accountControllerName(authResult.accountID);
 		const controllerID = c.env.ACCOUNT_CONTROLLER.idFromName(controllerName);
 		const controller = c.env.ACCOUNT_CONTROLLER.get(controllerID);
 
 		const outputAlerts = [];
-		for (const alert of await controller.getAlerts({})) {
+		for (const alert of await controller.getAlerts({
+			fingerprints,
+			active,
+			silenced,
+			inhibited,
+			unprocessed,
+			filter,
+			receiver,
+		})) {
 			outputAlerts.push({
 				fingerprint: alert.fingerprint,
 				labels: alert.labels,

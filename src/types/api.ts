@@ -194,7 +194,21 @@ export const RequiredFilesSpec = z.object({
 
 export type RequiredFiles = z.infer<typeof RequiredFilesSpec>;
 
+const StringRegexp = z.string().transform((s) => new RegExp(s));
+
 export const PostableRequiredFileSpec = z.object({
 	path: z.string().openapi({ description: "the path that this file comes from" }),
 	contents: z.string().openapi({ description: "the contents of the file" }),
 });
+
+export const GetAlertsParamsSpec = z.object({
+	fingerprints: z.array(z.string()),
+	active: z.boolean().default(true).openapi({ description: "Show active alerts" }),
+	silenced: z.boolean().default(true).openapi({ description: "Show silenced alerts" }),
+	inhibited: z.boolean().default(true).openapi({ description: "Show inhibited alerts" }),
+	unprocessed: z.boolean().default(true).openapi({ description: "Show unprocessed alerts" }),
+	filter: z.array(StringMatcherSpec).default([]).openapi({ description: "A list of matchers to filter by" }),
+	receiver: StringRegexp.optional().openapi({ description: "A regex matching receivers to filter by" }),
+});
+
+export type GetAlertsParams = z.infer<typeof GetAlertsParamsSpec>;
