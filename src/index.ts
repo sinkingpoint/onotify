@@ -1,5 +1,5 @@
 import { fromHono } from "chanfana";
-import { Hono } from "hono";
+import { Context, Hono, Next } from "hono";
 import { cors } from "hono/cors";
 import { GetAlertGroups } from "./endpoints/getAlertGroups";
 import { GetAlerts } from "./endpoints/getAlerts";
@@ -32,7 +32,7 @@ const corsOptions = {
 	credentials: true,
 };
 
-openapi.use("*", async (c, next) => {
+openapi.use("*", async (c: Context, next: Next) => {
 	let origin = PROD_ORIGIN;
 	if (c.env.WORKERS_ENV === "local") {
 		origin = LOCAL_ORIGIN;
