@@ -1,4 +1,4 @@
-import { CachedAlert, GetAlertsOptions, ReceiveredAlert } from "../../types/internal";
+import { alertState, CachedAlert, GetAlertsOptions, ReceiveredAlert } from "../../types/internal";
 import { alertIsSame } from "../../utils/alert";
 import { matcherMatches } from "../../utils/matcher";
 import { SilenceDB } from "./silence-db";
@@ -24,6 +24,25 @@ export class AlertDB {
 		this.alerts = alerts;
 	}
 
+	private async addEvent(existing: CachedAlert, next: ReceiveredAlert) {
+		const timestamp = Date.now();
+		const newState = alertState(next);
+		if (existing.history.length === 0) {
+			existing.history.push({
+				timestamp,
+				ty: newState,
+			});
+		} else {
+			const currentState = existing.history[existing.history.length - 1].ty;
+			if (currentState !== newState) {
+				existing.history.push({
+					timestamp,
+					ty: newState,
+				});
+			}
+		}
+	}
+
 	async addAlert(a: ReceiveredAlert) {
 		const cached = this.alerts.get(a.fingerprint);
 		if (cached && alertIsSame(a, cached)) {
@@ -31,12 +50,21 @@ export class AlertDB {
 		}
 
 		const silencedBy = cached ? cached.silencedBy : this.silenceDB.silencedBy(a);
-
 		const inhibitedBy = cached ? cached.inhibitedBy : [];
+		const history = cached
+			? cached.history
+			: [
+					{
+						timestamp: Date.now(),
+						ty: alertState(a),
+					},
+				];
+
 		return this.storeAlert({
 			silencedBy,
 			inhibitedBy,
 			updatedAt: Date.now(),
+			history,
 			...a,
 		});
 	}

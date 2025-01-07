@@ -54,11 +54,17 @@ export type Silence = PostableSilence & {
 	updatedAt: number;
 };
 
+export type AlertEvent = {
+	ty: AlertState;
+	timestamp: number;
+};
+
 export type CachedAlert = Alert & {
 	silencedBy: string[];
 	inhibitedBy: string[];
 	updatedAt: number;
 	receivers: string[];
+	history: AlertEvent[];
 };
 
 export type ReceiveredAlert = Alert & { receivers: string[] };
