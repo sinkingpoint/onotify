@@ -47,7 +47,7 @@ export class SilenceDB {
 			updatedAt: Date.now(),
 		};
 
-		if (s.id && this.silences.get(s.id)) {
+		if (s.id && this.silences.has(s.id)) {
 			if (isSilenceSame(this.silences.get(s.id)!, newSilence)) {
 				return [false, s.id];
 			}

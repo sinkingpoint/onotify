@@ -2,7 +2,6 @@ import { fingerprintArray } from "../../endpoints/utils/fingerprinting";
 import { GetAlertGroupsOptions } from "../../types/api";
 import { AlertGroup, AlertState } from "../../types/internal";
 import { matcherMatches } from "../../utils/matcher";
-import { ALERT_GROUP_KV_PREFIX } from "./util";
 
 interface AlertGroupStorage {
 	get: (name: string) => Promise<AlertGroup | undefined>;
@@ -11,7 +10,7 @@ interface AlertGroupStorage {
 }
 
 const alertGroupKey = (nodeID: string, labels: string[]) => {
-	return `${ALERT_GROUP_KV_PREFIX}-${nodeID}-${fingerprintArray(labels)}`;
+	return `${nodeID}-${fingerprintArray(labels)}`;
 };
 
 export class AlertGroupDB {

@@ -202,7 +202,7 @@ export const PostableRequiredFileSpec = z.object({
 });
 
 export const GetAlertsParamsSpec = z.object({
-	fingerprints: z.array(z.string()),
+	fingerprints: z.array(z.string()).optional(),
 	active: z.boolean().default(true).openapi({ description: "Show active alerts" }),
 	silenced: z.boolean().default(true).openapi({ description: "Show silenced alerts" }),
 	inhibited: z.boolean().default(true).openapi({ description: "Show inhibited alerts" }),

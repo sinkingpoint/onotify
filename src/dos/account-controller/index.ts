@@ -1,11 +1,19 @@
 import { DurableObject } from "cloudflare:workers";
 import { Bindings } from "hono/types";
-import { SilenceDB } from "./silence-db";
-import { getAllAlertGroups, getAllAlerts, getAllSilences } from "./util";
-import { AlertDB } from "./alert-db";
+import { GetAlertGroupsOptions, Matcher, PostableSilence } from "../../types/api";
 import { AlertGroup, GetAlertsOptions, ReceiveredAlert } from "../../types/internal";
-import { GetAlertGroupsOptions, Matcher } from "../../types/api";
+import { AlertDB } from "./alert-db";
 import { AlertGroupDB } from "./alert-group-db";
+import { SilenceDB } from "./silence-db";
+import {
+	ALERT_GROUP_KV_PREFIX,
+	ALERT_KV_PREFIX,
+	getAllAlertGroups,
+	getAllAlerts,
+	getAllSilences,
+	PrefixStorage,
+	SILENCE_KV_PREFIX,
+} from "./util";
 
 export class AccountController extends DurableObject {
 	silenceStorage: SilenceDB;
@@ -15,9 +23,10 @@ export class AccountController extends DurableObject {
 	constructor(state: DurableObjectState, env: Bindings) {
 		super(state, env);
 
-		this.silenceStorage = new SilenceDB(state.storage);
-		this.alertStorage = new AlertDB(state.storage, this.silenceStorage);
-		this.alertGroupStorage = new AlertGroupDB(state.storage);
+		this.silenceStorage = new SilenceDB(new PrefixStorage(state.storage, SILENCE_KV_PREFIX));
+		this.alertStorage = new AlertDB(new PrefixStorage(state.storage, ALERT_KV_PREFIX), this.silenceStorage);
+		this.alertGroupStorage = new AlertGroupDB(new PrefixStorage(state.storage, ALERT_GROUP_KV_PREFIX));
+
 		state.blockConcurrencyWhile(async () => {
 			const silences = await getAllSilences(state.storage);
 			this.silenceStorage.init(silences);
@@ -50,6 +59,15 @@ export class AccountController extends DurableObject {
 
 	async getSilences(matchers: Matcher[]) {
 		return this.silenceStorage.getSilences({ matchers });
+	}
+
+	async addSilence(silence: PostableSilence) {
+		const [updated, id] = await this.silenceStorage.addSilence(silence);
+		if (updated) {
+			await this.alertStorage.addSilence(id, silence);
+		}
+
+		return id;
 	}
 
 	async addAlertGroups(groups: AlertGroup[]) {

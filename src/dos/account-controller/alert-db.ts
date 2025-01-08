@@ -1,3 +1,4 @@
+import { PostableSilence } from "../../types/api";
 import { alertState, CachedAlert, GetAlertsOptions, ReceiveredAlert } from "../../types/internal";
 import { alertIsSame } from "../../utils/alert";
 import { matcherMatches } from "../../utils/matcher";
@@ -148,6 +149,31 @@ export class AlertDB {
 
 			return true;
 		});
+	}
+
+	async addSilence(id: string, s: PostableSilence) {
+		const now = Date.now();
+		if (s.startsAt > now || s.endsAt < now) {
+			// The silence isn't active. Bail.
+			return;
+		}
+
+		const promises = [];
+		outer: for (const alert of this.alerts.values()) {
+			for (const matcher of s.matchers) {
+				if (!matcherMatches(matcher, alert.labels)) {
+					continue outer;
+				}
+			}
+
+			if (!alert.silencedBy.includes(id)) {
+				console.log("marked alert as silenced", alert);
+				alert.silencedBy.push(id);
+				promises.push(this.storeAlert(alert));
+			}
+		}
+
+		return Promise.all(promises);
 	}
 
 	private async storeAlert(a: CachedAlert) {

@@ -1,8 +1,8 @@
 import { OpenAPIRoute } from "chanfana";
+import { Context } from "hono";
 import { PostableSilenceSpec } from "../../types/api";
 import { Errors, HTTPResponses } from "../../types/http";
 import { Bindings } from "../../types/internal";
-import { Context } from "hono";
 import { checkAPIKey, toErrorString } from "../utils/auth";
 import { accountControllerName } from "../utils/kv";
 
@@ -39,7 +39,15 @@ export class PostSilence extends OpenAPIRoute {
 		const controllerID = c.env.ACCOUNT_CONTROLLER.idFromName(controllerName);
 		const controller = c.env.ACCOUNT_CONTROLLER.get(controllerID);
 
+		let id: string;
+		try {
+			id = await controller.addSilence(data.body);
+		} catch (e) {
+			c.status(HTTPResponses.BadRequest);
+			return c.text(e as string);
+		}
+
 		c.status(HTTPResponses.OK);
-		return c.text("ok");
+		return c.text(id);
 	}
 }
