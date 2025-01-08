@@ -81,12 +81,12 @@ export const ConfigUpload = ({ uploadSucessCallback: uploadSuccessCallback }: Co
 			<span class="flex flex-row grow">
 				<span class="flex flex-col grow">
 					<span class="text-lg my-3">
-						<h3>
+						<h2>
 							Paste your Alertmanager config, or{" "}
 							<label for="config-file" class="btn">
 								upload one
 							</label>
-						</h3>
+						</h2>
 					</span>
 					<span class="flex flex-row grow">
 						<span class="flex flex-row basis-2/3 grow">

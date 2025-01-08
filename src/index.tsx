@@ -2,8 +2,9 @@ import { LocationProvider, Route, Router, hydrate, prerender as ssr } from "prea
 
 import { Header } from "./components/Header.jsx";
 import "./index.css";
-import { Onboarding } from "./pages/Onboarding/index.js";
 import { NotFound } from "./pages/_404.jsx";
+import { AlertPage } from "./pages/Alert/index.js";
+import { Onboarding } from "./pages/Onboarding/index.js";
 
 export function App() {
 	return (
@@ -12,6 +13,7 @@ export function App() {
 			<main>
 				<Router>
 					<Route path="/onboarding" component={Onboarding} />
+					<Route path="/alert/:fingerprint" component={AlertPage} />
 					<Route default component={NotFound} />
 				</Router>
 			</main>

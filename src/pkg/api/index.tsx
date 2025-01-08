@@ -39,6 +39,17 @@ export class APIClient {
 		});
 	}
 
+	async getAlert(fingerprint: string) {
+		return (
+			await fetch(`http://localhost:8787/api/v2/alerts?fingerprints=${fingerprint}`, {
+				method: "GET",
+				headers: {
+					Authorization: "Bearer notify-test",
+				},
+			})
+		).json();
+	}
+
 	private apiURL(path: string) {
 		return `${API_HOST}${path}`;
 	}
