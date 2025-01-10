@@ -54,7 +54,7 @@ export const ExtraFilesUpload = () => {
 						isDir: s.isDir,
 						uploaded: s.uploaded ? UploadStatus.Uploaded : UploadStatus.NotUploaded,
 					};
-				}),
+				})
 			);
 
 			setTemplates(
@@ -68,7 +68,7 @@ export const ExtraFilesUpload = () => {
 						isDir: t.isDir,
 						uploaded: t.uploaded ? UploadStatus.Uploaded : UploadStatus.NotUploaded,
 					};
-				}),
+				})
 			);
 		};
 
@@ -109,7 +109,6 @@ export const ExtraFilesUpload = () => {
 				const globRegex = new RegExp(maybeGlob.replace(".", "\\.").replace("*", ".*").replace("?", "."));
 
 				const fileName = parts[parts.length - 1];
-				console.log("testing", globRegex, "against", fileName);
 				return globRegex.test(fileName);
 			}
 		}

@@ -1,5 +1,4 @@
 import { PlusIcon } from "@heroicons/react/16/solid";
-import { useLocation } from "preact-iso";
 import { ChangeEvent } from "preact/compat";
 import { useMemo, useRef, useState } from "preact/hooks";
 import { Button } from "../../components/Button";
@@ -8,6 +7,7 @@ import { TextBox } from "../../components/TextBox";
 import { StringMatcherSpec } from "../../pkg/types/alertmanager";
 import { Matcher } from "../../pkg/types/api";
 import { DurationSpec } from "../../pkg/types/duration";
+import { matcherToString } from "../../pkg/types/utils";
 
 const formatDate = (d: Date): string => {
 	return d.toLocaleString([], {
@@ -32,22 +32,50 @@ const matcherIsSame = (a: Matcher, b: Matcher) => {
 	return a.isEqual === b.isEqual && a.isRegex === b.isRegex && a.name === b.name && a.value === b.value;
 };
 
+const setURLParam = <T,>(paramName: string, values: T | T[]) => {
+	const url = new URL(window.location.toString());
+	const params = new URLSearchParams(url.search);
+	if (Array.isArray(values)) {
+		params.delete(paramName);
+		values.forEach((m) => params.append(paramName, m.toString()));
+	} else {
+		params.set(paramName, values.toString());
+	}
+
+	url.search = params.toString();
+	history.replaceState({}, "", url.toString());
+};
+
 export const AddSilence = () => {
-	const location = useLocation();
+	const params = new URLSearchParams(window.location.search);
 	const matchersInputRef = useRef<HTMLInputElement>();
 
-	const [duration, setDuration] = useState<string>(location.query["duration"] ?? "1h");
-	const [matchers, setMatchers] = useState<Matcher[]>([]);
+	const [duration, setDuration] = useState<string>(params.get("duration") ?? "1h");
+	const [matchers, setMatchers] = useState<Matcher[]>(params.getAll("matcher").map((m) => StringMatcherSpec.parse(m)));
+	const [comment, setComment] = useState<string>(params.get("comment") ?? "");
 
 	const handleSetDuration = (e: ChangeEvent<HTMLInputElement>) => {
-		setDuration(e.currentTarget.value);
+		const newRawDuration = e.currentTarget.value;
+		setDuration(newRawDuration);
+		if (getSilenceEnd(newRawDuration)) {
+			setURLParam("duration", newRawDuration);
+		}
+	};
+
+	const setMatchersInURLParams = (matchers: Matcher[]) => {
+		setURLParam(
+			"matcher",
+			matchers.map((m) => matcherToString(m))
+		);
+
+		setMatchers(matchers);
 	};
 
 	const handleNewMatcher = () => {
 		try {
 			const matcher = StringMatcherSpec.parse(matchersInputRef.current.value);
 			if (!matchers.some((m) => matcherIsSame(matcher, m))) {
-				setMatchers([...matchers, matcher]);
+				setMatchersInURLParams([...matchers, matcher]);
 			}
 
 			matchersInputRef.current.blur();
@@ -65,7 +93,7 @@ export const AddSilence = () => {
 		const idx = matchers.findIndex((m) => matcherIsSame(matcher, m));
 		if (idx !== -1) {
 			matchers.splice(idx, 1);
-			setMatchers([...matchers]);
+			setMatchersInURLParams([...matchers]);
 		}
 	};
 
@@ -105,6 +133,7 @@ export const AddSilence = () => {
 			<div class="flex justify-start flex-wrap items-center">
 				<TextBox
 					id="duration"
+					class="mb-2"
 					title="Duration in Go format, e.g. 1h"
 					pattern="[0-9]+[mhdw]"
 					value={duration}
@@ -136,7 +165,16 @@ export const AddSilence = () => {
 			<div class="flex flex-row flex-wrap flex-shrink flex-grow-0 pt-2">{matcherCards}</div>
 
 			<h2 class="text-xl pt-5">Comment</h2>
-			<TextBox id="comment" type="text" title="A comment explaining this silence" />
+			<TextBox
+				id="comment"
+				type="text"
+				title="A comment explaining this silence"
+				value={comment}
+				onInput={(e) => {
+					setComment(e.currentTarget.value);
+					setURLParam("comment", e.currentTarget.value);
+				}}
+			/>
 
 			<span>
 				<Button text="Preview" color="warn" class="font-bold p-2 rounded mt-4" onClick={checkFormValidity} />
