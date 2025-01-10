@@ -166,6 +166,8 @@ const unitMap = (s: string): number | null => {
 	const second = 1000 * millisecond;
 	const minute = 60 * second;
 	const hour = 60 * minute;
+	const day = 24 * hour;
+	const week = 7 * day;
 	switch (s) {
 		case "ms":
 			return millisecond;
@@ -175,6 +177,10 @@ const unitMap = (s: string): number | null => {
 			return minute;
 		case "h":
 			return hour;
+		case "d":
+			return day;
+		case "w":
+			return week;
 	}
 
 	return null;
