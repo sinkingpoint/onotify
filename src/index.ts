@@ -50,12 +50,12 @@ openapi.use("*", async (c: Context, next: Next) => {
 openapi.get("/api/v2/alerts", GetAlerts);
 openapi.get("/api/v2/alerts/groups", GetAlertGroups);
 openapi.post("/api/v2/alerts", PostAlerts);
-openapi.post("/api/v1/config", PostConfig);
 openapi.get("/api/v1/config/required-files", GetRequiredFiles);
 openapi.post("/api/v1/config/required-files", PostRequiredFiles);
-openapi.get("/api/v1/config", GetConfig);
 openapi.get("/api/v2/silences", GetSilences);
 openapi.post("/api/v2/silences", PostSilence);
+openapi.post("/api/v1/config", PostConfig);
+openapi.get("/api/v1/config", GetConfig);
 
 // Export the Hono app
 export default app;

@@ -187,10 +187,12 @@ export const RequiredFileSpec = z.object({
 
 export type RequiredFile = z.infer<typeof RequiredFileSpec>;
 
-export const RequiredFilesSpec = z.object({
-	secrets: z.array(RequiredFileSpec).openapi({ description: "the secret files that need to be uploaded" }),
-	templates: z.array(RequiredFileSpec).openapi({ description: "the templates that need to be uploaded" }),
-});
+export const RequiredFilesSpec = z
+	.object({
+		secrets: z.array(RequiredFileSpec).openapi({ description: "the secret files that need to be uploaded" }),
+		templates: z.array(RequiredFileSpec).openapi({ description: "the templates that need to be uploaded" }),
+	})
+	.openapi({ description: "the extra files required, as specified in the config" });
 
 export type RequiredFiles = z.infer<typeof RequiredFilesSpec>;
 
