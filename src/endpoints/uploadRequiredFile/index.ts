@@ -8,6 +8,7 @@ import { uploadedFilesKey } from "../utils/kv";
 
 export class PostRequiredFiles extends OpenAPIRoute {
 	schema = {
+		operationId: "postRequiredFiles",
 		tags: ["config"],
 		summary: "Upload an extra file required by the alertmanager spec",
 		request: {

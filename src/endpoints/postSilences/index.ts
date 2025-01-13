@@ -8,6 +8,7 @@ import { accountControllerName } from "../utils/kv";
 
 export class PostSilence extends OpenAPIRoute {
 	schema = {
+		operationId: "postSilence",
 		tags: ["silences"],
 		summary: "Add silences to the system",
 		request: {

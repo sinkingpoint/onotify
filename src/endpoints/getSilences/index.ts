@@ -1,13 +1,14 @@
 import { OpenAPIRoute } from "chanfana";
+import { Context } from "hono";
 import { GettableSilencesSpec } from "../../types/api";
 import { Errors, HTTPResponses } from "../../types/http";
-import { Context } from "hono";
-import { accountControllerName } from "../utils/kv";
 import { Bindings } from "../../types/internal";
 import { checkAPIKey, toErrorString } from "../utils/auth";
+import { accountControllerName } from "../utils/kv";
 
 export class GetSilences extends OpenAPIRoute {
 	schema = {
+		operationId: "getSilences",
 		tags: ["silences"],
 		summary: "Get a list of silences",
 		request: {

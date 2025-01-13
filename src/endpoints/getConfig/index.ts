@@ -8,6 +8,7 @@ import { reconstituteConfig } from "./config";
 
 export class GetConfig extends OpenAPIRoute {
 	schema = {
+		operationId: "getConfig",
 		tags: ["config"],
 		summary: "Get an uploaded alertmanager config",
 		request: {},

@@ -24,6 +24,7 @@ const app = new Hono<{ Bindings: Bindings }>();
 // Setup OpenAPI registry
 const openapi = fromHono(app, {
 	docs_url: "/",
+	generateOperationIds: false,
 });
 
 const corsOptions = {

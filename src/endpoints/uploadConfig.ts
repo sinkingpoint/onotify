@@ -22,6 +22,7 @@ import {
 
 export class PostConfig extends OpenAPIRoute {
 	schema = {
+		operationId: "postConfig",
 		tags: ["config"],
 		summary: "Upload an Alertmanager config",
 		request: {

@@ -10,6 +10,7 @@ import { groupAlerts } from "./group";
 
 export class PostAlerts extends OpenAPIRoute {
 	schema = {
+		operationId: "postAlerts",
 		tags: ["alerts"],
 		summary: "Add alerts to the system",
 		request: {

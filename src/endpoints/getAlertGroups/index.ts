@@ -1,14 +1,15 @@
 import { OpenAPIRoute } from "chanfana";
+import { Context } from "hono";
 import { GetAlertGroupsOptionsSpec } from "../../types/api";
 import { Errors, HTTPResponses } from "../../types/http";
-import { Context } from "hono";
 import { Bindings } from "../../types/internal";
+import { internalAlertToAlertmanager } from "../utils/api";
 import { checkAPIKey, toErrorString } from "../utils/auth";
 import { accountControllerName } from "../utils/kv";
-import { internalAlertToAlertmanager } from "../utils/api";
 
 export class GetAlertGroups extends OpenAPIRoute {
 	schema = {
+		operationId: "getAlertGroups",
 		tags: ["alerts"],
 		summary: "Get a list of alert groups",
 		request: {

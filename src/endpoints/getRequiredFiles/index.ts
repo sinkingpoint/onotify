@@ -8,6 +8,7 @@ import { requiredFilesKey, uploadedFilesKey } from "../utils/kv";
 
 export class GetRequiredFiles extends OpenAPIRoute {
 	schema = {
+		operationId: "getRequiredFiles",
 		tags: ["config"],
 		summary: "Get config files that are in the config, but haven't been uploaded yet",
 		request: {},
@@ -37,7 +38,7 @@ export class GetRequiredFiles extends OpenAPIRoute {
 		const rawRequiredFiles = await c.env.CONFIGS.get(requiredFilesKey(accountID));
 		const prefix = uploadedFilesKey(accountID);
 		const alreadyUploadedFiles = [...(await c.env.CONFIGS.list({ prefix })).keys].map((k) =>
-			k.name.substring(prefix.length + 1),
+			k.name.substring(prefix.length + 1)
 		);
 
 		if (!rawRequiredFiles) {
