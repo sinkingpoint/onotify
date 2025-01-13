@@ -115,8 +115,6 @@ export const CreateSilence = ({ onPreview }: CreateSilenceProps) => {
 
 	return (
 		<>
-			<h1 class="text-3xl mb-6 mt-6 font-bold">Add Silence</h1>
-
 			<h2 class="text-xl">Duration</h2>
 			<div class="flex justify-start flex-wrap items-center">
 				<TextBox

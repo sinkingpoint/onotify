@@ -15,7 +15,7 @@ export const MatcherCard = ({ onDelete, matcher, ...props }: TextBoxProps) => {
 
 	const input = <span {...props}>{matcherToString(matcher)}</span>;
 	if (!onDelete) {
-		input.props.class += " border-solid border-2 rounded matcher-card-container";
+		input.props.class += " border-solid border-2 rounded matcher-card-container mr-2 mb-2";
 		return input;
 	}
 
