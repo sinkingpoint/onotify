@@ -6,8 +6,16 @@ import { NotFound } from "./pages/_404.jsx";
 import { NewSilence } from "./pages/AddSilence";
 import { AlertPage } from "./pages/Alert/index.js";
 import { Onboarding } from "./pages/Onboarding/index.js";
+import { client } from "./pkg/api/client";
 
 export function App() {
+	client.setConfig({
+		baseUrl: "http://localhost:8787",
+		headers: {
+			Authorization: "Bearer notify-test",
+		},
+	});
+
 	return (
 		<LocationProvider>
 			<Header />

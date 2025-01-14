@@ -9,6 +9,7 @@
 	"dependencies": {
 		"@asteasolutions/zod-to-openapi": "^7.3.0",
 		"@heroicons/react": "^2.2.0",
+		"@hey-api/client-fetch": "^0.6.0",
 		"js-yaml": "^4.1.0",
 		"preact": "^10.22.1",
 		"preact-iso": "^2.8.1",

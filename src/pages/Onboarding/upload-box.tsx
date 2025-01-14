@@ -1,6 +1,6 @@
 import { ArrowUpOnSquareIcon, ArrowUpOnSquareStackIcon } from "@heroicons/react/16/solid";
 import { useRef } from "preact/hooks";
-import { APIClient } from "../../pkg/api";
+import { postRequiredFiles } from "../../pkg/api/client";
 import { UploadStatus } from "./upload";
 
 interface UploadBoxProps {
@@ -45,11 +45,10 @@ export const UploadBox = ({ selected, uploadCallback, validateFile }: UploadBoxP
 				uploadCallback(resolvedPath, UploadStatus.Uploading);
 			}
 
-			new APIClient()
-				.uploadFile(path, ev.target.result.toString())
-				.then((v) => {
+			postRequiredFiles({ body: { path, contents: ev.target.result.toString() } })
+				.then(({ error }) => {
 					if (uploadCallback) {
-						if (v.status === 200) {
+						if (!error) {
 							uploadCallback(resolvedPath, UploadStatus.Uploaded);
 						} else {
 							uploadCallback(resolvedPath, UploadStatus.Error);

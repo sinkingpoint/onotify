@@ -1,6 +1,6 @@
 import { MouseEventHandler } from "preact/compat";
 import { useEffect, useState } from "preact/hooks";
-import { APIClient } from "../../pkg/api";
+import { getRequiredFiles } from "../../pkg/api/client";
 import { buildTrie, NeededFile, trieNode } from "./trie";
 import { getUploadIcon, UploadStatus } from "./upload";
 import { UploadBox } from "./upload-box";
@@ -42,7 +42,9 @@ export const ExtraFilesUpload = () => {
 
 	useEffect(() => {
 		const fetchNeeded = async () => {
-			const { secrets, templates } = await (await new APIClient().getRequiredConfigFiles()).json();
+			const { data, error } = await getRequiredFiles();
+			// TODO: Handle errors here.
+			const { secrets, templates } = data;
 			setSecrets(
 				secrets.map((s) => {
 					if (!s.path.startsWith("/") && !s.path.startsWith("./") && !s.path.startsWith("../")) {

@@ -1,6 +1,6 @@
 import { useRoute } from "preact-iso";
 import { useEffect, useState } from "preact/hooks";
-import { APIClient } from "../../pkg/api";
+import { getAlerts } from "../../pkg/api/client";
 import { GettableAlert } from "../../pkg/types/api";
 
 interface gotAlertState {
@@ -65,7 +65,8 @@ export const AlertPage = () => {
 	const fingerprint = location.params["fingerprint"];
 	useEffect(() => {
 		const fetch = async () => {
-			const alerts = await new APIClient().getAlert(fingerprint);
+			const { data: alerts, error } = await getAlerts({ query: { fingerprints: [fingerprint] } });
+			// TODO: Handle errors here.
 			if (!alerts) {
 				// There is no alert with that fingerprint.
 				setState({

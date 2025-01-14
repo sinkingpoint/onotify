@@ -1,6 +1,6 @@
 import { useEffect, useState } from "preact/hooks";
 import { JSX } from "preact/jsx-runtime";
-import { APIClient } from "../../pkg/api";
+import { getConfig, getRequiredFiles } from "../../pkg/api/client";
 import { ConfigUpload } from "./config-upload";
 import { ExtraFilesUpload } from "./extra-files-upload";
 import "./style.css";
@@ -13,12 +13,12 @@ enum OnboardingState {
 }
 
 const getOnboardingState = async () => {
-	const config = await new APIClient().getConfig();
-	if (config.status !== 200 || !(await config.text())) {
+	const { data: config, error: configErr } = await getConfig();
+	if (configErr) {
 		return OnboardingState.ConfigUpload;
 	}
 
-	const requiredFiles = await (await new APIClient().getRequiredConfigFiles()).json();
+	const { data: requiredFiles, error } = await getRequiredFiles();
 
 	if (requiredFiles.secrets.some((s) => !s.uploaded) || requiredFiles.templates.some((t) => !t.uploaded)) {
 		return OnboardingState.ExtraFilesUpload;
