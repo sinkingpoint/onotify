@@ -47,11 +47,12 @@ export const MatcherSpec = z
 		isRegex: z.boolean(),
 		isEqual: z.boolean().default(true),
 	})
+	.strict()
 	.openapi({
 		description: "A matcher that can be used to match against alerts",
 	});
 
-export type Matcher = z.infer<typeof MatcherSpec>;
+export type Matcher = Required<z.infer<typeof MatcherSpec>>;
 
 const silence = z.object({
 	matchers: z.array(MatcherSpec).openapi({
