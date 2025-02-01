@@ -6,6 +6,7 @@ import { getAlerts, GetAlertsError, GetAlertsResponse, postSilence } from "../..
 import { Matcher } from "../../pkg/types/api";
 import { DurationSpec } from "../../pkg/types/duration";
 import { DataPull, matcherToString, useQuery } from "../../pkg/types/utils";
+import { getUploadIcon, UploadStatus } from "../Onboarding/upload";
 import { formatDate } from "./utils";
 
 export interface PreviewProps {
@@ -59,15 +60,15 @@ export const PreviewSilence = ({ duration, matchers, comment }: PreviewProps) =>
 		return getAlerts({ query: { filter } });
 	}, [matchers]);
 
-	const [createStatus, setCreateStatus] = useState<"not" | "pending" | "error" | "created">("not");
+	const [createStatus, setCreateStatus] = useState<UploadStatus>(UploadStatus.NotUploaded);
 
 	const onCreate = async () => {
-		if (createStatus === "pending" || createStatus === "created") {
+		if (createStatus === UploadStatus.Uploading || createStatus === UploadStatus.Uploaded) {
 			return;
 		}
 
 		try {
-			setCreateStatus("pending");
+			setCreateStatus(UploadStatus.Uploading);
 			const { data: id } = await postSilence({
 				body: {
 					matchers,
@@ -76,10 +77,10 @@ export const PreviewSilence = ({ duration, matchers, comment }: PreviewProps) =>
 				},
 			});
 
-			setCreateStatus("created");
+			setCreateStatus(UploadStatus.Uploaded);
 			window.location.href = "/silence/" + id;
 		} catch (e) {
-			setCreateStatus("error");
+			setCreateStatus(UploadStatus.Error);
 			// TODO: Show a toast here.
 		}
 	};
@@ -112,6 +113,7 @@ export const PreviewSilence = ({ duration, matchers, comment }: PreviewProps) =>
 			</span>
 			<span>
 				<button class="p-2 bg-green-600 rounded my-3" onClick={onCreate}>
+					{getUploadIcon(createStatus)}
 					Create!
 				</button>
 			</span>
