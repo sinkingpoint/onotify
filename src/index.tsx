@@ -3,9 +3,9 @@ import { LocationProvider, Route, Router, hydrate, prerender as ssr } from "prea
 import { Header } from "./components/Header.jsx";
 import "./index.css";
 import { NotFound } from "./pages/_404.jsx";
-import { NewSilence } from "./pages/AddSilence";
-import { AlertPage } from "./pages/Alert/index.js";
-import { Onboarding } from "./pages/Onboarding/index.js";
+import AddSilence from "./pages/AddSilence";
+import Onboarding from "./pages/Onboarding/index.js";
+import ViewAlert from "./pages/ViewAlert/index.js";
 import { client } from "./pkg/api/client";
 
 export function App() {
@@ -22,8 +22,8 @@ export function App() {
 			<main>
 				<Router>
 					<Route path="/onboarding" component={Onboarding} />
-					<Route path="/alert/:fingerprint" component={AlertPage} />
-					<Route path="/silence/new" component={NewSilence} />
+					<Route path="/alert/:fingerprint" component={ViewAlert} />
+					<Route path="/silence/new" component={AddSilence} />
 					<Route default component={NotFound} />
 				</Router>
 			</main>

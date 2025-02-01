@@ -27,7 +27,7 @@ const getOnboardingState = async () => {
 	return OnboardingState.Done;
 };
 
-export const Onboarding = () => {
+export default () => {
 	const [onboardingState, setOnboardingState] = useState(OnboardingState.Unknown);
 
 	const [refresh, setRefresh] = useState(false);

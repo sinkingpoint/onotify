@@ -62,7 +62,7 @@ const getStatusText = (alerts: GetAlertsResponse) => {
 	}
 };
 
-export const AlertPage = () => {
+export default () => {
 	const location = useRoute();
 	const fingerprint = location.params["fingerprint"];
 	const alert = useQuery(() => getAlerts({ query: { fingerprints: [fingerprint] } }), [fingerprint]);
