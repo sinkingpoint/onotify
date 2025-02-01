@@ -40,7 +40,7 @@ const stripPrefixFromMap = <T>(prefix: string, m: Map<string, T>): Map<string, T
 
 		const val = m.get(key)!;
 		m.delete(key);
-		const strippedKey = key.substring(prefix.length + 1);
+		const strippedKey = key.substring(prefix.length);
 		m.set(strippedKey, val);
 	}
 

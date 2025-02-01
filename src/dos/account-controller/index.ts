@@ -54,7 +54,12 @@ export class AccountController extends DurableObject {
 	}
 
 	async getSilence(id: string) {
-		return this.silenceStorage.getSilences({ id });
+		const silences = await this.silenceStorage.getSilences({ id });
+		if (silences.length === 0) {
+			return null;
+		}
+
+		return silences[0];
 	}
 
 	async getSilences(matchers: Matcher[]) {
@@ -96,7 +101,7 @@ export class AccountController extends DurableObject {
 					...g,
 					alerts,
 				};
-			}),
+			})
 		);
 
 		return hydratedGroups.filter((g) => g.alerts.length > 0);

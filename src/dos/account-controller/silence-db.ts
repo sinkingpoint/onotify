@@ -59,7 +59,16 @@ export class SilenceDB {
 	}
 
 	async getSilences({ id, matchers }: GetSilenceOptions) {
-		let silences = id ? [this.silences.get(id)] : [...this.silences.values()];
+		let silences: Silence[] = [];
+		if (id) {
+			const existing = this.silences.get(id);
+			if (existing) {
+				silences = [existing];
+			}
+		} else {
+			silences = [...this.silences.values()];
+		}
+
 		if (matchers) {
 			silences = silences.filter((s) => {
 				return matchers.every((m1) => s?.matchers.some((m2) => isMatchersEqual(m1, m2)));
