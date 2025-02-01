@@ -74,6 +74,7 @@ export const PreviewSilence = ({ duration, matchers, comment }: PreviewProps) =>
 					matchers,
 					startsAt: startTime.toISOString(),
 					endsAt: endTime.toISOString(),
+					comment,
 				},
 			});
 
