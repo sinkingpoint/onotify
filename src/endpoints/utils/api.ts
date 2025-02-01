@@ -1,4 +1,4 @@
-import { CachedAlert } from "../../types/internal";
+import { CachedAlert, Silence } from "../../types/internal";
 
 export const internalAlertToAlertmanager = (a: CachedAlert) => {
 	return {
@@ -17,5 +17,27 @@ export const internalAlertToAlertmanager = (a: CachedAlert) => {
 				name: r,
 			};
 		}),
+	};
+};
+
+export const internalSilenceToAlertmanager = (s: Silence) => {
+	const silenceStatus = (startsAt: number, endsAt: number) => {
+		const now = Date.now();
+		if (now < startsAt) {
+			return "pending";
+		}
+		if (now > endsAt) {
+			return "expired";
+		}
+		return "active";
+	};
+
+	return {
+		id: s.id,
+		matchers: s.matchers,
+		startsAt: new Date(s.startsAt).toISOString(),
+		endsAt: s.endsAt ? new Date(s.endsAt).toISOString() : undefined,
+		updatedAt: new Date(s.updatedAt).toISOString(),
+		status: silenceStatus(s.startsAt, s.endsAt || Infinity),
 	};
 };

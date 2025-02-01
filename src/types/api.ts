@@ -148,6 +148,8 @@ export const GettableSilenceSpec = silence.extend({
 	}),
 });
 
+export type GettableSilence = z.infer<typeof GettableSilenceSpec>;
+
 export const GettableSilencesSpec = z.array(GettableSilenceSpec);
 
 export const GetAlertGroupsOptionsSpec = z.object({

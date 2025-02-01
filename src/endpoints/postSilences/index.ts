@@ -22,7 +22,7 @@ export class PostSilence extends OpenAPIRoute {
 		},
 		responses: {
 			"200": {
-				description: "Sucessfully pushed silences",
+				description: "Sucessfully pushed silence",
 			},
 			...Errors,
 		},

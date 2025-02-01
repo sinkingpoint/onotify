@@ -4,6 +4,7 @@ import { z } from "zod";
 import { GettableSilenceSpec } from "../../types/api";
 import { Errors, HTTPResponses } from "../../types/http";
 import { Bindings } from "../../types/internal";
+import { internalSilenceToAlertmanager } from "../utils/api";
 import { checkAPIKey, toErrorString } from "../utils/auth";
 import { accountControllerName } from "../utils/kv";
 
@@ -49,6 +50,6 @@ export default class GetSilence extends OpenAPIRoute {
 		}
 
 		c.status(200);
-		return c.json(silence);
+		return c.json(internalSilenceToAlertmanager(silence));
 	}
 }

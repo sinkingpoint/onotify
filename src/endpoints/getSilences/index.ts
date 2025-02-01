@@ -3,6 +3,7 @@ import { Context } from "hono";
 import { GettableSilencesSpec } from "../../types/api";
 import { Errors, HTTPResponses } from "../../types/http";
 import { Bindings } from "../../types/internal";
+import { internalSilenceToAlertmanager } from "../utils/api";
 import { checkAPIKey, toErrorString } from "../utils/auth";
 import { accountControllerName } from "../utils/kv";
 
@@ -41,6 +42,6 @@ export class GetSilences extends OpenAPIRoute {
 		const silences = await controller.getSilences([]);
 
 		c.status(200);
-		return c.json(silences);
+		return c.json(silences.map((s) => internalSilenceToAlertmanager(s)));
 	}
 }
