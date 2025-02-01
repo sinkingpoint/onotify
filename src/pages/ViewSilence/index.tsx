@@ -1,9 +1,9 @@
 import { ArrowPathIcon } from "@heroicons/react/16/solid";
 import { useRoute } from "preact-iso";
-import { useMemo } from "preact/hooks";
+import { useMemo, useState } from "preact/hooks";
 import { AlertCard } from "../../components/AlertCard";
 import { MatcherCard } from "../../components/MatcherCard";
-import { getAlerts, GetAlertsResponse, getSilence } from "../../pkg/api/client";
+import { getAlerts, GetAlertsResponse, getSilence, postSilence } from "../../pkg/api/client";
 import { DataPull, matcherToString, useQuery } from "../../pkg/types/utils";
 import { formatDate } from "../AddSilence/utils";
 
@@ -40,9 +40,10 @@ const getAffectAlertTitle = (affectedAlerts: DataPull<GetAlertsResponse, unknown
 export default () => {
 	const location = useRoute();
 	const fingerprint = location.params["id"];
+	const [reload, setReload] = useState(false);
 	const silencePull = useQuery(async () => {
 		return getSilence({ path: { id: fingerprint } });
-	}, [fingerprint]);
+	}, [fingerprint, reload]);
 
 	const affectedAlerts = useQuery(async () => {
 		if (silencePull.state !== "success") {
@@ -71,21 +72,37 @@ export default () => {
 		}
 	}, [silencePull]);
 
+	const onExpire = async () => {
+		if (silencePull.state !== "success") {
+			return;
+		}
+
+		const newSilence = { ...silencePull.result, endsAt: new Date().toISOString() };
+		await postSilence({ body: newSilence });
+		setReload(!reload);
+	};
+
 	return (
-		<div>
+		<div class="flex flex-col p-6">
 			<h1 class="text-3xl mb-6 mt-6 font-bold">Silence {fingerprint}</h1>
 			<span class="pb-3">
+				<button class="p-2 bg-red-600 rounded" disabled={silencePull.state !== "success"} onClick={onExpire}>
+					Expire
+				</button>
+			</span>
+
+			<span class="pb-1">
 				<h2 class="text-xl inline font-bold">Starts:</h2> {startTime}
 			</span>
-			<span class="pb-3">
+			<span class="pb-1">
 				<h2 class="text-xl inline font-bold">Ends:</h2> {endTime}
 			</span>
-			<span class="pb-2">
+			<span class="pb-1">
 				<h2 class="text-xl font-bold">Matchers:</h2>
 
 				<div class="flex flex-row flex-wrap flex-shrink flex-grow-0">{matchers}</div>
 			</span>
-			<span class="pb-2">
+			<span class="pb-1">
 				<h2 class="text-xl inline pt-4 font-bold">Comment:</h2>{" "}
 				{silencePull.state === "success" ? silencePull.result.comment : ""}
 			</span>
