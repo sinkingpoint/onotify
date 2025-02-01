@@ -1,12 +1,7 @@
 import { useRoute } from "preact-iso";
-import { useEffect, useState } from "preact/hooks";
-import { getAlerts } from "../../pkg/api/client";
-import { GettableAlert } from "../../pkg/types/api";
-
-interface gotAlertState {
-	fetching: boolean;
-	alert?: GettableAlert;
-}
+import { useMemo } from "preact/hooks";
+import { getAlerts, GetAlertsResponse } from "../../pkg/api/client";
+import { useQuery } from "../../pkg/types/utils";
 
 type LinkFunc = (val: string, key?: string) => string;
 
@@ -56,52 +51,28 @@ const listifyArray = (values?: string[], link?: LinkFunc) => {
 	}
 };
 
-export const AlertPage = () => {
-	const [state, setState] = useState<gotAlertState>({
-		fetching: true,
-	});
+const getStatusText = (alerts: GetAlertsResponse) => {
+	const alert = alerts[0];
+	if (alert.endsAt && Date.parse(alert.endsAt) <= Date.now()) {
+		return "resolved";
+	} else if (alert.status.silencedBy?.length > 0) {
+		return "silenced";
+	} else if (alert.status.inhibitedBy?.length > 0) {
+		return "inhibited";
+	}
+};
 
+export const AlertPage = () => {
 	const location = useRoute();
 	const fingerprint = location.params["fingerprint"];
-	useEffect(() => {
-		const fetch = async () => {
-			const { data: alerts, error } = await getAlerts({ query: { fingerprints: [fingerprint] } });
-			// TODO: Handle errors here.
-			if (!alerts) {
-				// There is no alert with that fingerprint.
-				setState({
-					fetching: false,
-				});
+	const alert = useQuery(() => getAlerts({ query: { fingerprints: [fingerprint] } }), [fingerprint]);
+	const hasPulled = alert.state === "success" && alert.result.length > 0;
 
-				return;
-			}
-
-			setState({
-				fetching: false,
-				alert: alerts[0],
-			});
-		};
-
-		fetch();
-	}, [fingerprint]);
-
-	const labels = state.alert ? listifyKVs(state.alert.labels) : <></>;
-	const annotations = state.alert ? listifyKVs(state.alert.annotations) : <></>;
-	const silencedBy = state.alert ? listifyArray(state.alert.status.silencedBy) : <></>;
-	const inhibitedBy = state.alert ? listifyArray(state.alert.status.inhibitedBy) : <></>;
-
-	let statusText = "";
-	let statusColor = "0xFFFFFF";
-	if (state.alert) {
-		if (state.alert.endsAt && Date.parse(state.alert.endsAt) <= Date.now()) {
-			statusText = "resolved";
-			statusColor = "0x0000FF";
-		} else if (state.alert.status.silencedBy?.length > 0) {
-			statusText = "silenced";
-		} else if (state.alert.status.inhibitedBy?.length > 0) {
-			statusText = "inhibited";
-		}
-	}
+	const labels = useMemo(() => (hasPulled ? listifyKVs(alert.result[0].labels) : <></>), [alert]);
+	const annotations = useMemo(() => (hasPulled ? listifyKVs(alert.result[0].annotations) : <></>), [alert]);
+	const silencedBy = useMemo(() => (hasPulled ? listifyArray(alert.result[0].status.silencedBy) : <></>), [alert]);
+	const inhibitedBy = useMemo(() => (hasPulled ? listifyArray(alert.result[0].status.inhibitedBy) : <></>), [alert]);
+	const statusText = useMemo(() => (hasPulled ? getStatusText(alert.result) : ""), [alert]);
 
 	return (
 		<div class="w-full h-full flex flex-col">
