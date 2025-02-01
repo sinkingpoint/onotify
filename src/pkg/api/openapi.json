@@ -648,6 +648,148 @@
         }
       }
     },
+    "/api/v2/silence/{id}": {
+      "get": {
+        "operationId": "getSilence",
+        "tags": [
+          "silences"
+        ],
+        "summary": "Get a silence by ID",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "description": "The ID of the silence to retrieve"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Sucessfully retrieved silence",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "matchers": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "name": {
+                            "type": "string"
+                          },
+                          "value": {
+                            "type": "string"
+                          },
+                          "isRegex": {
+                            "type": "boolean"
+                          },
+                          "isEqual": {
+                            "type": "boolean",
+                            "default": true
+                          }
+                        },
+                        "required": [
+                          "name",
+                          "value",
+                          "isRegex"
+                        ],
+                        "description": "A matcher that can be used to match against alerts"
+                      },
+                      "description": "The matchers that match the alerts that this silence should silence"
+                    },
+                    "startsAt": {
+                      "type": "string",
+                      "format": "date-time",
+                      "description": "An RFC-3339 formatting time string indicating the time that this silence should start silencing alerts"
+                    },
+                    "endsAt": {
+                      "type": "string",
+                      "format": "date-time",
+                      "description": "An RFC-3339 formatting time string indicating the time that this silence should stop silencing alerts"
+                    },
+                    "createdBy": {
+                      "type": "string",
+                      "description": "Who created this silence"
+                    },
+                    "comment": {
+                      "type": "string",
+                      "description": "A comment that describes the silence"
+                    },
+                    "id": {
+                      "type": "string",
+                      "description": "The ID assigned to the silence"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "expired",
+                        "active",
+                        "pending"
+                      ],
+                      "description": "The state of the alert - whether or not it is actively silencing alerts"
+                    },
+                    "updatedAt": {
+                      "type": "string",
+                      "format": "date-time",
+                      "description": "An RFC-3339 formatted timestamp indicating when the silence was last updated"
+                    }
+                  },
+                  "required": [
+                    "matchers",
+                    "startsAt",
+                    "endsAt",
+                    "id",
+                    "status",
+                    "updatedAt"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "text/plain": {
+              "schema": {
+                "_def": {
+                  "checks": [],
+                  "typeName": "ZodString",
+                  "coerce": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "text/plain": {
+              "schema": {
+                "_def": {
+                  "checks": [],
+                  "typeName": "ZodString",
+                  "coerce": false
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "text/plain": {
+              "schema": {
+                "_def": {
+                  "checks": [],
+                  "typeName": "ZodString",
+                  "coerce": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v2/silences": {
       "get": {
         "operationId": "getSilences",
@@ -657,7 +799,7 @@
         "summary": "Get a list of silences",
         "responses": {
           "200": {
-            "description": "Sucessfully pushed silences",
+            "description": "Sucessfully retrieved silences",
             "content": {
               "application/json": {
                 "schema": {
