@@ -2,7 +2,7 @@ import { ArrowPathIcon } from "@heroicons/react/16/solid";
 import { useMemo, useState } from "preact/hooks";
 import { AlertCard } from "../../components/AlertCard";
 import { MatcherCard } from "../../components/MatcherCard";
-import { getAlerts, GetAlertsError, GetAlertsResponse, postSilence } from "../../pkg/api/client";
+import { getAlerts, GetAlertsResponse, postSilence } from "../../pkg/api/client";
 import { Matcher } from "../../pkg/types/api";
 import { DurationSpec } from "../../pkg/types/duration";
 import { DataPull, matcherToString, useQuery } from "../../pkg/types/utils";
@@ -25,7 +25,7 @@ const getHumanNumber = (n: number, one_suffix: string, multiple: string) => {
 	}
 };
 
-const getAffectAlertTitle = (affectedAlerts: DataPull<GetAlertsResponse, GetAlertsError>) => {
+const getAffectAlertTitle = (affectedAlerts: DataPull<GetAlertsResponse, unknown>) => {
 	switch (affectedAlerts.state) {
 		case "error":
 			return <>Error Fetching Affected Alerts</>;

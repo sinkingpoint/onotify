@@ -4,9 +4,10 @@ import { Header } from "./components/Header.jsx";
 import "./index.css";
 import { NotFound } from "./pages/_404.jsx";
 import AddSilence from "./pages/AddSilence";
-import Onboarding from "./pages/Onboarding/index.js";
-import ViewAlert from "./pages/ViewAlert/index.js";
-import { client } from "./pkg/api/client";
+import Onboarding from "./pages/Onboarding";
+import ViewAlert from "./pages/ViewAlert";
+import ViewSilence from "./pages/ViewSilence";
+import { client } from "./pkg/api/client/client.gen.js";
 
 export function App() {
 	client.setConfig({
@@ -24,6 +25,7 @@ export function App() {
 					<Route path="/onboarding" component={Onboarding} />
 					<Route path="/alert/:fingerprint" component={ViewAlert} />
 					<Route path="/silence/new" component={AddSilence} />
+					<Route path="/silence/:id" component={ViewSilence} />
 					<Route default component={NotFound} />
 				</Router>
 			</main>

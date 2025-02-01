@@ -38,7 +38,7 @@ interface DataPullError<T> {
 export type DataPull<TSuccess, TError> = DataPullSuccess<TSuccess> | DataPullPending | DataPullError<TError>;
 
 export const useQuery = <TSuccess, TError>(
-	puller: () => RequestResult<TSuccess | undefined, TError>,
+	puller: () => RequestResult<TSuccess | undefined, TError> | Promise<null>,
 	deps: any[]
 ): DataPull<TSuccess, TError> => {
 	const [pull, setPull] = useState<DataPull<TSuccess, TError>>({
@@ -48,6 +48,12 @@ export const useQuery = <TSuccess, TError>(
 	useEffect(() => {
 		const query = async () => {
 			const result = await puller();
+			if (result === null) {
+				// Generally this means that the pull was invalid for some reason, maybe because one of the deps
+				// is not ready yet.
+				return;
+			}
+
 			if ("error" in result && result.error) {
 				setPull({
 					state: "error",
