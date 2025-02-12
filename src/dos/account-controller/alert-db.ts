@@ -59,7 +59,7 @@ export class AlertDB {
 						timestamp: Date.now(),
 						ty: alertState(a),
 					},
-				];
+			  ];
 
 		return this.storeAlert({
 			silencedBy,
@@ -167,7 +167,6 @@ export class AlertDB {
 			}
 
 			if (!alert.silencedBy.includes(id)) {
-				console.log("marked alert as silenced", alert);
 				alert.silencedBy.push(id);
 				promises.push(this.storeAlert(alert));
 			}
@@ -182,7 +181,7 @@ export class AlertDB {
 	}
 
 	// notifySilenceExpired gets called whenever a silence
-	async notifySilenceExpired(silenceID: string) {
+	async markSilenceExpired(silenceID: string) {
 		this.alerts.values().forEach((v) => {
 			v.silencedBy = v.silencedBy.filter((id) => id !== silenceID);
 		});

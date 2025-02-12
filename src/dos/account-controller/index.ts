@@ -1,7 +1,6 @@
 import { DurableObject } from "cloudflare:workers";
-import { Bindings } from "hono/types";
 import { GetAlertGroupsOptions, Matcher, PostableSilence } from "../../types/api";
-import { AlertGroup, GetAlertsOptions, ReceiveredAlert } from "../../types/internal";
+import { AlertGroup, Bindings, GetAlertsOptions, ReceiveredAlert } from "../../types/internal";
 import { AlertDB } from "./alert-db";
 import { AlertGroupDB } from "./alert-group-db";
 import { SilenceDB } from "./silence-db";
@@ -15,7 +14,10 @@ import {
 	SILENCE_KV_PREFIX,
 } from "./util";
 
-export class AccountController extends DurableObject {
+const ACCOUNT_ID_KEY = "account-id";
+
+export class AccountController extends DurableObject<Bindings> {
+	accountID: string;
 	silenceStorage: SilenceDB;
 	alertStorage: AlertDB;
 	alertGroupStorage: AlertGroupDB;
@@ -26,6 +28,7 @@ export class AccountController extends DurableObject {
 		this.silenceStorage = new SilenceDB(new PrefixStorage(state.storage, SILENCE_KV_PREFIX));
 		this.alertStorage = new AlertDB(new PrefixStorage(state.storage, ALERT_KV_PREFIX), this.silenceStorage);
 		this.alertGroupStorage = new AlertGroupDB(new PrefixStorage(state.storage, ALERT_GROUP_KV_PREFIX));
+		this.accountID = "";
 
 		state.blockConcurrencyWhile(async () => {
 			const silences = await getAllSilences(state.storage);
@@ -36,7 +39,14 @@ export class AccountController extends DurableObject {
 
 			const alertGroups = await getAllAlertGroups(state.storage);
 			this.alertGroupStorage.init(alertGroups);
+
+			this.accountID = (await state.storage.get(ACCOUNT_ID_KEY)) ?? "";
 		});
+	}
+
+	async initialize(accountID: string) {
+		this.accountID = accountID;
+		await this.ctx.storage.put(ACCOUNT_ID_KEY, accountID);
 	}
 
 	async addAlerts(a: ReceiveredAlert[]) {
@@ -72,6 +82,13 @@ export class AccountController extends DurableObject {
 			await this.alertStorage.addSilence(id, silence);
 		}
 
+		if (silence.endsAt) {
+			const silenceControllerName = `silence-${id}`;
+			const silenceControllerID = this.env.SILENCE_CONTROLLER.idFromName(silenceControllerName);
+			const silenceController = this.env.SILENCE_CONTROLLER.get(silenceControllerID);
+			silenceController.initialize(this.accountID, id, silence.startsAt, silence.endsAt);
+		}
+
 		return id;
 	}
 
@@ -105,5 +122,14 @@ export class AccountController extends DurableObject {
 		);
 
 		return hydratedGroups.filter((g) => g.alerts.length > 0);
+	}
+
+	async markSilenceStarted(id: string) {
+		const silence = await this.silenceStorage.getSilences({ id });
+		await this.alertStorage.addSilence(id, silence[0]);
+	}
+
+	async markSilenceExpired(id: string) {
+		await this.alertStorage.markSilenceExpired(id);
 	}
 }

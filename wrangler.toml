@@ -31,6 +31,10 @@ class_name = "AlertGroupController"
 name = "ACCOUNT_CONTROLLER"
 class_name = "AccountController"
 
+[[durable_objects.bindings]]
+name = "SILENCE_CONTROLLER"
+class_name = "SilenceController"
+
 [[migrations]]
 tag = "v1" # Should be unique for each entry
-new_classes = ["AlertGroupController", "AccountController"]
+new_classes = ["AlertGroupController", "AccountController", "SilenceController"]

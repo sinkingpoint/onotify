@@ -15,7 +15,8 @@ import { Bindings } from "./types/internal";
 export { AlertDispatch } from "./alert-dispatch";
 export { AccountController } from "./dos/account-controller";
 export { AlertGroupController } from "./dos/alert-group-controller/alert-group-controller";
-
+export { default as SilenceController } from "./dos/silence-controller";
+export { app };
 const LOCAL_ORIGIN = "http://localhost:5173";
 const PROD_ORIGIN = "https://dash.onotify.com";
 

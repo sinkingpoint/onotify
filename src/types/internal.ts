@@ -1,4 +1,4 @@
-import { AccountController, AlertGroupController } from "..";
+import { AccountController, AlertGroupController, SilenceController } from "..";
 import { Matcher, PostableSilence } from "./api";
 
 interface EnvVars {
@@ -10,6 +10,7 @@ export interface Bindings extends EnvVars {
 	CONFIGS: KVNamespace;
 	ALERT_GROUP_CONTROLLER: DurableObjectNamespace<AlertGroupController>;
 	ACCOUNT_CONTROLLER: DurableObjectNamespace<AccountController>;
+	SILENCE_CONTROLLER: DurableObjectNamespace<SilenceController>;
 	ALERT_DISPATCH: Workflow;
 }
 
