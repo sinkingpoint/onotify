@@ -76,7 +76,7 @@ export default class SilenceController extends DurableObject<Bindings> {
 
 		if (this.endTime <= Date.now()) {
 			await accountController.markSilenceExpired(this.silenceID);
-			this.delete();
+			await this.delete();
 		} else if (this.startTime <= Date.now()) {
 			await accountController.markSilenceStarted(this.silenceID);
 			await this.ctx.storage.setAlarm(this.endTime);
