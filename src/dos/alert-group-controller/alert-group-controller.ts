@@ -1,16 +1,8 @@
 import { DurableObject } from "cloudflare:workers";
-import { AlertGroup, AlertState, Bindings } from "../../types/internal";
 import { FlatRouteConfig } from "../../types/alertmanager";
+import { AlertGroup, Bindings } from "../../types/internal";
 import { AlertStateMachine } from "./state-machine";
-import {
-	ACCOUNT_ID_KEY,
-	ALERTS_PREFIX,
-	extractFingerprint,
-	GroupedAlert,
-	LABELS_KV_KEY,
-	PAGE_SIZE,
-	ROUTE_KV_KEY,
-} from "./util";
+import { ACCOUNT_ID_KEY, ALERTS_PREFIX, GroupedAlert, LABELS_KV_KEY, PAGE_SIZE, ROUTE_KV_KEY } from "./util";
 
 // Gets the list of alert fingerprints in storage.
 const getAlertFingerprints = async (storage: DurableObjectStorage) => {
@@ -27,10 +19,11 @@ const getAlertFingerprints = async (storage: DurableObjectStorage) => {
 		let active_fingerprints: string[] = [];
 		let last;
 		for (const [k, v] of page) {
+			const fingerprint = k.substring(ALERTS_PREFIX.length + 1);
 			if (v.pending) {
-				pending_alerts.push(k);
+				pending_alerts.push(fingerprint);
 			} else {
-				active_alerts.push(k);
+				active_alerts.push(fingerprint);
 			}
 
 			last = k;

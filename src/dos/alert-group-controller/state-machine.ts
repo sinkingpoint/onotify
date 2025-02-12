@@ -1,4 +1,4 @@
-import { Alert, AlertState, alertState, DehydratedAlert } from "../../types/internal";
+import { AlertState, DehydratedAlert } from "../../types/internal";
 import { alertKVKey, AlertStorage, GroupedAlert } from "./util";
 
 // A StateMachine that handles alerts and whether they should be notified.
@@ -35,8 +35,8 @@ export class AlertStateMachine {
 					}
 
 					return { fingerprint: alert.fingerprint, state: alert.state };
-				})(),
-			),
+				})()
+			)
 		);
 
 		const newFingerprints = (
@@ -49,7 +49,7 @@ export class AlertStateMachine {
 					} else {
 						return undefined;
 					}
-				}),
+				})
 			)
 		).filter((f) => f !== undefined);
 
