@@ -176,14 +176,20 @@ export class AlertDB {
 	}
 
 	private async storeAlert(a: CachedAlert) {
-		await this.storage.put(alertKVKey(a.fingerprint), a);
+		await this.storage.put(a.fingerprint, a);
 		this.alerts.set(a.fingerprint, a);
 	}
 
 	// notifySilenceExpired gets called whenever a silence
 	async markSilenceExpired(silenceID: string) {
-		this.alerts.values().forEach((v) => {
-			v.silencedBy = v.silencedBy.filter((id) => id !== silenceID);
-		});
+		for (const alert of this.alerts.values()) {
+			const idx = alert.silencedBy.indexOf(silenceID);
+			if (idx === -1) {
+				continue;
+			}
+
+			alert.silencedBy.splice(idx, 1);
+			await this.storeAlert(alert);
+		}
 	}
 }

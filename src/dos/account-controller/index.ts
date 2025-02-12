@@ -17,7 +17,6 @@ import {
 const ACCOUNT_ID_KEY = "account-id";
 
 export class AccountController extends DurableObject<Bindings> {
-	accountID: string;
 	silenceStorage: SilenceDB;
 	alertStorage: AlertDB;
 	alertGroupStorage: AlertGroupDB;
@@ -28,7 +27,6 @@ export class AccountController extends DurableObject<Bindings> {
 		this.silenceStorage = new SilenceDB(new PrefixStorage(state.storage, SILENCE_KV_PREFIX));
 		this.alertStorage = new AlertDB(new PrefixStorage(state.storage, ALERT_KV_PREFIX), this.silenceStorage);
 		this.alertGroupStorage = new AlertGroupDB(new PrefixStorage(state.storage, ALERT_GROUP_KV_PREFIX));
-		this.accountID = "";
 
 		state.blockConcurrencyWhile(async () => {
 			const silences = await getAllSilences(state.storage);
@@ -39,14 +37,7 @@ export class AccountController extends DurableObject<Bindings> {
 
 			const alertGroups = await getAllAlertGroups(state.storage);
 			this.alertGroupStorage.init(alertGroups);
-
-			this.accountID = (await state.storage.get(ACCOUNT_ID_KEY)) ?? "";
 		});
-	}
-
-	async initialize(accountID: string) {
-		this.accountID = accountID;
-		await this.ctx.storage.put(ACCOUNT_ID_KEY, accountID);
 	}
 
 	async addAlerts(a: ReceiveredAlert[]) {
@@ -83,11 +74,10 @@ export class AccountController extends DurableObject<Bindings> {
 		}
 
 		if (silence.endsAt) {
-			console.log("Setting alarm for", new Date(silence.endsAt).toISOString());
 			const silenceControllerName = `silence-${id}`;
 			const silenceControllerID = this.env.SILENCE_CONTROLLER.idFromName(silenceControllerName);
 			const silenceController = this.env.SILENCE_CONTROLLER.get(silenceControllerID);
-			await silenceController.initialize(this.accountID, id, silence.startsAt, silence.endsAt);
+			await silenceController.initialize(this.ctx.id, id, silence.startsAt, silence.endsAt);
 		}
 
 		return id;
