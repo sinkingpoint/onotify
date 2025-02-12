@@ -1,4 +1,4 @@
-import { DurableObject, ServiceDesignator } from "cloudflare:workers";
+import { DurableObject } from "cloudflare:workers";
 import { accountControllerName } from "../../endpoints/utils/kv";
 import { Bindings } from "../../types/internal";
 
@@ -9,17 +9,17 @@ const END_TIME_KEY = "end-time";
 
 const getAlarmTime = (startsAt: number, endsAt: number) => {
 	const silenceStarted = startsAt < Date.now();
-	const silenceEnded = endsAt > Date.now();
+	const silenceEnded = endsAt < Date.now();
 	if (!silenceStarted) {
 		return startsAt;
 	} else if (!silenceEnded) {
 		return endsAt;
 	} else {
-		throw "UNREACHABLE: Silence has both started, and ended at the same time";
+		return 0;
 	}
 };
 
-export default class SilenceController extends DurableObject<Bindings> implements ServiceDesignator {
+export default class SilenceController extends DurableObject<Bindings> {
 	silenceID: string;
 	accountID: string;
 	startTime: number;
@@ -41,7 +41,8 @@ export default class SilenceController extends DurableObject<Bindings> implement
 	}
 
 	async initialize(accountID: string, silenceID: string, startTime: number, endTime: number) {
-		if (this.endTime <= Date.now()) {
+		const newAlarmTime = getAlarmTime(startTime, endTime);
+		if (newAlarmTime === 0) {
 			return;
 		}
 
@@ -54,10 +55,8 @@ export default class SilenceController extends DurableObject<Bindings> implement
 		await this.ctx.storage.put(ACCOUNT_ID_KEY, accountID);
 		await this.ctx.storage.put(START_TIME_KEY, startTime);
 		await this.ctx.storage.put(END_TIME_KEY, endTime);
-		const newAlarmTime = getAlarmTime(startTime, endTime);
 		const currentAlarm = await this.ctx.storage.getAlarm();
-		if (!currentAlarm || currentAlarm != newAlarmTime) {
-			console.log("Setting alarm for", new Date(newAlarmTime).toISOString());
+		if (!currentAlarm || currentAlarm !== newAlarmTime) {
 			await this.ctx.storage.setAlarm(newAlarmTime);
 		}
 	}
@@ -79,6 +78,8 @@ export default class SilenceController extends DurableObject<Bindings> implement
 			console.log("Silence started");
 			await accountController.markSilenceStarted(this.silenceID);
 			await this.ctx.storage.setAlarm(this.endTime);
+		} else {
+			await this.ctx.storage.setAlarm(this.startTime);
 		}
 	}
 }

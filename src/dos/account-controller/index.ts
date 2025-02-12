@@ -83,10 +83,11 @@ export class AccountController extends DurableObject<Bindings> {
 		}
 
 		if (silence.endsAt) {
+			console.log("Setting alarm for", new Date(silence.endsAt).toISOString());
 			const silenceControllerName = `silence-${id}`;
 			const silenceControllerID = this.env.SILENCE_CONTROLLER.idFromName(silenceControllerName);
 			const silenceController = this.env.SILENCE_CONTROLLER.get(silenceControllerID);
-			silenceController.initialize(this.accountID, id, silence.startsAt, silence.endsAt);
+			await silenceController.initialize(this.accountID, id, silence.startsAt, silence.endsAt);
 		}
 
 		return id;
