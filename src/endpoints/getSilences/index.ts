@@ -1,6 +1,6 @@
 import { OpenAPIRoute } from "chanfana";
 import { Context } from "hono";
-import { GettableSilencesSpec } from "../../types/api";
+import { GetSilencesParamsSpec, GettableSilencesSpec } from "../../types/api";
 import { Errors, HTTPResponses } from "../../types/http";
 import { Bindings } from "../../types/internal";
 import { internalSilenceToAlertmanager } from "../utils/api";
@@ -13,7 +13,7 @@ export class GetSilences extends OpenAPIRoute {
 		tags: ["silences"],
 		summary: "Get a list of silences",
 		request: {
-			// TODO (https://github.com/sinkingpoint/onotify/issues/2): Support matchers here.
+			query: GetSilencesParamsSpec,
 		},
 		responses: {
 			"200": {
@@ -35,11 +35,13 @@ export class GetSilences extends OpenAPIRoute {
 			return c.text(toErrorString(authResult));
 		}
 
+		const data = await this.getValidatedData<typeof this.schema>();
+
 		const controllerName = accountControllerName(authResult.accountID);
 		const controllerID = c.env.ACCOUNT_CONTROLLER.idFromName(controllerName);
 		const controller = c.env.ACCOUNT_CONTROLLER.get(controllerID);
 
-		const silences = await controller.getSilences([]);
+		const silences = await controller.getSilences(data.query.matcher);
 
 		c.status(200);
 		return c.json(silences.map((s) => internalSilenceToAlertmanager(s)));

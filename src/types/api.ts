@@ -216,3 +216,9 @@ export const GetAlertsParamsSpec = z.object({
 });
 
 export type GetAlertsParams = z.infer<typeof GetAlertsParamsSpec>;
+
+export const GetSilencesParamsSpec = z.object({
+	matcher: z.array(StringMatcherSpec).default([]).openapi({ description: "A list of matchers to filter by" }),
+});
+
+export type GetSilencesParams = z.infer<typeof GetSilencesParamsSpec>;

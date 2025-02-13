@@ -38,12 +38,12 @@ export default class GetSilence extends OpenAPIRoute {
 			return c.text(toErrorString(authResult));
 		}
 
-		const id = c.req.param("id");
+		const data = await this.getValidatedData<typeof this.schema>();
 		const controllerName = accountControllerName(authResult.accountID);
 		const controllerID = c.env.ACCOUNT_CONTROLLER.idFromName(controllerName);
 		const controller = c.env.ACCOUNT_CONTROLLER.get(controllerID);
 
-		const silence = await controller.getSilence(id);
+		const silence = await controller.getSilence(data.params.id);
 		if (!silence) {
 			c.status(HTTPResponses.NotFound);
 			return c.text("Silence not found");
