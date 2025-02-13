@@ -38,6 +38,10 @@ export const internalSilenceToAlertmanager = (s: Silence) => {
 		startsAt: new Date(s.startsAt).toISOString(),
 		endsAt: s.endsAt ? new Date(s.endsAt).toISOString() : undefined,
 		updatedAt: new Date(s.updatedAt).toISOString(),
-		status: silenceStatus(s.startsAt, s.endsAt || Infinity),
+		createdBy: s.createdBy?.toString() ?? "",
+		comment: s.comment ?? "",
+		status: {
+			state: silenceStatus(s.startsAt, s.endsAt ? s.endsAt : Infinity),
+		},
 	};
 };

@@ -23,19 +23,7 @@ const PROD_ORIGIN = "https://dash.onotify.com";
 // Start a Hono app
 const app = new Hono<{ Bindings: Bindings }>();
 
-// Setup OpenAPI registry
-const openapi = fromHono(app, {
-	docs_url: "/",
-	generateOperationIds: false,
-});
-
-const corsOptions = {
-	allowedMethods: ["GET", "POST"],
-	allowedHeaders: ["Content-Type", "Authorization"],
-	credentials: true,
-};
-
-openapi.use("*", async (c: Context, next: Next) => {
+app.use("*", async (c: Context, next: Next) => {
 	let origin = PROD_ORIGIN;
 	if (c.env.WORKERS_ENV === "local") {
 		origin = LOCAL_ORIGIN;
@@ -43,11 +31,23 @@ openapi.use("*", async (c: Context, next: Next) => {
 
 	const corsOpts = {
 		...corsOptions,
-		origin: [origin],
+		origin: [origin, "http://localhost:9090"],
 	};
 
 	return cors(corsOpts)(c, next);
 });
+
+// Setup OpenAPI registry
+const openapi = fromHono(app, {
+	docs_url: "/",
+	generateOperationIds: false,
+});
+
+const corsOptions = {
+	allowedMethods: ["GET", "POST", "OPTIONS"],
+	allowedHeaders: ["Content-Type", "Authorization"],
+	credentials: true,
+};
 
 // Register OpenAPI endpoints
 openapi.get("/api/v2/alerts", GetAlerts);

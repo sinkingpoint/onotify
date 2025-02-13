@@ -67,7 +67,7 @@ export default class SilenceController extends DurableObject<Bindings> {
 		await this.ctx.storage.deleteAlarm();
 	}
 
-	async alarm(alarmInfo?: AlarmInvocationInfo) {
+	async alarm() {
 		if (!this.accountControllerID) {
 			throw `BUG: SilenceController ${this.silenceID} has no accountControllerID`;
 		}

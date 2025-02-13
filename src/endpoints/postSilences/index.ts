@@ -42,7 +42,7 @@ export class PostSilence extends OpenAPIRoute {
 
 		let id: string;
 		try {
-			id = await controller.addSilence(data.body);
+			id = await controller.addSilence({ ...data.body, createdBy: authResult.userID });
 		} catch (e) {
 			c.status(HTTPResponses.BadRequest);
 			return c.text(e as string);
