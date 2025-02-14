@@ -4,6 +4,7 @@ import { Header } from "./components/Header.jsx";
 import "./index.css";
 import { NotFound } from "./pages/_404.jsx";
 import AddSilence from "./pages/AddSilence";
+import { Dash } from "./pages/Dash";
 import Onboarding from "./pages/Onboarding";
 import ViewAlert from "./pages/ViewAlert";
 import ViewSilence from "./pages/ViewSilence";
@@ -22,6 +23,7 @@ export function App() {
 			<Header />
 			<main>
 				<Router>
+					<Route path="/" component={Dash} />
 					<Route path="/onboarding" component={Onboarding} />
 					<Route path="/alert/:fingerprint" component={ViewAlert} />
 					<Route path="/silence/new" component={AddSilence} />
