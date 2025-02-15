@@ -1,6 +1,21 @@
+import { AlertCard } from "../../components/AlertCard";
 import StatPanel from "../../components/StatPanel";
+import { getAlerts } from "../../pkg/api/client";
+import { useQuery } from "../../pkg/types/utils";
 
 export const Dash = () => {
+	const alerts = useQuery(
+		() =>
+			getAlerts({
+				query: {
+					sort: ["startsAt:desc"],
+					limit: 20,
+				},
+			}),
+		[]
+	);
+
+	console.log(alerts);
 	return (
 		<div class="w-full flex flex-col">
 			<h1 class="text-4xl font-bold">Onotify</h1>
@@ -11,6 +26,19 @@ export const Dash = () => {
 			</span>
 
 			<h2 class="text-2xl font-bold mt-5">Latest Alerts</h2>
+			{alerts.state === "success" && (
+				<div>
+					{alerts.result.map((a) => {
+						console.log(a);
+						return (
+							<>
+								<AlertCard alert={a} />
+								<hr />
+							</>
+						);
+					})}
+				</div>
+			)}
 		</div>
 	);
 };

@@ -96,6 +96,37 @@
             "required": false,
             "name": "receiver",
             "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "startsAt:asc",
+                  "endsAt:asc",
+                  "updatedAt:asc",
+                  "alertname:asc",
+                  "startsAt:desc",
+                  "endsAt:desc",
+                  "updatedAt:desc",
+                  "alertname:desc"
+                ]
+              },
+              "description": "The field to sort by"
+            },
+            "required": false,
+            "name": "sort",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "number",
+              "description": "The maximum number of alerts to return"
+            },
+            "required": false,
+            "name": "limit",
+            "in": "query"
           }
         ],
         "responses": {
@@ -797,6 +828,28 @@
           "silences"
         ],
         "summary": "Get a list of silences",
+        "parameters": [
+          {
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "description": "a matcher to match labels against",
+                "examples": [
+                  "a=\"b\"",
+                  "a!=\"b\"",
+                  "a=~\"b\"",
+                  "a!~\"b\""
+                ]
+              },
+              "default": [],
+              "description": "A list of matchers to filter by"
+            },
+            "required": false,
+            "name": "matcher",
+            "in": "query"
+          }
+        ],
         "responses": {
           "200": {
             "description": "Sucessfully retrieved silences",
@@ -997,7 +1050,7 @@
         },
         "responses": {
           "200": {
-            "description": "Sucessfully pushed silences"
+            "description": "Sucessfully pushed silence"
           },
           "400": {
             "description": "Bad Request",
