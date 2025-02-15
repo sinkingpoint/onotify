@@ -1,10 +1,30 @@
 import { OpenAPIRoute } from "chanfana";
 import { Context } from "hono";
-import { GetAlertsParamsSpec, GettableAlertsSpec } from "../../types/api";
+import { GetAlertsParamsSpec, GettableAlert, GettableAlertsSpec } from "../../types/api";
 import { Errors, HTTPResponses } from "../../types/http";
 import { Bindings } from "../../types/internal";
 import { checkAPIKey, toErrorString } from "../utils/auth";
 import { accountControllerName } from "../utils/kv";
+
+const getFieldFromAlert = (alert: GettableAlert, field: string) => {
+	switch (field) {
+		case "alertname":
+			return alert.labels["alertname"];
+		case "startsAt":
+			return alert.startsAt;
+		case "endsAt":
+			return alert.endsAt;
+		case "updatedAt":
+			return alert.updatedAt;
+		default:
+			throw `Unknown field ${field}`;
+	}
+};
+
+const compareStrings = (a: string, b: string, dir: "asc" | "desc") => {
+	const comparison = a.localeCompare(b);
+	return dir === "asc" ? comparison : -comparison;
+};
 
 export class GetAlerts extends OpenAPIRoute {
 	schema = {
@@ -34,14 +54,14 @@ export class GetAlerts extends OpenAPIRoute {
 			return c.text(toErrorString(authResult));
 		}
 
-		const data = await this.getValidatedData<typeof this.schema>();
-		const { fingerprints, active, silenced, inhibited, unprocessed, filter, receiver } = data.query;
+		const { query } = await this.getValidatedData<typeof this.schema>();
+		const { fingerprints, active, silenced, inhibited, unprocessed, filter, receiver, sort, limit } = query;
 
 		const controllerName = accountControllerName(authResult.accountID);
 		const controllerID = c.env.ACCOUNT_CONTROLLER.idFromName(controllerName);
 		const controller = c.env.ACCOUNT_CONTROLLER.get(controllerID);
 
-		const outputAlerts = [];
+		const outputAlerts: GettableAlert[] = [];
 		for (const alert of await controller.getAlerts({
 			fingerprints,
 			active,
@@ -66,9 +86,43 @@ export class GetAlerts extends OpenAPIRoute {
 				status: {
 					silencedBy: alert.silencedBy,
 					inhibitedBy: alert.inhibitedBy,
-					status: alert.silencedBy.length > 0 || alert.inhibitedBy.length > 0 ? "supressed" : "active",
+					state: alert.silencedBy.length > 0 || alert.inhibitedBy.length > 0 ? "supressed" : "active",
 				},
 			});
+		}
+
+		// This accumulates the alerts, and then sorts them based on the sort. An insertion sort _while_ we're accumulating
+		// would probably be more efficient, but this is simpler for now - something to benchmark in the future though.
+		if (sort) {
+			const fields = sort.map((s) => {
+				const [field, direction] = s.split(":");
+				return { field, direction };
+			});
+
+			outputAlerts.sort((a, b) => {
+				for (const { field, direction } of fields) {
+					const aValue = getFieldFromAlert(a, field);
+					const bValue = getFieldFromAlert(b, field);
+					if (typeof aValue === "string" && typeof bValue === "string") {
+						return compareStrings(aValue, bValue, direction as "asc" | "desc");
+					} else {
+						if (aValue < bValue) {
+							return direction === "asc" ? -1 : 1;
+						}
+
+						if (aValue > bValue) {
+							return direction === "asc" ? 1 : -1;
+						}
+					}
+				}
+
+				return 0;
+			});
+		}
+
+		// TODO(https://github.com/sinkingpoint/onotify/issues/10): Support pagination here.
+		if (limit) {
+			outputAlerts.splice(limit);
 		}
 
 		return c.json(outputAlerts, HTTPResponses.OK);

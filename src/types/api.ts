@@ -135,6 +135,8 @@ export const GettableAlertSpec = z.object({
 
 export const GettableAlertsSpec = z.array(GettableAlertSpec);
 
+export type GettableAlert = z.infer<typeof GettableAlertSpec>;
+
 const SilenceStatusSpec = z.enum(["expired", "active", "pending"]);
 export const GettableSilenceSpec = silence.extend({
 	id: z.string().openapi({
@@ -213,6 +215,22 @@ export const GetAlertsParamsSpec = z.object({
 	unprocessed: z.boolean().default(true).openapi({ description: "Show unprocessed alerts" }),
 	filter: z.array(StringMatcherSpec).default([]).openapi({ description: "A list of matchers to filter by" }),
 	receiver: StringRegexp.optional().openapi({ description: "A regex matching receivers to filter by" }),
+	sort: z
+		.array(
+			z.enum([
+				"startsAt:asc",
+				"endsAt:asc",
+				"updatedAt:asc",
+				"alertname:asc",
+				"startsAt:desc",
+				"endsAt:desc",
+				"updatedAt:desc",
+				"alertname:desc",
+			])
+		)
+		.optional()
+		.openapi({ description: "The field to sort by" }),
+	limit: z.number().optional().openapi({ description: "The maximum number of alerts to return" }),
 });
 
 export type GetAlertsParams = z.infer<typeof GetAlertsParamsSpec>;
