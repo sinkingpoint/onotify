@@ -1,6 +1,6 @@
 import { DurableObject } from "cloudflare:workers";
-import { GetAlertGroupsOptions, Matcher, PostableSilence } from "../../types/api";
-import { AlertGroup, Bindings, GetAlertsOptions, ReceiveredAlert } from "../../types/internal";
+import { GetAlertGroupsOptions, PostableSilence } from "../../types/api";
+import { AlertGroup, Bindings, GetAlertsOptions, GetSilencesOptions, ReceiveredAlert } from "../../types/internal";
 import { AlertDB } from "./alert-db";
 import { AlertGroupDB } from "./alert-group-db";
 import { SilenceDB } from "./silence-db";
@@ -63,8 +63,8 @@ export class AccountController extends DurableObject<Bindings> {
 		return silences[0];
 	}
 
-	async getSilences(matchers: Matcher[]) {
-		return this.silenceStorage.getSilences({ matchers });
+	async getSilences(opts: GetSilencesOptions) {
+		return this.silenceStorage.getSilences(opts);
 	}
 
 	async addSilence(silence: PostableSilence) {

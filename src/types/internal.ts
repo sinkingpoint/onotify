@@ -79,4 +79,14 @@ export interface GetAlertsOptions {
 	unprocessed?: boolean;
 	receiver?: RegExp;
 	filter?: Matcher[];
+	startTime?: number;
+	endTime?: number;
+}
+
+export interface GetSilencesOptions {
+	id?: string;
+	matchers?: Matcher[];
+	startTime?: number;
+	endTime?: number;
+	expired?: boolean;
 }

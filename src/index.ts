@@ -7,6 +7,7 @@ import { GetConfig } from "./endpoints/getConfig";
 import { GetRequiredFiles } from "./endpoints/getRequiredFiles";
 import GetSilence from "./endpoints/getSilence";
 import { GetSilences } from "./endpoints/getSilences";
+import { GetStats } from "./endpoints/getStats";
 import { PostAlerts } from "./endpoints/postAlerts";
 import { PostSilence } from "./endpoints/postSilences";
 import { PostConfig } from "./endpoints/uploadConfig";
@@ -51,6 +52,7 @@ const corsOptions = {
 
 // Register OpenAPI endpoints
 openapi.get("/api/v2/alerts", GetAlerts);
+openapi.get("/api/v2/:resourceType/stats", GetStats);
 openapi.get("/api/v2/alerts/groups", GetAlertGroups);
 openapi.post("/api/v2/alerts", PostAlerts);
 openapi.get("/api/v1/config/required-files", GetRequiredFiles);

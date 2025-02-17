@@ -240,3 +240,35 @@ export const GetSilencesParamsSpec = z.object({
 });
 
 export type GetSilencesParams = z.infer<typeof GetSilencesParamsSpec>;
+
+export const GetStatsParamsSpec = z.object({
+	startTime: z
+		.string()
+		.datetime({ offset: true })
+		.transform((s) => Date.parse(s))
+		.optional()
+		.openapi({ description: "The start time of the stats" }),
+	endTime: z
+		.string()
+		.datetime({ offset: true })
+		.transform((s) => Date.parse(s))
+		.optional()
+		.openapi({ description: "The end time of the stats" }),
+	aggregation: z.enum(["count"]).default("count").openapi({ description: "The aggregation to use" }),
+	intervalSecs: z.number().optional().openapi({ description: "The interval to aggregate over" }),
+	instant: z.boolean().default(false).openapi({ description: "If true, return the stats at the end time" }),
+	filter: z.array(StringMatcherSpec).default([]).openapi({ description: "A list of matchers to filter by" }),
+});
+
+export type GetStatsParams = z.infer<typeof GetStatsParamsSpec>;
+
+const StatsBucketSpec = z.object({
+	time: z.string().datetime({ offset: true }).openapi({ description: "The time of the bucket" }),
+	value: z.number().openapi({ description: "" }),
+});
+
+export type StatsBucket = z.infer<typeof StatsBucketSpec>;
+
+export const StatsResponseSpec = z.object({
+	buckets: z.array(StatsBucketSpec).openapi({ description: "The buckets of the stats" }),
+});

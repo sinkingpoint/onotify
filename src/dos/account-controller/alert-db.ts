@@ -93,6 +93,8 @@ export class AlertDB {
 		unprocessed,
 		receiver,
 		filter,
+		startTime,
+		endTime,
 	}: GetAlertsOptions): Promise<CachedAlert[]> {
 		silenced ??= true;
 		inhibited ??= true;
@@ -144,6 +146,14 @@ export class AlertDB {
 			}
 
 			if (!active && isActive) {
+				return false;
+			}
+
+			if (startTime && f.startsAt < startTime) {
+				return false;
+			}
+
+			if (endTime && f.startsAt > endTime) {
 				return false;
 			}
 
