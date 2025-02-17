@@ -180,6 +180,83 @@ export type PostAlertsResponses = {
 	200: unknown;
 };
 
+export type GetStatsData = {
+	body?: never;
+	path: {
+		/**
+		 * The type of statistics to retrieve
+		 */
+		resourceType: "alerts" | "silences";
+	};
+	query?: {
+		/**
+		 * The start time of the stats
+		 */
+		startTime?: string;
+		/**
+		 * The end time of the stats
+		 */
+		endTime?: string;
+		/**
+		 * The aggregation to use
+		 */
+		aggregation?: "count";
+		/**
+		 * The interval to aggregate over
+		 */
+		intervalSecs?: number;
+		/**
+		 * If true, return the stats at the end time
+		 */
+		instant?: boolean;
+		/**
+		 * A list of matchers to filter by
+		 */
+		filter?: Array<string>;
+		expired?: boolean;
+		active?: boolean;
+		silenced?: boolean;
+		inhibited?: boolean;
+		muted?: boolean;
+	};
+	url: "/api/v2/{resourceType}/stats";
+};
+
+export type GetStatsErrors = {
+	/**
+	 * Bad Request
+	 */
+	400: unknown;
+	/**
+	 * Unauthorized
+	 */
+	401: unknown;
+	/**
+	 * Internal Server Error
+	 */
+	500: unknown;
+};
+
+export type GetStatsResponses = {
+	/**
+	 * Sucessfully retrieved silences
+	 */
+	200: {
+		/**
+		 * The buckets of the stats
+		 */
+		buckets: Array<{
+			/**
+			 * The time of the bucket
+			 */
+			time: string;
+			value: number;
+		}>;
+	};
+};
+
+export type GetStatsResponse = GetStatsResponses[keyof GetStatsResponses];
+
 export type GetAlertGroupsData = {
 	body?: never;
 	path?: never;

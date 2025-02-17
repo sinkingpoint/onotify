@@ -370,6 +370,219 @@
         }
       }
     },
+    "/api/v2/{resourceType}/stats": {
+      "get": {
+        "operationId": "getStats",
+        "summary": "Get a set of statistics",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "alerts",
+                "silences"
+              ],
+              "description": "The type of statistics to retrieve"
+            },
+            "required": true,
+            "name": "resourceType",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date-time",
+              "description": "The start time of the stats"
+            },
+            "required": false,
+            "name": "startTime",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date-time",
+              "description": "The end time of the stats"
+            },
+            "required": false,
+            "name": "endTime",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "count"
+              ],
+              "default": "count",
+              "description": "The aggregation to use"
+            },
+            "required": false,
+            "name": "aggregation",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "number",
+              "description": "The interval to aggregate over"
+            },
+            "required": false,
+            "name": "intervalSecs",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "description": "If true, return the stats at the end time"
+            },
+            "required": false,
+            "name": "instant",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "description": "a matcher to match labels against",
+                "examples": [
+                  "a=\"b\"",
+                  "a!=\"b\"",
+                  "a=~\"b\"",
+                  "a!~\"b\""
+                ]
+              },
+              "default": [],
+              "description": "A list of matchers to filter by"
+            },
+            "required": false,
+            "name": "filter",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "boolean",
+              "default": false
+            },
+            "required": false,
+            "name": "expired",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "boolean",
+              "default": true
+            },
+            "required": false,
+            "name": "active",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "boolean",
+              "default": false
+            },
+            "required": false,
+            "name": "silenced",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "boolean",
+              "default": false
+            },
+            "required": false,
+            "name": "inhibited",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "boolean",
+              "default": false
+            },
+            "required": false,
+            "name": "muted",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Sucessfully retrieved silences",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "buckets": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "time": {
+                            "type": "string",
+                            "format": "date-time",
+                            "description": "The time of the bucket"
+                          },
+                          "value": {
+                            "type": "number",
+                            "description": ""
+                          }
+                        },
+                        "required": [
+                          "time",
+                          "value"
+                        ]
+                      },
+                      "description": "The buckets of the stats"
+                    }
+                  },
+                  "required": [
+                    "buckets"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "text/plain": {
+              "schema": {
+                "_def": {
+                  "checks": [],
+                  "typeName": "ZodString",
+                  "coerce": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "text/plain": {
+              "schema": {
+                "_def": {
+                  "checks": [],
+                  "typeName": "ZodString",
+                  "coerce": false
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "text/plain": {
+              "schema": {
+                "_def": {
+                  "checks": [],
+                  "typeName": "ZodString",
+                  "coerce": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v2/alerts/groups": {
       "get": {
         "operationId": "getAlertGroups",

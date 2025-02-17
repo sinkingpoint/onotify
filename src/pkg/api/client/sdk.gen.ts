@@ -14,6 +14,8 @@ import type {
 	GetSilenceResponse,
 	GetSilencesData,
 	GetSilencesResponse,
+	GetStatsData,
+	GetStatsResponse,
 	PostAlertsData,
 	PostConfigData,
 	PostRequiredFilesData,
@@ -58,6 +60,16 @@ export const postAlerts = <ThrowOnError extends boolean = false>(options?: Optio
 			"Content-Type": "application/json",
 			...options?.headers,
 		},
+	});
+};
+
+/**
+ * Get a set of statistics
+ */
+export const getStats = <ThrowOnError extends boolean = false>(options: Options<GetStatsData, ThrowOnError>) => {
+	return (options.client ?? _heyApiClient).get<GetStatsResponse, unknown, ThrowOnError>({
+		url: "/api/v2/{resourceType}/stats",
+		...options,
 	});
 };
 
