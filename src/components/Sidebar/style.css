@@ -9,6 +9,10 @@
   background-color: var(--background-two);
 }
 
+.side-bar-item.active {
+  background-color: var(--highlight);
+}
+
 .side-bar {
   background-color: var(--background-three);
   height: 100vh;
