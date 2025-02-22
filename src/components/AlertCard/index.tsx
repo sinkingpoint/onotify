@@ -15,8 +15,6 @@ export const AlertCard = ({ alert, ...props }: AlertCardProps) => {
 	const endedAt = endsAt > Date.now() ? "Ends" : "Ended";
 
 	const classes = "flex flex-col " + (props.class ? props.class : "");
-	delete props.class;
-	console.log(classes, props.class);
 	return (
 		<span {...props} class={classes}>
 			<span>
