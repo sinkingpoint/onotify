@@ -41,7 +41,7 @@ export class GetSilences extends OpenAPIRoute {
 		const controllerID = c.env.ACCOUNT_CONTROLLER.idFromName(controllerName);
 		const controller = c.env.ACCOUNT_CONTROLLER.get(controllerID);
 
-		const silences = await controller.getSilences(data.query.matcher);
+		const silences = await controller.getSilences({ matchers: data.query.matcher });
 
 		c.status(200);
 		return c.json(silences.map((s) => internalSilenceToAlertmanager(s)));

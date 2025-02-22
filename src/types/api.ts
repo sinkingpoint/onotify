@@ -258,6 +258,15 @@ export const GetStatsParamsSpec = z.object({
 	intervalSecs: z.number().optional().openapi({ description: "The interval to aggregate over" }),
 	instant: z.boolean().default(false).openapi({ description: "If true, return the stats at the end time" }),
 	filter: z.array(StringMatcherSpec).default([]).openapi({ description: "A list of matchers to filter by" }),
+
+	// only valid for silences.
+	expired: z.boolean().default(false),
+
+	// only valid for alerts.
+	active: z.boolean().default(true),
+	silenced: z.boolean().default(false),
+	inhibited: z.boolean().default(false),
+	muted: z.boolean().default(false),
 });
 
 export type GetStatsParams = z.infer<typeof GetStatsParamsSpec>;

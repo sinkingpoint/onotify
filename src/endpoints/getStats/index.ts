@@ -36,11 +36,10 @@ export class GetStats extends OpenAPIRoute {
 			filter: params.filter,
 			startTime: params.startTime,
 			endTime: params.endTime,
-			active: true,
-			silenced: true,
-			inhibited: true,
-			muted: true,
-			// TODO: We might want muted, unprocessed, silenced, and inhibited filters here.
+			active: params.active,
+			silenced: params.silenced,
+			inhibited: params.inhibited,
+			muted: params.muted,
 		});
 
 		return this.group(alerts, "startsAt", params);
@@ -51,6 +50,7 @@ export class GetStats extends OpenAPIRoute {
 			matchers: params.filter,
 			startTime: params.startTime,
 			endTime: params.endTime,
+			expired: params.expired,
 		});
 
 		return this.group(silences, "startsAt", params);
@@ -61,7 +61,6 @@ export class GetStats extends OpenAPIRoute {
 		key: Extract<keyof T, keyof { [K in keyof T]: T[K] extends number ? K : never }>,
 		params: GetStatsParams
 	) {
-		console.log(values);
 		if (values.length === 0) {
 			return { buckets: [] };
 		}
@@ -116,6 +115,7 @@ export class GetStats extends OpenAPIRoute {
 			query,
 		} = await this.getValidatedData<typeof this.schema>();
 
+		// TODO: Validate that alert filters are not used with silence stats and vice versa.
 		let buckets;
 
 		if (resourceType === "alerts") {
