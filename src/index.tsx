@@ -1,6 +1,6 @@
 import { LocationProvider, Route, Router, hydrate, prerender as ssr } from "preact-iso";
 
-import { Header } from "./components/Header.jsx";
+import { SideBar } from "./components/Sidebar/index.js";
 import "./index.css";
 import { NotFound } from "./pages/_404.jsx";
 import AddSilence from "./pages/AddSilence";
@@ -20,7 +20,7 @@ export function App() {
 
 	return (
 		<LocationProvider>
-			<Header />
+			<SideBar />
 			<main>
 				<Router>
 					<Route path="/" component={Dash} />

@@ -53,7 +53,6 @@ export const Dash = () => {
 
 	return (
 		<div class="w-full flex flex-col">
-			<h1 class="text-4xl font-bold">Onotify</h1>
 			<span class="flex flex-row justify-between w-full">
 				<StatPanel
 					title="Firing Alerts"
