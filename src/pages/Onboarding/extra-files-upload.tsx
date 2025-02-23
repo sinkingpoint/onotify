@@ -56,7 +56,7 @@ export const ExtraFilesUpload = () => {
 						isDir: s.isDir,
 						uploaded: s.uploaded ? UploadStatus.Uploaded : UploadStatus.NotUploaded,
 					};
-				})
+				}),
 			);
 
 			setTemplates(
@@ -70,7 +70,7 @@ export const ExtraFilesUpload = () => {
 						isDir: t.isDir,
 						uploaded: t.uploaded ? UploadStatus.Uploaded : UploadStatus.NotUploaded,
 					};
-				})
+				}),
 			);
 		};
 

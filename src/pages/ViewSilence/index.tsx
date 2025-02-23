@@ -56,12 +56,12 @@ export default () => {
 
 	const startTime = useMemo(
 		() => (silencePull.state === "success" ? formatDate(new Date(silencePull.result.startsAt)) : ""),
-		[silencePull]
+		[silencePull],
 	);
 
 	const endTime = useMemo(
 		() => (silencePull.state === "success" ? formatDate(new Date(silencePull.result.endsAt)) : ""),
-		[silencePull]
+		[silencePull],
 	);
 
 	const matchers = useMemo(() => {

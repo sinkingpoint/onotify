@@ -51,7 +51,7 @@ export const CreateSilence = ({ onPreview }: CreateSilenceProps) => {
 	const setMatchersInURLParams = (matchers: Matcher[]) => {
 		setURLParam(
 			"matcher",
-			matchers.map((m) => matcherToString(m))
+			matchers.map((m) => matcherToString(m)),
 		);
 
 		setMatchers(matchers);

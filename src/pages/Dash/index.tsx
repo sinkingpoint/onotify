@@ -12,7 +12,7 @@ export const Dash = () => {
 					limit: 20,
 				},
 			}),
-		[]
+		[],
 	);
 
 	const alertStats = useQuery(
@@ -23,7 +23,7 @@ export const Dash = () => {
 				},
 				query: {},
 			}),
-		[]
+		[],
 	);
 
 	const silencedAlertStats = useQuery(
@@ -37,7 +37,7 @@ export const Dash = () => {
 					silenced: true,
 				},
 			}),
-		[]
+		[],
 	);
 
 	const silenceStats = useQuery(
@@ -48,7 +48,7 @@ export const Dash = () => {
 				},
 				query: {},
 			}),
-		[]
+		[],
 	);
 
 	return (
@@ -56,17 +56,17 @@ export const Dash = () => {
 			<span class="flex flex-row justify-between w-full">
 				<StatPanel
 					title="Firing Alerts"
-					value={alertStats.state === "success" ? alertStats.result.buckets[0]?.value ?? 0 : 0}
+					value={alertStats.state === "success" ? (alertStats.result.buckets[0]?.value ?? 0) : 0}
 					class="w-1/3"
 				/>
 				<StatPanel
 					title="Silenced Alerts"
-					value={silencedAlertStats.state === "success" ? silencedAlertStats.result.buckets[0]?.value ?? 0 : 0}
+					value={silencedAlertStats.state === "success" ? (silencedAlertStats.result.buckets[0]?.value ?? 0) : 0}
 					class="w-1/3"
 				/>
 				<StatPanel
 					title="Silences"
-					value={silenceStats.state === "success" ? silenceStats.result.buckets[0]?.value ?? 0 : 0}
+					value={silenceStats.state === "success" ? (silenceStats.result.buckets[0]?.value ?? 0) : 0}
 					class="w-1/3"
 				/>
 			</span>
