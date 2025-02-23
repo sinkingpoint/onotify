@@ -1,7 +1,7 @@
-import { BellAlertIcon, BellSlashIcon, HomeIcon } from "@heroicons/react/16/solid";
+import { BellAlertIcon, BellSlashIcon, ChevronDownIcon, ChevronUpIcon, HomeIcon } from "@heroicons/react/16/solid";
 import { VNode } from "preact";
 import { useLocation } from "preact-iso";
-import { HTMLAttributes } from "preact/compat";
+import { HTMLAttributes, useRef, useState } from "preact/compat";
 import "./style.css";
 
 interface SideBarItemProps extends HTMLAttributes<HTMLDivElement> {
@@ -10,9 +10,56 @@ interface SideBarItemProps extends HTMLAttributes<HTMLDivElement> {
 	icon?: VNode<any>;
 }
 
+interface SideBarGroupProps {
+	title: string;
+	icon?: VNode<any>;
+	initialExpanded: boolean;
+	children?: SideBarItemElement | SideBarItemElement[];
+}
+
+const SideBarGroup = ({ title, icon, initialExpanded, children }: SideBarGroupProps) => {
+	const [expanded, setExpanded] = useState(initialExpanded);
+	const firstChildRef = useRef<SideBarItemElement>();
+	const triggerGroupClick = () => {
+		if (firstChildRef.current) {
+			console.log((firstChildRef.current as any).base.click()); // Cast with any here. Base does exist, but I can't figure out how to type it.
+		}
+	};
+
+	if (Array.isArray(children)) {
+		if (children.length > 0) {
+			children[0].ref = firstChildRef;
+		}
+	} else {
+		children.ref = firstChildRef;
+	}
+
+	const toggleExpanded = (e: MouseEvent) => {
+		e.stopPropagation();
+		setExpanded(!expanded);
+	};
+
+	return (
+		<span>
+			<span class="flex flex-row justify-between side-bar-item" onClick={triggerGroupClick}>
+				<span class="pr-4">{icon}</span>
+				<span>{title}</span>
+				<span class="flex-grow" />
+				{expanded ? (
+					<ChevronUpIcon class="inline size-6 ml-auto" onClick={toggleExpanded} />
+				) : (
+					<ChevronDownIcon class="inline size-6 ml-auto" onClick={toggleExpanded} />
+				)}
+			</span>
+
+			<span class={expanded ? "" : "hidden"}>{children}</span>
+		</span>
+	);
+};
+
 const SideBarItem = ({ title, href, icon }: SideBarItemProps) => {
 	const { url } = useLocation();
-	let classes = "side-bar-item flex flex-row justify-start";
+	let classes = "side-bar-item flex flex-row";
 	if (url === href) {
 		classes += " active";
 	}
@@ -25,14 +72,18 @@ const SideBarItem = ({ title, href, icon }: SideBarItemProps) => {
 	);
 };
 
+type SideBarItemElement = ReturnType<typeof SideBarItem>;
+
 export const SideBar = () => {
 	return (
 		<nav class="flex flex-col flex-grow rounded-r top-0 sticky side-bar">
 			<div class="p-4">
 				<h1 class="text-2xl font-bold p-4">Onotify</h1>
 			</div>
-			<SideBarItem title="Overview" href="/" icon={<HomeIcon class="inline size-6" />} />
-			<SideBarItem title="Alerts" href="/alerts" icon={<BellAlertIcon class="inline size-6" />} />
+			<SideBarItem title="Home" href="/" icon={<HomeIcon class="inline size-6" />} />
+			<SideBarGroup title="Alerts" icon={<BellAlertIcon class="inline size-6" />} initialExpanded={true}>
+				<SideBarItem title="Overview" href="/alerts" />
+			</SideBarGroup>
 			<SideBarItem title="Silences" href="/silences" icon={<BellSlashIcon class="inline size-6" />} />
 		</nav>
 	);
