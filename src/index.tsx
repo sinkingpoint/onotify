@@ -25,9 +25,9 @@ export function App() {
 				<Router>
 					<Route path="/" component={Dash} />
 					<Route path="/onboarding" component={Onboarding} />
-					<Route path="/alert/:fingerprint" component={ViewAlert} />
-					<Route path="/silence/new" component={AddSilence} />
-					<Route path="/silence/:id" component={ViewSilence} />
+					<Route path="/alerts/:fingerprint" component={ViewAlert} />
+					<Route path="/silences/new" component={AddSilence} />
+					<Route path="/silences/:id" component={ViewSilence} />
 					<Route default component={NotFound} />
 				</Router>
 			</main>

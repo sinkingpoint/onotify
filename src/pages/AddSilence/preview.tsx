@@ -79,7 +79,7 @@ export const PreviewSilence = ({ duration, matchers, comment }: PreviewProps) =>
 			});
 
 			setCreateStatus(UploadStatus.Uploaded);
-			window.location.href = "/silence/" + id;
+			window.location.href = "/silences/" + id;
 		} catch (e) {
 			setCreateStatus(UploadStatus.Error);
 			// TODO: Show a toast here.

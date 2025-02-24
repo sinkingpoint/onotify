@@ -1,4 +1,11 @@
-import { BellAlertIcon, BellSlashIcon, ChevronDownIcon, ChevronUpIcon, HomeIcon } from "@heroicons/react/16/solid";
+import {
+	BellAlertIcon,
+	BellSlashIcon,
+	ChevronDownIcon,
+	ChevronUpIcon,
+	DocumentTextIcon,
+	HomeIcon,
+} from "@heroicons/react/16/solid";
 import { VNode } from "preact";
 import { useLocation } from "preact-iso";
 import { HTMLAttributes, useRef, useState } from "preact/compat";
@@ -22,6 +29,7 @@ const SideBarGroup = ({ title, icon, initialExpanded, children }: SideBarGroupPr
 	const firstChildRef = useRef<SideBarItemElement>();
 	const triggerGroupClick = () => {
 		if (firstChildRef.current) {
+			setExpanded(true);
 			console.log((firstChildRef.current as any).base.click()); // Cast with any here. Base does exist, but I can't figure out how to type it.
 		}
 	};
@@ -84,7 +92,16 @@ export const SideBar = () => {
 			<SideBarGroup title="Alerts" icon={<BellAlertIcon class="inline size-6" />} initialExpanded={true}>
 				<SideBarItem title="Overview" href="/alerts" />
 			</SideBarGroup>
-			<SideBarItem title="Silences" href="/silences" icon={<BellSlashIcon class="inline size-6" />} />
+
+			<SideBarGroup title="Silences" icon={<BellSlashIcon class="inline size-6" />} initialExpanded={true}>
+				<SideBarItem title="Overview" href="/silences" />
+				<SideBarItem title="New Silence" href="/silences/new" />
+			</SideBarGroup>
+
+			<SideBarGroup title="Config" icon={<DocumentTextIcon class="inline size-6" />} initialExpanded={true}>
+				<SideBarItem title="Routing Tree" href="/config/tree" />
+				<SideBarItem title="Receivers" href="/config/receivers" />
+			</SideBarGroup>
 		</nav>
 	);
 };
