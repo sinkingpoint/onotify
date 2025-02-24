@@ -130,7 +130,7 @@ export const CreateSilence = ({ onPreview }: CreateSilenceProps) => {
 				<span class="pl-10">{end}</span>
 			</div>
 
-			<h2 class="text-xl pt-5">Matchers</h2>
+			<h2 class="text-xl">Matchers</h2>
 			<div class="flex flex-row">
 				<TextBox
 					id="matcher"
@@ -150,7 +150,7 @@ export const CreateSilence = ({ onPreview }: CreateSilenceProps) => {
 
 			<div class="flex flex-row flex-wrap flex-shrink flex-grow-0 pt-2">{matcherCards}</div>
 
-			<h2 class="text-xl pt-5">Comment</h2>
+			<h2 class="text-xl">Comment</h2>
 			<TextBox
 				id="comment"
 				type="text"
