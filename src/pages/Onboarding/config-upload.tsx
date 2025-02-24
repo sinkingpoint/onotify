@@ -73,7 +73,7 @@ export const ConfigUpload = ({ uploadSucessCallback: uploadSuccessCallback }: Co
 
 	return (
 		<>
-			<h1 class="text-3xl font-bold my-3">Get started sending your alerts</h1>
+			<h1>Get started sending your alerts</h1>
 			<span class="flex flex-row grow">
 				<span class="flex flex-col grow">
 					<span class="text-lg my-3">

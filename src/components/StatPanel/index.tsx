@@ -11,7 +11,7 @@ export default ({ title, value, ...props }: StatPanelProps) => {
 		<div class={classes}>
 			{title ? (
 				<span class="flex flex-row w-full justify-start">
-					<h1 class="text-xl font-bold">{title}</h1>
+					<h1>{title}</h1>
 				</span>
 			) : (
 				<></>

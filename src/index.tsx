@@ -8,6 +8,7 @@ import { Dash } from "./pages/Dash";
 import Onboarding from "./pages/Onboarding";
 import ViewAlert from "./pages/ViewAlert";
 import ViewSilence from "./pages/ViewSilence";
+import ViewSilences from "./pages/ViewSilences/index.js";
 import { client } from "./pkg/api/client/client.gen.js";
 
 export function App() {
@@ -26,6 +27,7 @@ export function App() {
 					<Route path="/" component={Dash} />
 					<Route path="/onboarding" component={Onboarding} />
 					<Route path="/alerts/:fingerprint" component={ViewAlert} />
+					<Route path="/silences" component={ViewSilences} />
 					<Route path="/silences/new" component={AddSilence} />
 					<Route path="/silences/:id" component={ViewSilence} />
 					<Route default component={NotFound} />

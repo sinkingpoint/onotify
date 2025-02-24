@@ -76,7 +76,7 @@ export default () => {
 
 	return (
 		<div class="w-full h-full flex flex-col">
-			<h1 class="text-3xl font-bold my-3">Alert {fingerprint}</h1>
+			<h1>Alert {fingerprint}</h1>
 			<div>
 				<span class="text-xl">Status: </span>
 				{statusText}

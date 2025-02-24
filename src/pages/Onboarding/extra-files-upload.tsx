@@ -150,7 +150,7 @@ export const ExtraFilesUpload = () => {
 
 	return (
 		<>
-			<h1 class="text-3xl font-bold my-3">We're gonna need a few extra files</h1>
+			<h1>We're gonna need a few extra files</h1>
 
 			<span class="flex flex-row justify-between">
 				<h2 class="text-lg my-3 basis-3/4">

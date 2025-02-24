@@ -86,7 +86,7 @@ export const SideBar = () => {
 	return (
 		<nav class="flex flex-col flex-grow rounded-r top-0 sticky side-bar">
 			<div class="p-4">
-				<h1 class="text-2xl font-bold p-4">Onotify</h1>
+				<h1>Onotify</h1>
 			</div>
 			<SideBarItem title="Home" href="/" icon={<HomeIcon class="inline size-6" />} />
 			<SideBarGroup title="Alerts" icon={<BellAlertIcon class="inline size-6" />} initialExpanded={true}>
