@@ -46,6 +46,10 @@ export type GetAlertsData = {
 		 * The maximum number of alerts to return
 		 */
 		limit?: number;
+		/**
+		 * The page of alerts to return
+		 */
+		page?: number;
 	};
 	url: "/api/v2/alerts";
 };
@@ -492,11 +496,28 @@ export type GetSilenceResponse = GetSilenceResponses[keyof GetSilenceResponses];
 export type GetSilencesData = {
 	body?: never;
 	path?: never;
-	query?: {
+	query: {
 		/**
 		 * A list of matchers to filter by
 		 */
 		matcher?: Array<string>;
+		/**
+		 * Show active silences
+		 */
+		active?: boolean;
+		/**
+		 * Show expired silences
+		 */
+		expired?: boolean;
+		sort: Array<"startsAt:asc" | "endsAt:asc" | "startsAt:desc" | "endsAt:desc">;
+		/**
+		 * The maximum number of silences to return
+		 */
+		limit?: number;
+		/**
+		 * The page of silences to return
+		 */
+		page?: number;
 	};
 	url: "/api/v2/silences";
 };
