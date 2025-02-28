@@ -231,12 +231,21 @@ export const GetAlertsParamsSpec = z.object({
 		.optional()
 		.openapi({ description: "The field to sort by" }),
 	limit: z.number().optional().openapi({ description: "The maximum number of alerts to return" }),
+	page: z.number().optional().openapi({ description: "The page of alerts to return" }),
 });
 
 export type GetAlertsParams = z.infer<typeof GetAlertsParamsSpec>;
 
 export const GetSilencesParamsSpec = z.object({
 	matcher: z.array(StringMatcherSpec).default([]).openapi({ description: "A list of matchers to filter by" }),
+	active: z.boolean().default(true).openapi({ description: "Show active silences" }),
+	expired: z.boolean().default(false).openapi({ description: "Show expired silences" }),
+	sort: z
+		.array(z.enum(["startsAt:asc", "endsAt:asc", "startsAt:desc", "endsAt:desc"]))
+		.optional()
+		.openapi({ description: "The fields to sort by" }),
+	limit: z.number().optional().openapi({ description: "The maximum number of silences to return" }),
+	page: z.number().optional().openapi({ description: "The page of silences to return" }),
 });
 
 export type GetSilencesParams = z.infer<typeof GetSilencesParamsSpec>;

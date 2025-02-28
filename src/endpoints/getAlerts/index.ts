@@ -6,6 +6,8 @@ import { Bindings } from "../../types/internal";
 import { checkAPIKey, toErrorString } from "../utils/auth";
 import { accountControllerName } from "../utils/kv";
 
+const DEFAULT_PAGE_SIZE = 20;
+
 const getFieldFromAlert = (alert: GettableAlert, field: string) => {
 	switch (field) {
 		case "alertname":
@@ -55,7 +57,7 @@ export class GetAlerts extends OpenAPIRoute {
 		}
 
 		const { query } = await this.getValidatedData<typeof this.schema>();
-		const { fingerprints, active, silenced, inhibited, unprocessed, filter, receiver, sort, limit } = query;
+		const { fingerprints, active, silenced, inhibited, unprocessed, filter, receiver, sort, limit, page } = query;
 
 		const controllerName = accountControllerName(authResult.accountID);
 		const controllerID = c.env.ACCOUNT_CONTROLLER.idFromName(controllerName);
@@ -120,9 +122,16 @@ export class GetAlerts extends OpenAPIRoute {
 			});
 		}
 
-		// TODO(https://github.com/sinkingpoint/onotify/issues/10): Support pagination here.
+		const pageSize = limit ?? DEFAULT_PAGE_SIZE;
+		let startIndex = 0;
+		let endIndex = outputAlerts.length;
+		if (page) {
+			startIndex = pageSize * (page - 1);
+			endIndex = startIndex + pageSize;
+		}
+
 		if (limit) {
-			outputAlerts.splice(limit);
+			outputAlerts.slice(startIndex, endIndex);
 		}
 
 		return c.json(outputAlerts, HTTPResponses.OK);

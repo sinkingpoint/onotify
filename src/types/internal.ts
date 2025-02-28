@@ -37,6 +37,21 @@ export const alertStateAt = (a: Alert, time: number): AlertState => {
 	return AlertState.Firing;
 };
 
+export enum SilenceState {
+	Active = "active",
+	Expired = "expired",
+}
+
+export const silenceState = (s: Silence) => silenceStateAt(s, Date.now());
+
+export const silenceStateAt = (s: Silence, time: number): SilenceState => {
+	if (s.startsAt > time || s.endsAt < time) {
+		return SilenceState.Expired;
+	}
+
+	return SilenceState.Active;
+};
+
 export interface DehydratedAlert {
 	fingerprint: string;
 	state: AlertState;
@@ -88,5 +103,6 @@ export interface GetSilencesOptions {
 	matchers?: Matcher[];
 	startTime?: number;
 	endTime?: number;
+	active?: boolean;
 	expired?: boolean;
 }

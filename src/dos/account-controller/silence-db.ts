@@ -1,5 +1,5 @@
 import { Matcher, PostableSilence } from "../../types/api";
-import { Alert, GetSilencesOptions, Silence } from "../../types/internal";
+import { Alert, GetSilencesOptions, Silence, SilenceState, silenceState } from "../../types/internal";
 import { matcherIsSame, matcherMatches } from "../../utils/matcher";
 const REGEX_CACHE = {};
 
@@ -53,7 +53,7 @@ export class SilenceDB {
 		return [true, newSilence.id];
 	}
 
-	async getSilences({ id, matchers, startTime, endTime, expired }: GetSilencesOptions) {
+	async getSilences({ id, matchers, startTime, endTime, active, expired }: GetSilencesOptions) {
 		let silences: Silence[] = [];
 		if (id) {
 			const existing = this.silences.get(id);
@@ -74,7 +74,11 @@ export class SilenceDB {
 					return false;
 				}
 
-				if ((!expired && s.endsAt < Date.now()) || s.startsAt > Date.now()) {
+				if (!active && silenceState(s) === SilenceState.Active) {
+					return false;
+				}
+
+				if (!expired && silenceState(s) === SilenceState.Expired) {
 					return false;
 				}
 
