@@ -23,6 +23,7 @@ export const matcherToString = (matcher: Matcher) => {
 
 interface DataPullSuccess<T> {
 	state: "success";
+	headers: Headers;
 	result: T;
 }
 
@@ -32,6 +33,7 @@ interface DataPullPending {
 
 interface DataPullError<T> {
 	state: "error";
+	headers: Headers;
 	error: T;
 }
 
@@ -39,7 +41,7 @@ export type DataPull<TSuccess, TError> = DataPullSuccess<TSuccess> | DataPullPen
 
 export const useQuery = <TSuccess, TError>(
 	puller: () => RequestResult<TSuccess | undefined, TError> | Promise<null>,
-	deps: any[]
+	deps: any[],
 ): DataPull<TSuccess, TError> => {
 	const [pull, setPull] = useState<DataPull<TSuccess, TError>>({
 		state: "pending",
@@ -57,11 +59,13 @@ export const useQuery = <TSuccess, TError>(
 			if ("error" in result && result.error) {
 				setPull({
 					state: "error",
+					headers: result.response.headers,
 					error: result.error,
 				});
 			} else if (result.data) {
 				setPull({
 					state: "success",
+					headers: result.response.headers,
 					result: result.data,
 				});
 			}

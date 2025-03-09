@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { getAnchoredRegex } from "../utils/regex";
 import { StringMatcherSpec } from "./alertmanager";
 
 // An alert that comes in over the API.
@@ -47,12 +48,11 @@ export const MatcherSpec = z
 		isRegex: z.boolean(),
 		isEqual: z.boolean().default(true),
 	})
-	.strict()
 	.openapi({
 		description: "A matcher that can be used to match against alerts",
 	});
 
-export type Matcher = Required<z.infer<typeof MatcherSpec>>;
+export type Matcher = z.infer<typeof MatcherSpec>;
 
 const silence = z.object({
 	matchers: z.array(MatcherSpec).openapi({
@@ -133,11 +133,14 @@ export const GettableAlertSpec = z.object({
 	}),
 });
 
-export type GettableAlert = z.infer<typeof GettableAlertSpec>;
-
 export const GettableAlertsSpec = z.array(GettableAlertSpec);
 
-const SilenceStatusSpec = z.enum(["expired", "active", "pending"]);
+export type GettableAlert = z.infer<typeof GettableAlertSpec>;
+
+const SilenceStatusSpec = z.object({
+	state: z.enum(["expired", "active", "pending"]),
+});
+
 export const GettableSilenceSpec = silence.extend({
 	id: z.string().openapi({
 		description: "The ID assigned to the silence",
@@ -149,6 +152,8 @@ export const GettableSilenceSpec = silence.extend({
 		description: "An RFC-3339 formatted timestamp indicating when the silence was last updated",
 	}),
 });
+
+export type GettableSilence = z.infer<typeof GettableSilenceSpec>;
 
 export const GettableSilencesSpec = z.array(GettableSilenceSpec);
 
@@ -169,9 +174,14 @@ export const GetAlertGroupsOptionsSpec = z.object({
 		description:
 			"A list of matchers to filter the alerts groups by. Only applies to the `group_by` alerts of the group",
 	}),
-	receiver: z.string().describe("A regex matching receivers to filter by").optional().openapi({
-		description: "A regex to filter alert group receivers by",
-	}),
+	receiver: z
+		.string()
+		.describe("A regex matching receivers to filter by")
+		.transform((r) => getAnchoredRegex(r))
+		.optional()
+		.openapi({
+			description: "A regex to filter alert group receivers by",
+		}),
 });
 
 export type GetAlertGroupsOptions = z.infer<typeof GetAlertGroupsOptionsSpec>;
@@ -184,10 +194,12 @@ export const RequiredFileSpec = z.object({
 
 export type RequiredFile = z.infer<typeof RequiredFileSpec>;
 
-export const RequiredFilesSpec = z.object({
-	secrets: z.array(RequiredFileSpec).openapi({ description: "the secret files that need to be uploaded" }),
-	templates: z.array(RequiredFileSpec).openapi({ description: "the templates that need to be uploaded" }),
-});
+export const RequiredFilesSpec = z
+	.object({
+		secrets: z.array(RequiredFileSpec).openapi({ description: "the secret files that need to be uploaded" }),
+		templates: z.array(RequiredFileSpec).openapi({ description: "the templates that need to be uploaded" }),
+	})
+	.openapi({ description: "the extra files required, as specified in the config" });
 
 export type RequiredFiles = z.infer<typeof RequiredFilesSpec>;
 
@@ -206,6 +218,82 @@ export const GetAlertsParamsSpec = z.object({
 	unprocessed: z.boolean().default(true).openapi({ description: "Show unprocessed alerts" }),
 	filter: z.array(StringMatcherSpec).default([]).openapi({ description: "A list of matchers to filter by" }),
 	receiver: StringRegexp.optional().openapi({ description: "A regex matching receivers to filter by" }),
+	sort: z
+		.array(
+			z.enum([
+				"startsAt:asc",
+				"endsAt:asc",
+				"updatedAt:asc",
+				"alertname:asc",
+				"startsAt:desc",
+				"endsAt:desc",
+				"updatedAt:desc",
+				"alertname:desc",
+			])
+		)
+		.optional()
+		.openapi({ description: "The field to sort by" }),
+	limit: z.number().optional().openapi({ description: "The maximum number of alerts to return" }),
+	page: z.number().optional().openapi({ description: "The page of alerts to return" }),
 });
 
 export type GetAlertsParams = z.infer<typeof GetAlertsParamsSpec>;
+
+export const GetSilencesParamsSpec = z.object({
+	matcher: z.array(StringMatcherSpec).default([]).openapi({ description: "A list of matchers to filter by" }),
+	active: z.boolean().default(true).openapi({ description: "Show active silences" }),
+	expired: z.boolean().default(false).openapi({ description: "Show expired silences" }),
+	sort: z
+		.array(z.enum(["startsAt:asc", "endsAt:asc", "startsAt:desc", "endsAt:desc"]))
+		.optional()
+		.openapi({ description: "The fields to sort by" }),
+	limit: z.number().optional().openapi({ description: "The maximum number of silences to return" }),
+	page: z.number().optional().openapi({ description: "The page of silences to return" }),
+});
+
+export type GetSilencesParams = z.infer<typeof GetSilencesParamsSpec>;
+
+export const GetStatsParamsSpec = z.object({
+	startTime: z
+		.string()
+		.datetime({ offset: true })
+		.transform((s) => Date.parse(s))
+		.optional()
+		.openapi({ description: "The start time of the stats" }),
+	endTime: z
+		.string()
+		.datetime({ offset: true })
+		.transform((s) => Date.parse(s))
+		.optional()
+		.openapi({ description: "The end time of the stats" }),
+	aggregation: z.enum(["count"]).default("count").openapi({ description: "The aggregation to use" }),
+	intervalSecs: z.number().optional().openapi({ description: "The interval to aggregate over" }),
+	instant: z.boolean().default(false).openapi({ description: "If true, return the stats at the end time" }),
+	filter: z.array(StringMatcherSpec).default([]).openapi({ description: "A list of matchers to filter by" }),
+
+	// only valid for silences.
+	expired: z.boolean().default(false),
+
+	// only valid for alerts.
+	active: z.boolean().default(true),
+	silenced: z.boolean().default(false),
+	inhibited: z.boolean().default(false),
+	muted: z.boolean().default(false),
+});
+
+export type GetStatsParams = z.infer<typeof GetStatsParamsSpec>;
+
+const StatsBucketSpec = z.object({
+	time: z.string().datetime({ offset: true }).openapi({ description: "The time of the bucket" }),
+	value: z.number().openapi({ description: "" }),
+});
+
+export type StatsBucket = z.infer<typeof StatsBucketSpec>;
+
+export const StatsResponseSpec = z.object({
+	buckets: z.array(StatsBucketSpec).openapi({ description: "The buckets of the stats" }),
+});
+
+export const PaginationHeaders = z.object({
+	"X-Total-Count": z.number().int().positive().optional().openapi({ description: "Total number of items" }),
+});
