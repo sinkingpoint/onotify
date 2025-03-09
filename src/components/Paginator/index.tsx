@@ -97,7 +97,7 @@ const RangeSelector = ({ currentPage, totalPages, maxPagesInRange, setCurrentPag
 		);
 	}
 
-	return <span>{range}</span>;
+	return <span class="pt-3">{range}</span>;
 };
 
 export default ({ totalPages, children, currentPage, maxPagesInRange, setCurrentPage }: PaginatorProps) => {
@@ -106,16 +106,18 @@ export default ({ totalPages, children, currentPage, maxPagesInRange, setCurrent
 	}
 
 	return (
-		<div>
-			{children}
-			{totalPages > 0 && (
-				<RangeSelector
-					currentPage={currentPage}
-					setCurrentPage={setCurrentPage}
-					totalPages={totalPages}
-					maxPagesInRange={maxPagesInRange ?? DEFAULT_MAX_PAGES_IN_RANGE}
-				/>
-			)}
-		</div>
+		<span class="flex flex-col">
+			<span>{children}</span>
+			<span>
+				{totalPages > 0 && (
+					<RangeSelector
+						currentPage={currentPage}
+						setCurrentPage={setCurrentPage}
+						totalPages={totalPages}
+						maxPagesInRange={maxPagesInRange ?? DEFAULT_MAX_PAGES_IN_RANGE}
+					/>
+				)}
+			</span>
+		</span>
 	);
 };
