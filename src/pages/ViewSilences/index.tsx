@@ -1,6 +1,7 @@
 import { useMemo, useState } from "preact/hooks";
 import Paginator from "../../components/Paginator";
 import { SilenceCard } from "../../components/SilenceCard";
+import { SkeletonLoader } from "../../components/Skeleton";
 import { TextBox } from "../../components/TextBox";
 import { getSilences, GetSilencesResponse } from "../../pkg/api/client";
 import { GettableSilenceSpec } from "../../pkg/types/api";
@@ -34,7 +35,8 @@ const TogglableChit = ({ value, toggled, onClick }: ToggleableChitProps) => {
 
 const getSilencePage = (query: DataPull<GetSilencesResponse, unknown>) => {
 	if (query.state === "pending") {
-		return <div>Loading...</div>;
+		// Pending pulls get masked by the skeleton loader.
+		return <></>;
 	}
 
 	if (query.state === "error") {
@@ -94,7 +96,9 @@ export default () => {
 			</span>
 			<span>
 				<Paginator totalPages={numPages} currentPage={currentPage} setCurrentPage={setCurrentPage} maxPagesInRange={5}>
-					{getSilencePage(silences)}
+					<SkeletonLoader pull={silences} layout="paragraph" repeat={3}>
+						{getSilencePage(silences)}
+					</SkeletonLoader>
 				</Paginator>
 			</span>
 		</span>
