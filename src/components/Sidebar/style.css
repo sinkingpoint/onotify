@@ -1,20 +1,20 @@
 .side-bar-item {
-  display: flex;
-  align-items: center;
-  padding: 10px 20px;
-  cursor: pointer;
+	display: flex;
+	align-items: center;
+	padding: 10px 20px;
+	cursor: pointer;
 }
 
 .side-bar-item:hover {
-  background-color: var(--background-two);
+	background-color: var(--background-two);
 }
 
 .side-bar-item.active {
-  background-color: var(--highlight);
+	background-color: var(--highlight);
 }
 
 .side-bar {
-  background-color: var(--background-three);
-  height: 100vh;
-  max-width: 200px;
+	background-color: var(--background-three);
+	height: 100vh;
+	max-width: 200px;
 }

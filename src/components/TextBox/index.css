@@ -11,7 +11,8 @@
 	border-color: var(--border-color);
 }
 
-.txt-box-container:focus-within, .txt-box-container > input[type="text"]:focus-within {
+.txt-box-container:focus-within,
+.txt-box-container > input[type="text"]:focus-within {
 	--border-color: lightblue;
 	border-color: var(--border-color);
 }
