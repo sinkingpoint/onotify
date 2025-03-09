@@ -1,22 +1,16 @@
-# Cloudflare Workers OpenAPI 3.1
+# Onotify
 
-This is a Cloudflare Worker with OpenAPI 3.1 using [chanfana](https://github.com/cloudflare/chanfana) and [Hono](https://github.com/honojs/hono).
+This is a prototype drop in replacement for Prometheus Alertmanager, built on top of Cloudflare Workers. This allows scaling pretty much infinitely, with built in HA, at a fraction of the cost of running multiple Alertmanager VMs.
 
-This is an example project made to be used as a quick start into building OpenAPI compliant Workers that generates the
-`openapi.json` schema automatically from code and validates the incoming request to the defined parameters or request body.
+## API
 
-## Get started
+While entirely backwards compatible with Alertmanager (e.g. dashboards like [karma](https://github.com/prymitive/karma) work out of the box), the API makes several quality of life improvements such as introducing (optional) pagination on GET endpoints, and introducing QoL endpoints like the ability to get statistics about the alerts and silences in the system.
 
-1. Sign up for [Cloudflare Workers](https://workers.dev). The free tier is more than enough for most use cases.
-2. Clone this project and install dependencies with `npm install`
-3. Run `wrangler login` to login to your Cloudflare account in wrangler
-4. Run `wrangler deploy` to publish the API to Cloudflare Workers
+## Missing Features
 
-## Project structure
-
-1. Your main router is defined in `src/index.ts`.
-2. Each endpoint has its own file in `src/endpoints/`.
-3. For more information read the [chanfana documentation](https://chanfana.pages.dev/) and [Hono documentation](https://hono.dev/docs).
+- Mutes
+- Inhibitions
+- Receivers beyond Webhooks
 
 ## Development
 

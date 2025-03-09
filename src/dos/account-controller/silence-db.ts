@@ -54,6 +54,9 @@ export class SilenceDB {
 	}
 
 	async getSilences({ id, matchers, startTime, endTime, active, expired }: GetSilencesOptions) {
+		active ??= true;
+		expired ??= false;
+
 		let silences: Silence[] = [];
 		if (id) {
 			const existing = this.silences.get(id);
