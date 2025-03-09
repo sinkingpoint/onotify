@@ -30,7 +30,7 @@ const SideBarGroup = ({ title, icon, initialExpanded, children }: SideBarGroupPr
 	const triggerGroupClick = () => {
 		if (firstChildRef.current) {
 			setExpanded(true);
-			console.log((firstChildRef.current as any).base.click()); // Cast with any here. Base does exist, but I can't figure out how to type it.
+			(firstChildRef.current as any).base.click(); // Cast with any here. Base does exist, but I can't figure out how to type it.
 		}
 	};
 
