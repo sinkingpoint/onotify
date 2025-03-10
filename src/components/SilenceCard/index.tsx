@@ -17,6 +17,10 @@ export const SilenceCard = ({ silence, ...props }: SilenceCardProps) => {
 					ID: {silence.id}
 				</a>
 			</span>
+			<span>
+				<span class="font-bold">Created by: </span>
+				{silence.createdBy}
+			</span>
 			<span class="flex flex-row justify-between">
 				<span class="pr-3">
 					<span class="font-bold">{startedAt}</span> {new Date(silence.startsAt).toISOString()}
@@ -24,6 +28,10 @@ export const SilenceCard = ({ silence, ...props }: SilenceCardProps) => {
 				<span>
 					<span class="font-bold">{endedAt}</span> {new Date(silence.endsAt).toISOString()}
 				</span>
+			</span>
+			<span>
+				<span class="font-bold">Comment: </span>
+				{silence.comment}
 			</span>
 			<span class="flex flex-row">
 				{silence.matchers.map((m) => (

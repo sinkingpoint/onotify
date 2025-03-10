@@ -95,7 +95,12 @@ export default () => {
 				<FilterInput handleNewMatcher={handleNewMatcher} removeMatcher={removeMatcher} matchers={matchers} />
 			</span>
 			<span class="py-2">
-				<TogglableChit value="Active Silences" toggled={active} onClick={(toggled) => setActive(toggled)} />
+				<TogglableChit
+					value="Active Silences"
+					toggled={active}
+					class="mr-2"
+					onClick={(toggled) => setActive(toggled)}
+				/>
 				<TogglableChit value="Expired Silences" toggled={expired} onClick={(toggled) => setExpired(toggled)} />
 			</span>
 			<span>
