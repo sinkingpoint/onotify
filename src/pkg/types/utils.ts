@@ -76,3 +76,18 @@ export const useQuery = <TSuccess, TError>(
 
 	return pull;
 };
+
+// Set the given parameter in the URL, without reloading the page.
+export const setURLParam = <T>(paramName: string, values: T | T[]) => {
+	const url = new URL(window.location.toString());
+	const params = new URLSearchParams(url.search);
+	if (Array.isArray(values)) {
+		params.delete(paramName);
+		values.forEach((m) => params.append(paramName, m.toString()));
+	} else {
+		params.set(paramName, values.toString());
+	}
+
+	url.search = params.toString();
+	history.replaceState({}, "", url.toString());
+};

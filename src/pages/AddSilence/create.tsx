@@ -5,26 +5,12 @@ import FilterInput from "../../components/FilterInput";
 import { TextBox } from "../../components/TextBox";
 import { StringMatcherSpec } from "../../pkg/types/alertmanager";
 import { Matcher } from "../../pkg/types/api";
-import { matcherToString } from "../../pkg/types/utils";
+import { matcherToString, setURLParam } from "../../pkg/types/utils";
 import { PreviewProps } from "./preview";
 import { formatDate, getSilenceEnd } from "./utils";
 
 const matcherIsSame = (a: Matcher, b: Matcher) => {
 	return a.isEqual === b.isEqual && a.isRegex === b.isRegex && a.name === b.name && a.value === b.value;
-};
-
-const setURLParam = <T,>(paramName: string, values: T | T[]) => {
-	const url = new URL(window.location.toString());
-	const params = new URLSearchParams(url.search);
-	if (Array.isArray(values)) {
-		params.delete(paramName);
-		values.forEach((m) => params.append(paramName, m.toString()));
-	} else {
-		params.set(paramName, values.toString());
-	}
-
-	url.search = params.toString();
-	history.replaceState({}, "", url.toString());
 };
 
 interface CreateSilenceProps {

@@ -1,12 +1,13 @@
 import { useMemo, useState } from "preact/hooks";
+import FilterInput from "../../components/FilterInput";
 import InfoBox from "../../components/InfoBox";
 import Paginator from "../../components/Paginator";
 import { SilenceCard } from "../../components/SilenceCard";
 import { SkeletonLoader } from "../../components/Skeleton";
-import { TextBox } from "../../components/TextBox";
 import { getSilences, GetSilencesResponse } from "../../pkg/api/client";
-import { GettableSilenceSpec } from "../../pkg/types/api";
-import { DataPull, useQuery } from "../../pkg/types/utils";
+import { GettableSilenceSpec, Matcher } from "../../pkg/types/api";
+import { DataPull, matcherToString, setURLParam, useQuery } from "../../pkg/types/utils";
+import { matcherIsSame } from "../../pkg/utils/matcher";
 
 interface ToggleableChitProps {
 	value: string;
@@ -63,17 +64,20 @@ export default () => {
 	const [currentPage, setCurrentPage] = useState(1);
 	const [active, setActive] = useState(true);
 	const [expired, setExpired] = useState(false);
+
+	const [matchers, setMatchers] = useState([]);
 	const silences = useQuery(() => {
 		return getSilences({
 			query: {
 				page: currentPage,
 				limit: DEFAULT_PAGE_SIZE,
+				matcher: matchers.map((m) => matcherToString(m)),
 				sort: ["startsAt:desc"],
 				active: active,
 				expired: expired,
 			},
 		});
-	}, [currentPage, active, expired]);
+	}, [currentPage, active, expired, matchers]);
 
 	const numPages = useMemo(() => {
 		if (silences.state !== "success") {
@@ -85,11 +89,35 @@ export default () => {
 		return Math.ceil(numSilences / DEFAULT_PAGE_SIZE);
 	}, [silences]);
 
+	const setMatchersInURLParams = (matchers: Matcher[]) => {
+		setURLParam(
+			"filter",
+			matchers.map((m) => matcherToString(m)),
+		);
+
+		setMatchers(matchers);
+	};
+
+	const handleNewMatcher = (matcher: Matcher) => {
+		if (!matchers.some((m) => matcherIsSame(matcher, m))) {
+			setMatchersInURLParams([...matchers, matcher]);
+		}
+	};
+
+	const removeMatcher = (matcher: Matcher) => {
+		const idx = matchers.findIndex((m) => matcherIsSame(matcher, m));
+		if (idx !== -1) {
+			matchers.splice(idx, 1);
+			setMatchersInURLParams([...matchers]);
+		}
+	};
+
 	return (
 		<span class="flex flex-col w-full">
 			<h1>Silences</h1>
 			<span>
-				<TextBox placeholder="Filter" />
+				<h3>Filter</h3>
+				<FilterInput handleNewMatcher={handleNewMatcher} removeMatcher={removeMatcher} matchers={matchers} />
 			</span>
 			<span class="py-2">
 				<TogglableChit value="Active Silences" toggled={active} onClick={(toggled) => setActive(toggled)} />

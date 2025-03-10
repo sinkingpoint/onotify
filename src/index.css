@@ -66,3 +66,19 @@ h1 {
 	margin-top: 0.75rem /* 12px */;
 	margin-bottom: 0.75rem /* 12px */;
 }
+
+h2 {
+	font-size: 2rem /* 24px */;
+	line-height: 2.25rem /* 36px */;
+	font-weight: 700;
+	margin-top: 0.75rem /* 12px */;
+	margin-bottom: 0.75rem /* 12px */;
+}
+
+h3 {
+	font-size: 1.75rem /* 21px */;
+	line-height: 2rem /* 30px */;
+	font-weight: 700;
+	margin-top: 0.75rem /* 12px */;
+	margin-bottom: 0.75rem /* 12px */;
+}
