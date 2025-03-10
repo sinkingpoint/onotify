@@ -1,8 +1,7 @@
-import { PlusIcon } from "@heroicons/react/16/solid";
 import { ChangeEvent } from "preact/compat";
-import { useMemo, useRef, useState } from "preact/hooks";
+import { useMemo, useState } from "preact/hooks";
 import { Button } from "../../components/Button";
-import { MatcherCard } from "../../components/MatcherCard";
+import FilterInput from "../../components/FilterInput";
 import { TextBox } from "../../components/TextBox";
 import { StringMatcherSpec } from "../../pkg/types/alertmanager";
 import { Matcher } from "../../pkg/types/api";
@@ -34,10 +33,9 @@ interface CreateSilenceProps {
 
 export const CreateSilence = ({ onPreview }: CreateSilenceProps) => {
 	const params = new URLSearchParams(window.location.search);
-	const matchersInputRef = useRef<HTMLInputElement>();
+	const [matchers, setMatchers] = useState<Matcher[]>(params.getAll("matcher").map((m) => StringMatcherSpec.parse(m)));
 
 	const [duration, setDuration] = useState<string>(params.get("duration") ?? "1h");
-	const [matchers, setMatchers] = useState<Matcher[]>(params.getAll("matcher").map((m) => StringMatcherSpec.parse(m)));
 	const [comment, setComment] = useState<string>(params.get("comment") ?? "");
 
 	const handleSetDuration = (e: ChangeEvent<HTMLInputElement>) => {
@@ -57,21 +55,9 @@ export const CreateSilence = ({ onPreview }: CreateSilenceProps) => {
 		setMatchers(matchers);
 	};
 
-	const handleNewMatcher = () => {
-		try {
-			const matcher = StringMatcherSpec.parse(matchersInputRef.current.value);
-			if (!matchers.some((m) => matcherIsSame(matcher, m))) {
-				setMatchersInURLParams([...matchers, matcher]);
-			}
-
-			matchersInputRef.current.blur();
-			matchersInputRef.current.focus(); // hack for clearing a failed validation.
-			matchersInputRef.current.value = "";
-			return true;
-		} catch {
-			matchersInputRef.current.setCustomValidity("Invalid Matcher");
-			matchersInputRef.current.reportValidity();
-			return false;
+	const handleNewMatcher = (matcher: Matcher) => {
+		if (!matchers.some((m) => matcherIsSame(matcher, m))) {
+			setMatchersInURLParams([...matchers, matcher]);
 		}
 	};
 
@@ -109,10 +95,6 @@ export const CreateSilence = ({ onPreview }: CreateSilenceProps) => {
 		return endDate !== null ? <span>Ends {formatDate(endDate)}</span> : <span>Invalid duration</span>;
 	}, [duration]);
 
-	const matcherCards = useMemo(() => {
-		return matchers.map((m) => <MatcherCard matcher={m} onDelete={() => removeMatcher(m)} />);
-	}, [matchers]);
-
 	return (
 		<>
 			<h2 class="text-xl">Duration</h2>
@@ -131,24 +113,7 @@ export const CreateSilence = ({ onPreview }: CreateSilenceProps) => {
 			</div>
 
 			<h2 class="text-xl">Matchers</h2>
-			<div class="flex flex-row">
-				<TextBox
-					id="matcher"
-					textRef={matchersInputRef}
-					type="text"
-					placeholder={`a="b"`}
-					title='Matchers that this silence will match, e.g. label="value"'
-					onKeyPress={(e) => {
-						if (e.key === "Enter") {
-							handleNewMatcher();
-						}
-					}}
-					button={<PlusIcon class="inline size-5" />}
-					onButtonClick={() => handleNewMatcher()}
-				/>
-			</div>
-
-			<div class="flex flex-row flex-wrap flex-shrink flex-grow-0 pt-2">{matcherCards}</div>
+			<FilterInput matchers={matchers} handleNewMatcher={handleNewMatcher} removeMatcher={removeMatcher} />
 
 			<h2 class="text-xl">Comment</h2>
 			<TextBox
