@@ -1,6 +1,6 @@
 import { OpenAPIRoute } from "chanfana";
 import { Context } from "hono";
-import { GetSilencesParamsSpec, GettableSilencesSpec } from "../../types/api";
+import { GetSilencesParamsSpec, GettableSilencesSpec, PaginationHeaders } from "../../types/api";
 import { Errors, HTTPResponses } from "../../types/http";
 import { Bindings, Silence } from "../../types/internal";
 import { internalSilenceToAlertmanager } from "../utils/api";
@@ -36,6 +36,7 @@ export class GetSilences extends OpenAPIRoute {
 		responses: {
 			"200": {
 				description: "Sucessfully retrieved silences",
+				headers: PaginationHeaders,
 				content: {
 					"application/json": {
 						schema: GettableSilencesSpec,
@@ -90,7 +91,9 @@ export class GetSilences extends OpenAPIRoute {
 			});
 		}
 
-		// TODO: Maybe store a cursor in a DO to avoid having to sort on every search.
+		const totalLength = silences.length;
+
+		// TODO(https://github.com/sinkingpoint/onotify/issues/12): Maybe store a cursor in a DO to avoid having to sort on every search.
 		let startIndex = 0;
 		let endIndex = silences.length;
 		if (page) {
@@ -99,6 +102,7 @@ export class GetSilences extends OpenAPIRoute {
 		}
 
 		c.status(200);
+		c.res.headers.set("X-Total-Count", totalLength.toString());
 		return c.json(silences.slice(startIndex, endIndex).map((s) => internalSilenceToAlertmanager(s)));
 	}
 }

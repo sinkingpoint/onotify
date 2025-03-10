@@ -47,6 +47,7 @@ const openapi = fromHono(app, {
 const corsOptions = {
 	allowedMethods: ["GET", "POST", "OPTIONS"],
 	allowedHeaders: ["Content-Type", "Authorization"],
+	exposeHeaders: ["X-Total-Count"],
 	credentials: true,
 };
 

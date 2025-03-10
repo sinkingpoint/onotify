@@ -137,7 +137,10 @@ export const GettableAlertsSpec = z.array(GettableAlertSpec);
 
 export type GettableAlert = z.infer<typeof GettableAlertSpec>;
 
-const SilenceStatusSpec = z.enum(["expired", "active", "pending"]);
+const SilenceStatusSpec = z.object({
+	state: z.enum(["expired", "active", "pending"]),
+});
+
 export const GettableSilenceSpec = silence.extend({
 	id: z.string().openapi({
 		description: "The ID assigned to the silence",
@@ -289,4 +292,8 @@ export type StatsBucket = z.infer<typeof StatsBucketSpec>;
 
 export const StatsResponseSpec = z.object({
 	buckets: z.array(StatsBucketSpec).openapi({ description: "The buckets of the stats" }),
+});
+
+export const PaginationHeaders = z.object({
+	"X-Total-Count": z.number().int().positive().optional().openapi({ description: "Total number of items" }),
 });

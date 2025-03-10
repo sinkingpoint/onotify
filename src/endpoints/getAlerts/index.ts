@@ -1,6 +1,6 @@
 import { OpenAPIRoute } from "chanfana";
 import { Context } from "hono";
-import { GetAlertsParamsSpec, GettableAlert, GettableAlertsSpec } from "../../types/api";
+import { GetAlertsParamsSpec, GettableAlert, GettableAlertsSpec, PaginationHeaders } from "../../types/api";
 import { Errors, HTTPResponses } from "../../types/http";
 import { Bindings } from "../../types/internal";
 import { checkAPIKey, toErrorString } from "../utils/auth";
@@ -39,6 +39,7 @@ export class GetAlerts extends OpenAPIRoute {
 		responses: {
 			"200": {
 				description: "Successfully got alerts",
+				headers: PaginationHeaders,
 				content: {
 					"application/json": {
 						schema: GettableAlertsSpec,
@@ -122,6 +123,8 @@ export class GetAlerts extends OpenAPIRoute {
 			});
 		}
 
+		const outputAlertsLength = outputAlerts.length;
+
 		const pageSize = limit ?? DEFAULT_PAGE_SIZE;
 		let startIndex = 0;
 		let endIndex = outputAlerts.length;
@@ -134,6 +137,7 @@ export class GetAlerts extends OpenAPIRoute {
 			outputAlerts.slice(startIndex, endIndex);
 		}
 
+		c.res.headers.set("X-Total-Count", outputAlertsLength.toString());
 		return c.json(outputAlerts, HTTPResponses.OK);
 	}
 }
