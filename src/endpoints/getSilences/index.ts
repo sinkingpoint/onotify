@@ -7,8 +7,6 @@ import { internalSilenceToAlertmanager } from "../utils/api";
 import { checkAPIKey, toErrorString } from "../utils/auth";
 import { accountControllerName } from "../utils/kv";
 
-const DEFAULT_PAGE_SIZE = 20;
-
 const getFieldFromSilence = (silence: Silence, field: string) => {
 	switch (field) {
 		case "startsAt":
@@ -57,13 +55,12 @@ export class GetSilences extends OpenAPIRoute {
 		const {
 			query: { matcher, active, expired, sort, limit, page },
 		} = await this.getValidatedData<typeof this.schema>();
-		const pageSize = limit ?? DEFAULT_PAGE_SIZE;
 
 		const controllerName = accountControllerName(authResult.accountID);
 		const controllerID = c.env.ACCOUNT_CONTROLLER.idFromName(controllerName);
 		const controller = c.env.ACCOUNT_CONTROLLER.get(controllerID);
 
-		const silences = await controller.getSilences({ matchers: matcher, active, expired });
+		let silences = await controller.getSilences({ matchers: matcher, active, expired });
 		if (sort) {
 			const fields = sort.map((s) => {
 				const [field, direction] = s.split(":");
@@ -92,13 +89,12 @@ export class GetSilences extends OpenAPIRoute {
 		}
 
 		const totalLength = silences.length;
-
-		// TODO(https://github.com/sinkingpoint/onotify/issues/12): Maybe store a cursor in a DO to avoid having to sort on every search.
 		let startIndex = 0;
 		let endIndex = silences.length;
-		if (page) {
-			startIndex = pageSize * (page - 1);
-			endIndex = startIndex + pageSize;
+
+		if (limit) {
+			startIndex = limit * ((page ?? 1) - 1);
+			endIndex = startIndex + limit;
 		}
 
 		c.status(200);

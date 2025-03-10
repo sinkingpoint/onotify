@@ -6,8 +6,6 @@ import { Bindings } from "../../types/internal";
 import { checkAPIKey, toErrorString } from "../utils/auth";
 import { accountControllerName } from "../utils/kv";
 
-const DEFAULT_PAGE_SIZE = 20;
-
 const getFieldFromAlert = (alert: GettableAlert, field: string) => {
 	switch (field) {
 		case "alertname":
@@ -138,21 +136,15 @@ export class GetAlerts extends OpenAPIRoute {
 			});
 		}
 
-		const outputAlertsLength = outputAlerts.length;
-
-		const pageSize = limit ?? DEFAULT_PAGE_SIZE;
+		const totalLength = outputAlerts.length;
 		let startIndex = 0;
 		let endIndex = outputAlerts.length;
-		if (page) {
-			startIndex = pageSize * (page - 1);
-			endIndex = startIndex + pageSize;
-		}
 
 		if (limit) {
-			outputAlerts.slice(startIndex, endIndex);
+			startIndex = limit * ((page ?? 1) - 1);
+			endIndex = startIndex + limit;
 		}
-
-		c.res.headers.set("X-Total-Count", outputAlertsLength.toString());
-		return c.json(outputAlerts, HTTPResponses.OK);
+		c.res.headers.set("X-Total-Count", totalLength.toString());
+		return c.json(outputAlerts.splice(startIndex, endIndex), HTTPResponses.OK);
 	}
 }
