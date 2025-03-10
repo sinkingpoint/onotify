@@ -4,36 +4,11 @@ import InfoBox from "../../components/InfoBox";
 import Paginator from "../../components/Paginator";
 import { SilenceCard } from "../../components/SilenceCard";
 import { SkeletonLoader } from "../../components/Skeleton";
+import TogglableChit from "../../components/TogglableChit";
 import { getSilences, GetSilencesResponse } from "../../pkg/api/client";
 import { GettableSilenceSpec, Matcher } from "../../pkg/types/api";
 import { DataPull, matcherToString, setURLParam, useQuery } from "../../pkg/types/utils";
 import { matcherIsSame } from "../../pkg/utils/matcher";
-
-interface ToggleableChitProps {
-	value: string;
-	toggled: boolean;
-	onClick?: (toggled: boolean) => void;
-}
-
-const TogglableChit = ({ value, toggled, onClick }: ToggleableChitProps) => {
-	let className = "cursor-pointer select-none rounded-xl bg-slate-900	px-3 py-1";
-	if (!toggled) {
-		className += " line-through decoration-2";
-	}
-
-	const handleClick = () => {
-		const newToggled = !toggled;
-		if (onClick) {
-			onClick(newToggled);
-		}
-	};
-
-	return (
-		<span class={className} onClick={handleClick}>
-			{value}
-		</span>
-	);
-};
 
 const getSilencePage = (query: DataPull<GetSilencesResponse, unknown>) => {
 	if (query.state === "pending") {
