@@ -1,8 +1,9 @@
 import { ChevronDoubleLeftIcon, ChevronDoubleRightIcon, EllipsisHorizontalIcon } from "@heroicons/react/16/solid";
+import { HTMLAttributes } from "preact/compat";
 import { JSX } from "preact/jsx-runtime";
 import "./styles.css";
 
-interface PaginatorProps {
+interface PaginatorProps extends HTMLAttributes<HTMLDivElement> {
 	totalPages: number;
 	currentPage: number;
 	maxPagesInRange?: number;
@@ -100,14 +101,16 @@ const RangeSelector = ({ currentPage, totalPages, maxPagesInRange, setCurrentPag
 	return <span class="mt-3">{range}</span>;
 };
 
-export default ({ totalPages, children, currentPage, maxPagesInRange, setCurrentPage }: PaginatorProps) => {
+export default ({ totalPages, children, currentPage, maxPagesInRange, setCurrentPage, ...props }: PaginatorProps) => {
 	if (currentPage > totalPages) {
 		setCurrentPage(totalPages);
 	}
 
+	const cls = "flex flex-col " + (props.class ? props.class : "");
+
 	return (
-		<span class="flex flex-col">
-			<div>{children}</div>
+		<span {...props} class={cls}>
+			{children}
 			<>
 				{totalPages > 0 && (
 					<RangeSelector

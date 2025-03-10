@@ -1,4 +1,5 @@
 import { useMemo, useState } from "preact/hooks";
+import InfoBox from "../../components/InfoBox";
 import Paginator from "../../components/Paginator";
 import { SilenceCard } from "../../components/SilenceCard";
 import { SkeletonLoader } from "../../components/Skeleton";
@@ -40,12 +41,12 @@ const getSilencePage = (query: DataPull<GetSilencesResponse, unknown>) => {
 	}
 
 	if (query.state === "error") {
-		return <div>Error: {query.error}</div>;
+		return <InfoBox style="error" text="Failed to fetch silences" class="my-1 w-full" />;
 	}
 
 	const silences = query.result;
 	if (silences.length === 0) {
-		return <div>No silences found</div>;
+		return <InfoBox style="warn" text="No silences found" class="my-1 w-full" />;
 	}
 
 	return (
@@ -85,7 +86,7 @@ export default () => {
 	}, [silences]);
 
 	return (
-		<span class="flex flex-col">
+		<span class="flex flex-col w-full">
 			<h1>Silences</h1>
 			<span>
 				<TextBox placeholder="Filter" />
@@ -95,7 +96,13 @@ export default () => {
 				<TogglableChit value="Expired Silences" toggled={expired} onClick={(toggled) => setExpired(toggled)} />
 			</span>
 			<span>
-				<Paginator totalPages={numPages} currentPage={currentPage} setCurrentPage={setCurrentPage} maxPagesInRange={5}>
+				<Paginator
+					totalPages={numPages}
+					currentPage={currentPage}
+					setCurrentPage={setCurrentPage}
+					maxPagesInRange={5}
+					class="w-1/2"
+				>
 					<SkeletonLoader pull={silences} layout="paragraph" repeat={3}>
 						{getSilencePage(silences)}
 					</SkeletonLoader>

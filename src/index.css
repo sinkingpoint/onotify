@@ -14,6 +14,8 @@
 	--background-three: #588157;
 	--border-color: #fcfaf7;
 	--highlight: #3a6466;
+	--warning: #D6A600;
+	--error: #D76B6B;
 
 	color: var(--background-color);
 	background-color: var(--text-color);
