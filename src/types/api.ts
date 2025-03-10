@@ -214,6 +214,8 @@ export const GetAlertsParamsSpec = z.object({
 	fingerprints: z.array(z.string()).optional(),
 	active: z.boolean().default(true).openapi({ description: "Show active alerts" }),
 	silenced: z.boolean().default(true).openapi({ description: "Show silenced alerts" }),
+	resolved: z.boolean().default(false).openapi({ description: "Show resolved alerts" }),
+	muted: z.boolean().default(true).openapi({ description: "Show muted alerts" }),
 	inhibited: z.boolean().default(true).openapi({ description: "Show inhibited alerts" }),
 	unprocessed: z.boolean().default(true).openapi({ description: "Show unprocessed alerts" }),
 	filter: z.array(StringMatcherSpec).default([]).openapi({ description: "A list of matchers to filter by" }),

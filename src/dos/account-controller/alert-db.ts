@@ -89,6 +89,7 @@ export class AlertDB {
 		fingerprints,
 		silenced,
 		muted,
+		resolved,
 		inhibited,
 		unprocessed,
 		receiver,
@@ -134,7 +135,9 @@ export class AlertDB {
 
 			const isSilenced = f.silencedBy.length > 0;
 			const isInhibited = f.inhibitedBy.length > 0;
-			const isActive = !isSilenced && !isInhibited;
+			const isResolved = f.endsAt && f.endsAt < Date.now();
+			const isMuted = false;
+			const isActive = !isSilenced && !isInhibited && !isResolved && !isMuted;
 			// TODO(https://github.com/sinkingpoint/onotify/issues/3): Support muted + unprocessed alerts here.
 
 			if (!silenced && isSilenced) {
@@ -154,6 +157,14 @@ export class AlertDB {
 			}
 
 			if (endTime && f.startsAt > endTime) {
+				return false;
+			}
+
+			if (!muted && isMuted) {
+				return false;
+			}
+
+			if (!resolved && isResolved) {
 				return false;
 			}
 

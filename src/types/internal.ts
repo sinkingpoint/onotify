@@ -90,6 +90,7 @@ export interface GetAlertsOptions {
 	active?: boolean;
 	silenced?: boolean;
 	inhibited?: boolean;
+	resolved?: boolean;
 	muted?: boolean;
 	unprocessed?: boolean;
 	receiver?: RegExp;

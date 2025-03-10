@@ -58,7 +58,20 @@ export class GetAlerts extends OpenAPIRoute {
 		}
 
 		const { query } = await this.getValidatedData<typeof this.schema>();
-		const { fingerprints, active, silenced, inhibited, unprocessed, filter, receiver, sort, limit, page } = query;
+		const {
+			fingerprints,
+			active,
+			silenced,
+			inhibited,
+			unprocessed,
+			filter,
+			resolved,
+			muted,
+			receiver,
+			sort,
+			limit,
+			page,
+		} = query;
 
 		const controllerName = accountControllerName(authResult.accountID);
 		const controllerID = c.env.ACCOUNT_CONTROLLER.idFromName(controllerName);
@@ -71,6 +84,8 @@ export class GetAlerts extends OpenAPIRoute {
 			silenced,
 			inhibited,
 			unprocessed,
+			resolved,
+			muted,
 			filter,
 			receiver,
 		})) {
