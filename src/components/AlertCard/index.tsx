@@ -18,22 +18,22 @@ export const AlertCard = ({ alert, ...props }: AlertCardProps) => {
 	return (
 		<span {...props} class={classes}>
 			<span>
-				<h3 class="text-lg inline font-bold">Alert Name: </h3>
+				<label class="inline font-bold">Alert Name: </label>
 				{alert.labels["alertname"] ? <span>{alert.labels["alertname"]}</span> : <span class="italic">None</span>}
 			</span>
 
 			<span>
-				<h3 class="text-lg inline font-bold">{startedAt}</h3>: {formatDate(new Date(startsAt))}
+				<label class="inline font-bold">{startedAt}</label>: {formatDate(new Date(startsAt))}
 			</span>
 
 			{endsAt > 0 && (
 				<span>
-					<h2 class="text-lg inline font-bold">{endedAt}</h2>: {formatDate(new Date(endsAt))}
+					<label class="inline font-bold">{endedAt}</label>: {formatDate(new Date(endsAt))}
 				</span>
 			)}
 
 			<span>
-				<h3 class="text-lg inline font-bold">Labels:</h3>
+				<label class="inline font-bold">Labels:</label>
 				<span class="flex flex-row">
 					{Object.keys(alert.labels).map((labelName) => (
 						<MatcherCard matcher={{ name: labelName, value: alert.labels[labelName], isEqual: true, isRegex: false }} />

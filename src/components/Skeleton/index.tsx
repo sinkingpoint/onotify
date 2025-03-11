@@ -16,7 +16,6 @@ export const SkeletonLoader = <TSuccess, TError>({
 	repeat,
 	...props
 }: SkeletonLoaderProps<TSuccess, TError>) => {
-	console.log("SkeletonLoader", pull, children, layout, props);
 	const needsSkeleton = pull.state === "pending";
 	if (!needsSkeleton) {
 		return <>{children}</>;

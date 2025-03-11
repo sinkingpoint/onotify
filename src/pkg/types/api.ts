@@ -52,7 +52,7 @@ export const MatcherSpec = z
 		description: "A matcher that can be used to match against alerts",
 	});
 
-export type Matcher = z.infer<typeof MatcherSpec>;
+export type Matcher = Required<z.infer<typeof MatcherSpec>>;
 
 const silence = z.object({
 	matchers: z.array(MatcherSpec).openapi({
@@ -229,7 +229,7 @@ export const GetAlertsParamsSpec = z.object({
 				"endsAt:desc",
 				"updatedAt:desc",
 				"alertname:desc",
-			])
+			]),
 		)
 		.optional()
 		.openapi({ description: "The field to sort by" }),

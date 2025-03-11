@@ -72,8 +72,8 @@ export const PreviewSilence = ({ duration, matchers, comment }: PreviewProps) =>
 			const { data: id } = await postSilence({
 				body: {
 					matchers,
-					startsAt: startTime.toISOString(),
-					endsAt: endTime.toISOString(),
+					startsAt: formatDate(startTime),
+					endsAt: formatDate(endTime),
 					comment,
 				},
 			});

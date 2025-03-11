@@ -1,9 +1,10 @@
 import { HTMLAttributes } from "preact/compat";
-import { GettableSilence } from "../../pkg/types/api";
+import { formatDate } from "../../pages/AddSilence/utils";
+import { GettableSilence, Matcher } from "../../pkg/types/api";
 import { MatcherCard } from "../MatcherCard";
 
 interface SilenceCardProps extends HTMLAttributes<HTMLSpanElement> {
-	silence: GettableSilence;
+	silence: Omit<GettableSilence, "matchers"> & { matchers: Matcher[] };
 }
 
 export const SilenceCard = ({ silence, ...props }: SilenceCardProps) => {
@@ -23,10 +24,10 @@ export const SilenceCard = ({ silence, ...props }: SilenceCardProps) => {
 			</span>
 			<span class="flex flex-row justify-between">
 				<span class="pr-3">
-					<span class="font-bold">{startedAt}</span> {new Date(silence.startsAt).toISOString()}
+					<span class="font-bold">{startedAt}</span> {formatDate(new Date(silence.startsAt))}
 				</span>
 				<span>
-					<span class="font-bold">{endedAt}</span> {new Date(silence.endsAt).toISOString()}
+					<span class="font-bold">{endedAt}</span> {formatDate(new Date(silence.endsAt))}
 				</span>
 			</span>
 			<span>
