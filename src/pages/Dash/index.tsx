@@ -3,6 +3,11 @@ import StatPanel from "../../components/StatPanel";
 import { getAlerts, getStats } from "../../pkg/api/client";
 import { useQuery } from "../../pkg/types/utils";
 
+const getStatPanel = (title: string, value?: number, error?: string) => {
+	console.log(title, value, error);
+	return <StatPanel title={title} value={value} error={error} class="w-1/3" />;
+};
+
 export const Dash = () => {
 	const alerts = useQuery(
 		() =>
@@ -54,21 +59,21 @@ export const Dash = () => {
 	return (
 		<div class="w-full flex flex-col">
 			<span class="flex flex-row justify-between w-full">
-				<StatPanel
-					title="Firing Alerts"
-					value={alertStats.state === "success" ? (alertStats.result.buckets[0]?.value ?? 0) : 0}
-					class="w-1/3"
-				/>
-				<StatPanel
-					title="Silenced Alerts"
-					value={silencedAlertStats.state === "success" ? (silencedAlertStats.result.buckets[0]?.value ?? 0) : 0}
-					class="w-1/3"
-				/>
-				<StatPanel
-					title="Silences"
-					value={silenceStats.state === "success" ? (silenceStats.result.buckets[0]?.value ?? 0) : 0}
-					class="w-1/3"
-				/>
+				{getStatPanel(
+					"Firing Alerts",
+					alertStats.state === "success" ? (alertStats.result.buckets[0]?.value ?? 0) : undefined,
+					alertStats.state === "error" ? alertStats.error.toString() : undefined,
+				)}
+				{getStatPanel(
+					"Silenced Alerts",
+					silencedAlertStats.state === "success" ? (silencedAlertStats.result.buckets[0]?.value ?? 0) : undefined,
+					silencedAlertStats.state === "error" ? silencedAlertStats.error.toString() : undefined,
+				)}
+				{getStatPanel(
+					"Silences",
+					silenceStats.state === "success" ? (silenceStats.result.buckets[0]?.value ?? 0) : undefined,
+					silenceStats.state === "error" ? silenceStats.error.toString() : undefined,
+				)}
 			</span>
 
 			<h2 class="text-2xl font-bold mt-5">Latest Alerts</h2>

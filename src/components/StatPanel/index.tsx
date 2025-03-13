@@ -1,12 +1,26 @@
+import InfoBox from "../InfoBox";
 import "./style.css";
 
 interface StatPanelProps extends React.HTMLAttributes<HTMLDivElement> {
 	title?: string;
-	value: number;
+	value?: number;
+	error?: string;
 }
 
-export default ({ title, value, ...props }: StatPanelProps) => {
+export default ({ title, value, error, ...props }: StatPanelProps) => {
 	const classes = "stat-panel flex flex-col " + (props.class ?? "");
+	const getContents = () => {
+		if (error) {
+			return <InfoBox style="error" text={error} />;
+		}
+
+		if (value === undefined) {
+			return <div class="skeleton w-3/4 h-3/4 self-center" />;
+		}
+
+		return <span class="flex flex-row w-full justify-center text-8xl">{value}</span>;
+	};
+
 	return (
 		<div class={classes}>
 			{title ? (
@@ -16,7 +30,7 @@ export default ({ title, value, ...props }: StatPanelProps) => {
 			) : (
 				<></>
 			)}
-			<span class="flex flex-row w-full justify-center text-8xl">{value}</span>
+			{getContents()}
 		</div>
 	);
 };

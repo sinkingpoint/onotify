@@ -1,6 +1,6 @@
-import { ChangeEvent } from "preact/compat";
 import { useMemo, useState } from "preact/hooks";
 import { Button } from "../../components/Button";
+import DurationInput from "../../components/DurationInput";
 import FilterInput from "../../components/FilterInput";
 import { TextBox } from "../../components/TextBox";
 import { StringMatcherSpec } from "../../pkg/types/alertmanager";
@@ -24,11 +24,10 @@ export const CreateSilence = ({ onPreview }: CreateSilenceProps) => {
 	const [duration, setDuration] = useState<string>(params.get("duration") ?? "1h");
 	const [comment, setComment] = useState<string>(params.get("comment") ?? "");
 
-	const handleSetDuration = (e: ChangeEvent<HTMLInputElement>) => {
-		const newRawDuration = e.currentTarget.value;
-		setDuration(newRawDuration);
-		if (getSilenceEnd(newRawDuration)) {
-			setURLParam("duration", newRawDuration);
+	const handleSetDuration = (newDuration: string) => {
+		setDuration(newDuration);
+		if (getSilenceEnd(newDuration)) {
+			setURLParam("duration", newDuration);
 		}
 	};
 
@@ -56,14 +55,9 @@ export const CreateSilence = ({ onPreview }: CreateSilenceProps) => {
 	};
 
 	const checkFormValidity = () => {
-		const duration = document.getElementById("duration") as HTMLInputElement;
 		const comment = document.getElementById("comment") as HTMLInputElement;
 
-		if (getSilenceEnd(duration.value) === null) {
-			duration.setCustomValidity("Invalid duration");
-			duration.reportValidity();
-			return false;
-		} else if (comment.value === "") {
+		if (comment.value === "") {
 			comment.setCustomValidity("Comment cannot be empty");
 			comment.reportValidity();
 			return false;
@@ -72,10 +66,6 @@ export const CreateSilence = ({ onPreview }: CreateSilenceProps) => {
 		return true;
 	};
 
-	const isDurationValid = useMemo(() => {
-		return getSilenceEnd(duration) !== null;
-	}, [duration]);
-
 	const end = useMemo(() => {
 		const endDate = getSilenceEnd(duration);
 		return endDate !== null ? <span>Ends {formatDate(endDate)}</span> : <span>Invalid duration</span>;
@@ -83,25 +73,17 @@ export const CreateSilence = ({ onPreview }: CreateSilenceProps) => {
 
 	return (
 		<>
-			<h2 class="text-xl">Duration</h2>
+			<h2 class="text-xl mb-1 mt-0">Duration</h2>
 			<div class="flex justify-start flex-wrap items-center">
-				<TextBox
-					id="duration"
-					class="mb-2"
-					title="Duration in Go format, e.g. 1h"
-					pattern="[0-9]+[mhdw]"
-					value={duration}
-					onInput={handleSetDuration}
-					valid={isDurationValid}
-				/>
+				<DurationInput onChange={(d) => handleSetDuration(d)} duration={duration} />
 
 				<span class="pl-10">{end}</span>
 			</div>
 
-			<h2 class="text-xl">Matchers</h2>
+			<h2 class="text-xl mb-1 mt-0">Matchers</h2>
 			<FilterInput matchers={matchers} handleNewMatcher={handleNewMatcher} removeMatcher={removeMatcher} />
 
-			<h2 class="text-xl">Comment</h2>
+			<h2 class="text-xl mb-1 mt-0">Comment</h2>
 			<TextBox
 				id="comment"
 				type="text"
