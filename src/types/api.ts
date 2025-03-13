@@ -57,7 +57,7 @@ export type Matcher = z.infer<typeof MatcherSpec>;
 const silence = z.object({
 	matchers: z.array(MatcherSpec).openapi({
 		description: "The matchers that match the alerts that this silence should silence",
-	}),
+	}).min(1),
 	startsAt: z
 		.string()
 		.datetime({ offset: true })
