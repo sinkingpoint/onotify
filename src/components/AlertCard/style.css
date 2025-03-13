@@ -1,0 +1,10 @@
+.alert-card:hover {
+  background-color: var(--background-three);
+}
+.alert-card:hover > .alert-card-view-btn {
+  display: inline;
+}
+
+.alert-card-view-btn {
+  display: none;
+}

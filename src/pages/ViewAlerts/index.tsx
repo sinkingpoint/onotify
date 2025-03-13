@@ -131,7 +131,7 @@ export default () => {
 					currentPage={currentPage}
 					setCurrentPage={setCurrentPage}
 					maxPagesInRange={5}
-					class="w-1/2"
+					class="w-full"
 				>
 					<SkeletonLoader pull={alerts} layout="paragraph" repeat={DEFAULT_PAGE_SIZE / 2}>
 						{getAlertsPage(alerts)}
