@@ -74,7 +74,7 @@ export const CreateSilence = ({ onPreview }: CreateSilenceProps) => {
 	return (
 		<>
 			<h2 class="text-xl mb-1 mt-0">Duration</h2>
-			<div class="flex justify-start flex-wrap items-center">
+			<div class="flex justify-start flex-wrap items-center mb-2">
 				<DurationInput onChange={(d) => handleSetDuration(d)} duration={duration} />
 
 				<span class="pl-10">{end}</span>

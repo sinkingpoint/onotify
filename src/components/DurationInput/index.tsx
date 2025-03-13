@@ -1,5 +1,6 @@
-import { ChevronDownIcon, ChevronUpIcon } from "@heroicons/react/16/solid";
-import { useRef } from "preact/hooks";
+import { ChevronDownIcon, ChevronUpIcon, PencilSquareIcon } from "@heroicons/react/16/solid";
+import { useRef, useState } from "preact/hooks";
+import { TextBox } from "../TextBox";
 import "./style.css";
 
 interface NumberInputProps {
@@ -89,6 +90,8 @@ interface DurationInputProps {
 	onChange(duration: string): void;
 }
 
+type InputMode = "simple" | "advanced";
+
 export default ({ onChange, duration }: DurationInputProps) => {
 	const callChange = (day: number, hour: number, minute: number) => {
 		if (day == 0 && hour == 0 && minute === 0) {
@@ -107,6 +110,10 @@ export default ({ onChange, duration }: DurationInputProps) => {
 		durationComponents = { d: 0, h: 1, m: 0 };
 	}
 
+	const isSimple = Object.keys(durationComponents).every((k) => ["d", "m", "h"].includes(k));
+	const [mode, setMode] = useState<InputMode>(isSimple ? "simple" : "advanced");
+	const isDurationValid = Object.keys(durationComponents).every((k) => ["d", "m", "h", "w", "s"].includes(k));
+
 	const day = durationComponents["d"] ?? 0;
 	const hour = durationComponents["h"] ?? 0;
 	const minute = durationComponents["m"] ?? 0;
@@ -117,30 +124,59 @@ export default ({ onChange, duration }: DurationInputProps) => {
 		callChange(day, hour, 1);
 	}
 
+	let contents;
+
+	if (mode === "simple") {
+		contents = (
+			<span class="flex flex-row">
+				<NumberInput
+					start={day}
+					label="Days"
+					lowerBound={0}
+					onChange={(n) => {
+						callChange(n, hour, minute);
+					}}
+				/>
+				<NumberInput
+					start={hour}
+					label="Hours"
+					lowerBound={0}
+					onChange={(n) => {
+						callChange(day, n, minute);
+					}}
+				/>
+				<NumberInput
+					start={minute}
+					label="Minutes"
+					lowerBound={minuteLowerBound}
+					onChange={(n) => {
+						callChange(day, hour, n);
+					}}
+				/>
+			</span>
+		);
+	} else {
+		contents = (
+			<span>
+				<TextBox
+					id="duration"
+					title="Duration in Go format, e.g. 1h"
+					pattern="[0-9]+[mhdw]"
+					value={duration}
+					onInput={(e: any) => onChange(e.target.value)}
+					valid={isDurationValid}
+				/>
+			</span>
+		);
+	}
+
 	return (
 		<span class="flex flex-row">
-			<NumberInput
-				start={day}
-				label="Day"
-				lowerBound={0}
-				onChange={(n) => {
-					callChange(n, hour, minute);
-				}}
-			/>
-			<NumberInput
-				start={hour}
-				label="Hour"
-				lowerBound={0}
-				onChange={(n) => {
-					callChange(day, n, minute);
-				}}
-			/>
-			<NumberInput
-				start={minute}
-				label="Minute"
-				lowerBound={minuteLowerBound}
-				onChange={(n) => {
-					callChange(day, hour, n);
+			{contents}
+			<PencilSquareIcon
+				class="inline size-6 self-center ml-2"
+				onClick={() => {
+					setMode(mode === "simple" ? "advanced" : "simple");
 				}}
 			/>
 		</span>
