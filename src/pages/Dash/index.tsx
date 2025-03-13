@@ -82,8 +82,7 @@ export const Dash = () => {
 					{alerts.result.map((a) => {
 						return (
 							<>
-								<AlertCard alert={a} />
-								<hr />
+								<AlertCard alert={a} class="pb-3" />
 							</>
 						);
 					})}
