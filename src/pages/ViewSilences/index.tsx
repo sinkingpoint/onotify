@@ -6,7 +6,7 @@ import { SilenceCard } from "../../components/SilenceCard";
 import { SkeletonLoader } from "../../components/Skeleton";
 import TogglableChit from "../../components/TogglableChit";
 import { getSilences, GetSilencesResponse } from "../../pkg/api/client";
-import { Matcher } from "../../pkg/types/api";
+import { GettableSilenceSpec, Matcher } from "../../pkg/types/api";
 import { DataPull, matcherToString, setURLParam, useQuery } from "../../pkg/types/utils";
 import { matcherIsSame } from "../../pkg/utils/matcher";
 
@@ -28,7 +28,7 @@ const getSilencePage = (query: DataPull<GetSilencesResponse, unknown>) => {
 	return (
 		<div>
 			{silences.map((s) => (
-				<SilenceCard class="pb-3" silence={s as any} />
+				<SilenceCard class="pb-3" silence={GettableSilenceSpec.parse(s) as any} />
 			))}
 		</div>
 	);
@@ -46,7 +46,7 @@ export default () => {
 			query: {
 				page: currentPage,
 				limit: DEFAULT_PAGE_SIZE,
-				matcher: matchers.map((m) => matcherToString(m)),
+				filter: matchers.map((m) => matcherToString(m)),
 				sort: ["startsAt:desc"],
 				active: active,
 				expired: expired,

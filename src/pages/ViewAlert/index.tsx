@@ -1,109 +1,146 @@
 import { useRoute } from "preact-iso";
-import { useMemo } from "preact/hooks";
-import { getAlerts, GetAlertsResponse } from "../../pkg/api/client";
-import { useQuery } from "../../pkg/types/utils";
+import { JSX } from "preact/jsx-runtime";
+import { AlertCard } from "../../components/AlertCard";
+import InfoBox from "../../components/InfoBox";
+import { MatcherCard } from "../../components/MatcherCard";
+import { SilenceCard } from "../../components/SilenceCard";
+import { SkeletonLoader } from "../../components/Skeleton";
+import { getAlerts, GetAlertsResponse, getSilences, GetSilencesResponse } from "../../pkg/api/client";
+import { GettableSilenceSpec } from "../../pkg/types/api";
+import { DataPull, useQuery } from "../../pkg/types/utils";
 
-type LinkFunc = (val: string, key?: string) => string;
-
-const listifyKVs = (labels?: Record<string, string>, link?: LinkFunc) => {
-	if (labels && Object.keys(labels).length > 0) {
-		return (
-			<ul>
-				{Object.keys(labels).map((k) => {
-					let entry = (
-						<>
-							{k} = "{labels[k]}"
-						</>
-					);
-
-					if (link) {
-						const linkURL = link(labels[k], k);
-						entry = <a href={linkURL}>{entry}</a>;
-					}
-
-					return <li>{entry}</li>;
-				})}
-			</ul>
-		);
-	} else {
-		return <span class="italic">None</span>;
+const silenceCards = (pull: DataPull<GetSilencesResponse, any>) => {
+	if (!pull || pull.state === "pending") {
+		return;
 	}
+
+	if (pull.state === "error") {
+		return <InfoBox style="error" text="Failed to pull silences" />;
+	}
+
+	return pull.result.map((s) => <SilenceCard silence={GettableSilenceSpec.parse(s) as any} />);
 };
 
-const listifyArray = (values?: string[], link?: LinkFunc) => {
-	if (values && values.length > 0) {
-		return (
-			<ul>
-				{values.map((k) => {
-					let entry = <>{k}</>;
-
-					if (link) {
-						const linkURL = link(k);
-						entry = <a href={linkURL}>{entry}</a>;
-					}
-
-					return <li>{entry}</li>;
-				})}
-			</ul>
-		);
-	} else {
-		return <span class="italic">None</span>;
+const inhibitedCards = (pull: DataPull<GetAlertsResponse, any>) => {
+	if (!pull || pull.state === "pending") {
+		return;
 	}
-};
 
-const getStatusText = (alerts: GetAlertsResponse) => {
-	const alert = alerts[0];
-	if (alert.endsAt && Date.parse(alert.endsAt) <= Date.now()) {
-		return "resolved";
-	} else if (alert.status.silencedBy?.length > 0) {
-		return "silenced";
-	} else if (alert.status.inhibitedBy?.length > 0) {
-		return "inhibited";
+	if (pull.state === "error") {
+		return <InfoBox style="error" text="Failed to pull silences" />;
 	}
+
+	return pull.result.map((a) => <AlertCard alert={a} />);
 };
 
 export default () => {
 	const location = useRoute();
 	const fingerprint = location.params["fingerprint"];
-	const alert = useQuery(() => getAlerts({ query: { fingerprints: [fingerprint] } }), [fingerprint]);
-	const hasPulled = alert.state === "success" && alert.result.length > 0;
+	const alertPull = useQuery(() => getAlerts({ query: { fingerprints: [fingerprint] } }), [fingerprint]);
+	const alert = alertPull.state === "success" && alertPull.result.length ? alertPull.result[0] : undefined;
+	const silencePull = (() => {
+		if (alert && alert.status.silencedBy.length > 0) {
+			return useQuery(
+				() =>
+					getSilences({
+						query: {
+							id: alert.status.silencedBy,
+							active: true,
+							expired: true,
+						},
+					}),
+				[alert],
+			);
+		}
 
-	const labels = useMemo(() => (hasPulled ? listifyKVs(alert.result[0].labels) : <></>), [alert]);
-	const annotations = useMemo(() => (hasPulled ? listifyKVs(alert.result[0].annotations) : <></>), [alert]);
-	const silencedBy = useMemo(() => (hasPulled ? listifyArray(alert.result[0].status.silencedBy) : <></>), [alert]);
-	const inhibitedBy = useMemo(() => (hasPulled ? listifyArray(alert.result[0].status.inhibitedBy) : <></>), [alert]);
-	const statusText = useMemo(() => (hasPulled ? getStatusText(alert.result) : ""), [alert]);
+		return undefined;
+	})();
+
+	const inhibitedPull = (() => {
+		if (alert && alert.status.inhibitedBy.length > 0) {
+			return useQuery(
+				() =>
+					getAlerts({
+						query: {
+							fingerprints: alert.status.inhibitedBy,
+						},
+					}),
+				[alert],
+			);
+		}
+
+		return undefined;
+	})();
+
+	let contents: JSX.Element;
+	if (alertPull.state === "error") {
+		contents = <InfoBox text="Failed to get alert" style="error" />;
+	} else if (alertPull.state === "success" && alertPull.result.length === 0) {
+		contents = <InfoBox text={`No such alert: ${fingerprint}`} style="error" />;
+	} else {
+		contents = (
+			<>
+				<div>
+					<span class="text-xl">Status: </span>
+					<SkeletonLoader layout="single-line" pull={alertPull}>
+						<span>foo</span>
+					</SkeletonLoader>
+				</div>
+				<div class="flex flex-row justify-between my-5 gap-5">
+					<div class="basis-1/2">
+						<h2 class="text-xl">Labels</h2>
+						<SkeletonLoader pull={alertPull} layout="paragraph">
+							{alert && Object.keys(alert.labels).length > 0 ? (
+								Object.keys(alert.labels).map((k) => (
+									<MatcherCard matcher={{ isEqual: true, isRegex: false, name: k, value: alert.labels[k] }} />
+								))
+							) : (
+								<i>None</i>
+							)}
+						</SkeletonLoader>
+					</div>
+
+					<div class="basis-1/2">
+						<h2 class="text-xl">Annotations</h2>
+						<SkeletonLoader pull={alertPull} layout="paragraph">
+							{alert && Object.keys(alert.annotations).length > 0 ? (
+								Object.keys(alert.annotations).map((k) => (
+									<MatcherCard matcher={{ isEqual: true, isRegex: false, name: k, value: alert.annotations[k] }} />
+								))
+							) : (
+								<i>None</i>
+							)}
+						</SkeletonLoader>
+					</div>
+				</div>
+
+				<div class="flex flex-row justify-between gap-5">
+					<div class="basis-1/2">
+						<h2 class="text-xl">Silenced By</h2>
+						<SkeletonLoader pull={silencePull ?? alertPull} layout="paragraph">
+							{alert && alert.status.silencedBy.length > 0 ? silenceCards(silencePull) : <i>None</i>}
+						</SkeletonLoader>
+					</div>
+
+					<div class="basis-1/2">
+						<h2 class="text-xl">Inhibited By</h2>
+						<SkeletonLoader pull={inhibitedPull ?? alertPull} layout="paragraph">
+							{alert && alert.status.inhibitedBy.length > 0 ? inhibitedCards(inhibitedPull) : <i>None</i>}
+						</SkeletonLoader>
+					</div>
+				</div>
+			</>
+		);
+	}
 
 	return (
 		<div class="w-full h-full flex flex-col">
-			<h1>Alert {fingerprint}</h1>
-			<div>
-				<span class="text-xl">Status: </span>
-				{statusText}
-			</div>
-			<div class="flex flex-row justify-between my-5">
-				<div class="basis-1/2">
-					<h2 class="text-xl">Labels</h2>
-					{labels}
-				</div>
+			<h1>
+				Alert {fingerprint} (
+				{!!alert && "alertname" in alert.labels ? alert.labels["alertname"] : <i class="italic">No Alert Name</i>})
+			</h1>
 
-				<div class="basis-1/2">
-					<h2 class="text-xl">Annotations</h2>
-					{annotations}
-				</div>
-			</div>
-
-			<div class="flex flex-row justify-between">
-				<div class="basis-1/2">
-					<h2 class="text-xl">Silenced By</h2>
-					{silencedBy}
-				</div>
-
-				<div class="basis-1/2">
-					<h2 class="text-xl">Inhibited By</h2>
-					{inhibitedBy}
-				</div>
-			</div>
+			{contents}
 		</div>
 	);
 };

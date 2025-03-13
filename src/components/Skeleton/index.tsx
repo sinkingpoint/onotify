@@ -2,20 +2,14 @@ import { HTMLAttributes, JSX } from "preact/compat";
 import { DataPull } from "../../pkg/types/utils";
 import "./style.css";
 
-interface SkeletonLoaderProps<TSuccess, TError> extends HTMLAttributes<HTMLDivElement> {
-	pull: DataPull<TSuccess, TError>;
+interface SkeletonLoaderProps extends HTMLAttributes<HTMLDivElement> {
+	pull: DataPull<any, any>;
 	children: JSX.Element | JSX.Element[];
 	layout: "single-line" | "paragraph";
 	repeat?: number;
 }
 
-export const SkeletonLoader = <TSuccess, TError>({
-	pull,
-	children,
-	layout,
-	repeat,
-	...props
-}: SkeletonLoaderProps<TSuccess, TError>) => {
+export const SkeletonLoader = ({ pull, children, layout, repeat, ...props }: SkeletonLoaderProps) => {
 	const needsSkeleton = pull.state === "pending";
 	if (!needsSkeleton) {
 		return <>{children}</>;

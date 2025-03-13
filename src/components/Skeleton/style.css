@@ -1,16 +1,16 @@
 .skeleton {
-  display: inline-block;
-  background-color: #4a6b5a;
-  border-radius: 4px;
-  animation-name: skeleton-pulse;
-  animation-duration: 0.75s;
-  animation-iteration-count: infinite;
-  animation-direction: alternate-reverse;
-  animation-timing-function: ease-in-out;
+	display: inline-block;
+	background-color: #4a6b5a;
+	border-radius: 4px;
+	animation-name: skeleton-pulse;
+	animation-duration: 0.75s;
+	animation-iteration-count: infinite;
+	animation-direction: alternate-reverse;
+	animation-timing-function: ease-in-out;
 }
 
 @keyframes skeleton-pulse {
-  to{
-    background-color: #a3b18a;
-  }
+	to {
+		background-color: #a3b18a;
+	}
 }
