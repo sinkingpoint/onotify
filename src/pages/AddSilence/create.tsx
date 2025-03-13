@@ -56,10 +56,17 @@ export const CreateSilence = ({ onPreview }: CreateSilenceProps) => {
 
 	const checkFormValidity = () => {
 		const comment = document.getElementById("comment") as HTMLInputElement;
+		const matcher = document.getElementById("matcher") as HTMLInputElement;
 
 		if (comment.value === "") {
 			comment.setCustomValidity("Comment cannot be empty");
 			comment.reportValidity();
+			return false;
+		}
+
+		if (matchers.length === 0) {
+			matcher.setCustomValidity("Missing at least one matcher");
+			matcher.reportValidity();
 			return false;
 		}
 
