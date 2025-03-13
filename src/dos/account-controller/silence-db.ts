@@ -58,36 +58,40 @@ export class SilenceDB {
 		expired ??= false;
 
 		let silences: Silence[] = [];
-		if (id) {
-			const existing = this.silences.get(id);
-			if (existing) {
-				silences = [existing];
+		if (id && id.length > 0) {
+			for (const silenceID of id) {
+				const existing = this.silences.get(silenceID);
+				if (existing) {
+					silences.push(existing);
+				}
 			}
 		} else {
 			silences = [...this.silences.values()];
 		}
 
-		if (matchers) {
-			silences = silences.filter((s) => {
-				if (startTime && s.startsAt < startTime) {
-					return false;
-				}
+		silences = silences.filter((s) => {
+			if (startTime && s.startsAt < startTime) {
+				return false;
+			}
 
-				if (endTime && s.endsAt > endTime) {
-					return false;
-				}
+			if (endTime && s.endsAt > endTime) {
+				return false;
+			}
 
-				if (!active && silenceState(s) === SilenceState.Active) {
-					return false;
-				}
+			if (!active && silenceState(s) === SilenceState.Active) {
+				return false;
+			}
 
-				if (!expired && silenceState(s) === SilenceState.Expired) {
-					return false;
-				}
+			if (!expired && silenceState(s) === SilenceState.Expired) {
+				return false;
+			}
 
-				return matchers.every((m1) => s?.matchers.some((m2) => isMatchersEqual(m1, m2)));
-			});
-		}
+			if (matchers && !matchers.every((m1) => s?.matchers.some((m2) => isMatchersEqual(m1, m2)))) {
+				return false;
+			}
+
+			return true;
+		});
 
 		return silences;
 	}

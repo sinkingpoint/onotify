@@ -53,14 +53,14 @@ export class GetSilences extends OpenAPIRoute {
 		}
 
 		const {
-			query: { matcher, active, expired, sort, limit, page },
+			query: { id, filter, active, expired, sort, limit, page },
 		} = await this.getValidatedData<typeof this.schema>();
 
 		const controllerName = accountControllerName(authResult.accountID);
 		const controllerID = c.env.ACCOUNT_CONTROLLER.idFromName(controllerName);
 		const controller = c.env.ACCOUNT_CONTROLLER.get(controllerID);
 
-		let silences = await controller.getSilences({ matchers: matcher, active, expired });
+		let silences = await controller.getSilences({ id, matchers: filter, active, expired });
 		if (sort) {
 			const fields = sort.map((s) => {
 				const [field, direction] = s.split(":");

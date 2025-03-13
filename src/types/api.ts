@@ -55,9 +55,12 @@ export const MatcherSpec = z
 export type Matcher = z.infer<typeof MatcherSpec>;
 
 const silence = z.object({
-	matchers: z.array(MatcherSpec).openapi({
-		description: "The matchers that match the alerts that this silence should silence",
-	}).min(1),
+	matchers: z
+		.array(MatcherSpec)
+		.openapi({
+			description: "The matchers that match the alerts that this silence should silence",
+		})
+		.min(1),
 	startsAt: z
 		.string()
 		.datetime({ offset: true })
@@ -242,7 +245,8 @@ export const GetAlertsParamsSpec = z.object({
 export type GetAlertsParams = z.infer<typeof GetAlertsParamsSpec>;
 
 export const GetSilencesParamsSpec = z.object({
-	matcher: z.array(StringMatcherSpec).default([]).openapi({ description: "A list of matchers to filter by" }),
+	id: z.array(z.string()).default([]).openapi({ description: "A list of silence IDs to fetch" }),
+	filter: z.array(StringMatcherSpec).default([]).openapi({ description: "A list of matchers to filter by" }),
 	active: z.boolean().default(true).openapi({ description: "Show active silences" }),
 	expired: z.boolean().default(false).openapi({ description: "Show expired silences" }),
 	sort: z

@@ -100,7 +100,7 @@ export interface GetAlertsOptions {
 }
 
 export interface GetSilencesOptions {
-	id?: string;
+	id?: string[];
 	matchers?: Matcher[];
 	startTime?: number;
 	endTime?: number;

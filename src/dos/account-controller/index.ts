@@ -55,7 +55,7 @@ export class AccountController extends DurableObject<Bindings> {
 	}
 
 	async getSilence(id: string) {
-		const silences = await this.silenceStorage.getSilences({ id });
+		const silences = await this.silenceStorage.getSilences({ id: [id], active: true, expired: true });
 		if (silences.length === 0) {
 			return null;
 		}
@@ -116,7 +116,7 @@ export class AccountController extends DurableObject<Bindings> {
 	}
 
 	async markSilenceStarted(id: string) {
-		const silence = await this.silenceStorage.getSilences({ id });
+		const silence = await this.silenceStorage.getSilences({ id: [id], active: true, expired: true });
 		await this.alertStorage.addSilence(id, silence[0]);
 	}
 
