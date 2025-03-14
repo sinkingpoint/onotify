@@ -72,6 +72,21 @@ export default () => {
 		return undefined;
 	})();
 
+	const statusText = (() => {
+		if (!alert) {
+			return "";
+		}
+		switch (alert.status.state) {
+			case "active":
+				if (alert.endsAt && Date.parse(alert.endsAt) < Date.now()) {
+					return "Resolved";
+				}
+				return "Active";
+			case "supressed":
+				return "Supressed";
+		}
+	})();
+
 	let contents: JSX.Element;
 	if (alertPull.state === "error") {
 		contents = <InfoBox text="Failed to get alert" style="error" />;
@@ -83,7 +98,7 @@ export default () => {
 				<div>
 					<span class="text-xl">Status: </span>
 					<SkeletonLoader layout="single-line" pull={alertPull}>
-						<span>foo</span>
+						<span>{statusText}</span>
 					</SkeletonLoader>
 				</div>
 				<div class="flex flex-row justify-between my-5 gap-5">
