@@ -22,7 +22,7 @@ const getSilencePage = (query: DataPull<GetSilencesResponse, unknown>) => {
 
 	const silences = query.result;
 	if (silences.length === 0) {
-		return <InfoBox style="warn" text="No silences found" class="my-1 w-full" />;
+		return <InfoBox style="warn" text="No silences found" class="my-1 w-1/2" />;
 	}
 
 	return (
@@ -104,13 +104,7 @@ export default () => {
 				<TogglableChit value="Expired Silences" toggled={expired} onClick={(toggled) => setExpired(toggled)} />
 			</span>
 			<span>
-				<Paginator
-					totalPages={numPages}
-					currentPage={currentPage}
-					setCurrentPage={setCurrentPage}
-					maxPagesInRange={5}
-					class="w-1/2"
-				>
+				<Paginator totalPages={numPages} currentPage={currentPage} setCurrentPage={setCurrentPage} maxPagesInRange={5}>
 					<SkeletonLoader pull={silences} layout="paragraph" repeat={DEFAULT_PAGE_SIZE / 2}>
 						{getSilencePage(silences)}
 					</SkeletonLoader>

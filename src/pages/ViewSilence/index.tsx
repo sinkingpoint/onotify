@@ -86,7 +86,7 @@ export default () => {
 		<div class="flex flex-col p-6">
 			<h1>Silence {fingerprint}</h1>
 			<span class="pb-3">
-				<button class="p-2 bg-red-600 rounded" disabled={silencePull.state !== "success"} onClick={onExpire}>
+				<button class="p-2 bg-[color:--error] rounded" disabled={silencePull.state !== "success"} onClick={onExpire}>
 					Expire
 				</button>
 			</span>

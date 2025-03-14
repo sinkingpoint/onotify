@@ -96,7 +96,7 @@ export default () => {
 		contents = (
 			<>
 				<div>
-					<span class="text-xl">Status: </span>
+					<h2 class="text-xl inline">Status: </h2>
 					<SkeletonLoader layout="single-line" pull={alertPull}>
 						<span>{statusText}</span>
 					</SkeletonLoader>
