@@ -9653,6 +9653,155 @@
 					}
 				}
 			}
+		},
+		"/api/v1/config/tree": {
+			"get": {
+				"operationId": "getRoutingTree",
+				"tags": ["config"],
+				"summary": "Get a flattened version of the routing tree",
+				"responses": {
+					"200": {
+						"description": "Sucessfully got config",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"properties": {
+										"roots": {
+											"type": "array",
+											"items": {
+												"type": "string"
+											}
+										},
+										"tree": {
+											"type": "object",
+											"additionalProperties": {
+												"type": "object",
+												"properties": {
+													"receiver": {
+														"type": "string",
+														"description": "the receier to send alerts to"
+													},
+													"group_by": {
+														"type": "array",
+														"items": {
+															"type": "string"
+														},
+														"description": "The labels by which incoming alerts are grouped together"
+													},
+													"continue": {
+														"type": "boolean",
+														"default": false,
+														"description": "If true, any alerts that hit this node will continue matching other nodes along the tree"
+													},
+													"match": {
+														"type": "object",
+														"additionalProperties": {
+															"type": "string"
+														},
+														"default": {},
+														"description": "A set of equality matchers that an alert has to fulfull to match the node",
+														"deprecated": true
+													},
+													"match_re": {
+														"type": "object",
+														"additionalProperties": {
+															"type": "string"
+														},
+														"default": {},
+														"description": "A set of regex matchers that an alert has to fulfull to match the node",
+														"deprecated": true
+													},
+													"matchers": {
+														"type": "array",
+														"items": {
+															"type": "string",
+															"description": "a matcher to match labels against",
+															"examples": ["a=\"b\"", "a!=\"b\"", "a=~\"b\"", "a!~\"b\""]
+														},
+														"default": [],
+														"description": "A list of matchers than an alert has to fulfill to match the node"
+													},
+													"mute_time_intervals": {
+														"type": "array",
+														"items": {
+															"type": "string"
+														},
+														"default": [],
+														"description": "Times when the route should be muted. These must match the name of a mute time interval defined in the mute_time_intervals section"
+													},
+													"active_time_intervals": {
+														"type": "array",
+														"items": {
+															"type": "string"
+														},
+														"default": [],
+														"description": "Times when the route should be active. These must match the name of a time interval defined in the time_intervals section."
+													},
+													"routes": {
+														"type": "array",
+														"items": {
+															"type": "string"
+														}
+													},
+													"group_wait": {
+														"type": "string"
+													},
+													"group_interval": {
+														"type": "string"
+													},
+													"repeat_interval": {
+														"type": "string"
+													}
+												},
+												"required": ["routes", "group_wait", "group_interval", "repeat_interval"],
+												"additionalProperties": false
+											}
+										}
+									},
+									"required": ["roots", "tree"]
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Bad Request",
+						"text/plain": {
+							"schema": {
+								"_def": {
+									"checks": [],
+									"typeName": "ZodString",
+									"coerce": false
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized",
+						"text/plain": {
+							"schema": {
+								"_def": {
+									"checks": [],
+									"typeName": "ZodString",
+									"coerce": false
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error",
+						"text/plain": {
+							"schema": {
+								"_def": {
+									"checks": [],
+									"typeName": "ZodString",
+									"coerce": false
+								}
+							}
+						}
+					}
+				}
+			}
 		}
 	},
 	"webhooks": {}

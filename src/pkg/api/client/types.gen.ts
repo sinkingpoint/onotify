@@ -6909,6 +6909,85 @@ export type PostConfigResponses = {
 	200: unknown;
 };
 
+export type GetRoutingTreeData = {
+	body?: never;
+	path?: never;
+	query?: never;
+	url: "/api/v1/config/tree";
+};
+
+export type GetRoutingTreeErrors = {
+	/**
+	 * Bad Request
+	 */
+	400: unknown;
+	/**
+	 * Unauthorized
+	 */
+	401: unknown;
+	/**
+	 * Internal Server Error
+	 */
+	500: unknown;
+};
+
+export type GetRoutingTreeResponses = {
+	/**
+	 * Sucessfully got config
+	 */
+	200: {
+		roots: Array<string>;
+		tree: {
+			[key: string]: {
+				/**
+				 * the receier to send alerts to
+				 */
+				receiver?: string;
+				/**
+				 * The labels by which incoming alerts are grouped together
+				 */
+				group_by?: Array<string>;
+				/**
+				 * If true, any alerts that hit this node will continue matching other nodes along the tree
+				 */
+				continue?: boolean;
+				/**
+				 * A set of equality matchers that an alert has to fulfull to match the node
+				 * @deprecated
+				 */
+				match?: {
+					[key: string]: string;
+				};
+				/**
+				 * A set of regex matchers that an alert has to fulfull to match the node
+				 * @deprecated
+				 */
+				match_re?: {
+					[key: string]: string;
+				};
+				/**
+				 * A list of matchers than an alert has to fulfill to match the node
+				 */
+				matchers?: Array<string>;
+				/**
+				 * Times when the route should be muted. These must match the name of a mute time interval defined in the mute_time_intervals section
+				 */
+				mute_time_intervals?: Array<string>;
+				/**
+				 * Times when the route should be active. These must match the name of a time interval defined in the time_intervals section.
+				 */
+				active_time_intervals?: Array<string>;
+				routes: Array<string>;
+				group_wait: string;
+				group_interval: string;
+				repeat_interval: string;
+			};
+		};
+	};
+};
+
+export type GetRoutingTreeResponse = GetRoutingTreeResponses[keyof GetRoutingTreeResponses];
+
 export type ClientOptions = {
 	baseUrl: `${string}://${string}` | (string & {});
 };

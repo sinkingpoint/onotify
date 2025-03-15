@@ -6,7 +6,7 @@
 		"build": "vite build",
 		"preview": "vite preview",
 		"fmt": "prettier --config ./.prettierrc -w './**/*.tsx'",
-		"generate": "npx @hey-api/openapi-ts -c @hey-api/client-fetch -i ./src/pkg/api/openapi.json -o ./src/pkg/api/client"
+		"generate": "npx @hey-api/openapi-ts -c @hey-api/client-fetch -i ./src/pkg/api/openapi.json -o ./src/pkg/api/client && npx prettier -w ."
 	},
 	"dependencies": {
 		"@asteasolutions/zod-to-openapi": "^7.3.0",

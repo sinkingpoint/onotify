@@ -19,6 +19,8 @@ import type {
 	GetConfigData,
 	GetConfigResponse,
 	PostConfigData,
+	GetRoutingTreeData,
+	GetRoutingTreeResponse,
 } from "./types.gen";
 import { client as _heyApiClient } from "./client.gen";
 
@@ -168,5 +170,17 @@ export const postConfig = <ThrowOnError extends boolean = false>(options?: Optio
 			"Content-Type": "application/json",
 			...options?.headers,
 		},
+	});
+};
+
+/**
+ * Get a flattened version of the routing tree
+ */
+export const getRoutingTree = <ThrowOnError extends boolean = false>(
+	options?: Options<GetRoutingTreeData, ThrowOnError>,
+) => {
+	return (options?.client ?? _heyApiClient).get<GetRoutingTreeResponse, unknown, ThrowOnError>({
+		url: "/api/v1/config/tree",
+		...options,
 	});
 };
