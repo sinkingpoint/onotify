@@ -45,6 +45,8 @@ export default () => {
 		return getSilence({ path: { id: fingerprint } });
 	}, [fingerprint, reload]);
 
+	const silence = silencePull.state === "success" && silencePull.result ? silencePull.result : undefined;
+
 	const affectedAlerts = useQuery(async () => {
 		if (silencePull.state !== "success") {
 			return null;
@@ -54,22 +56,16 @@ export default () => {
 		return getAlerts({ query: { filter } });
 	}, [silencePull]);
 
-	const startTime = useMemo(
-		() => (silencePull.state === "success" ? formatDate(new Date(silencePull.result.startsAt)) : ""),
-		[silencePull],
-	);
+	const startTime = useMemo(() => (silence ? formatDate(new Date(silence.startsAt)) : ""), [silencePull]);
 
-	const endTime = useMemo(
-		() => (silencePull.state === "success" ? formatDate(new Date(silencePull.result.endsAt)) : ""),
-		[silencePull],
-	);
+	const endTime = useMemo(() => (silence ? formatDate(new Date(silence.endsAt)) : ""), [silencePull]);
 
 	const matchers = useMemo(() => {
 		if (silencePull.state !== "success") {
 			return [];
-		} else {
-			return silencePull.result.matchers.map((m) => <MatcherCard matcher={{ ...m, isEqual: m.isEqual ?? true }} />);
 		}
+
+		return silence.matchers.map((m) => <MatcherCard matcher={{ ...m, isEqual: m.isEqual ?? true }} />);
 	}, [silencePull]);
 
 	const onExpire = async () => {
@@ -82,27 +78,66 @@ export default () => {
 		setReload(!reload);
 	};
 
+	const startText = (() => {
+		if (!silence || Date.parse(silence.startsAt) < Date.now()) {
+			return "Started";
+		}
+
+		return "Started";
+	})();
+
+	const endText = (() => {
+		if (!silence || Date.parse(silence.endsAt) > Date.now()) {
+			return "Ends";
+		}
+
+		return "Ended";
+	})();
+
+	const buttons = [];
+	if (silence) {
+		if (Date.now() < Date.parse(silence.endsAt)) {
+			buttons.push(
+				<button class="p-2 bg-[color:--error] rounded" disabled={silencePull.state !== "success"} onClick={onExpire}>
+					Expire
+				</button>,
+			);
+		} else {
+			const recreateArgs = silence.matchers.map(
+				(m) => `matcher=${matcherToString({ ...m, isEqual: m.isEqual ?? true })}`,
+			);
+			recreateArgs.push(`comment=${silence.comment ?? ""}`);
+
+			buttons.push(
+				<a href={`/silences/new?${recreateArgs.join("&")}`}>
+					<button
+						class="p-2 bg-[color:--highlight] rounded"
+						disabled={silencePull.state !== "success"}
+						onClick={onExpire}
+					>
+						Recreate
+					</button>
+				</a>,
+			);
+		}
+	}
+
 	return (
 		<div class="flex flex-col p-6">
 			<h1>Silence {fingerprint}</h1>
-			<span class="pb-3">
-				<button class="p-2 bg-[color:--error] rounded" disabled={silencePull.state !== "success"} onClick={onExpire}>
-					Expire
-				</button>
-			</span>
+			<span class="pb-3">{buttons}</span>
 
-			<span class="pb-1">
-				<h2 class="text-xl inline font-bold">Starts:</h2> {startTime}
+			<span>
+				<h2 class="text-xl inline font-bold">{startText} at:</h2> {startTime}
 			</span>
-			<span class="pb-1">
-				<h2 class="text-xl inline font-bold">Ends:</h2> {endTime}
+			<span>
+				<h2 class="text-xl inline font-bold">{endText} at:</h2> {endTime}
 			</span>
-			<span class="pb-1">
+			<span>
 				<h2 class="text-xl font-bold">Matchers:</h2>
-
 				<div class="flex flex-row flex-wrap flex-shrink flex-grow-0">{matchers}</div>
 			</span>
-			<span class="pb-1">
+			<span>
 				<h2 class="text-xl inline pt-4 font-bold">Comment:</h2>{" "}
 				{silencePull.state === "success" ? silencePull.result.comment : ""}
 			</span>
