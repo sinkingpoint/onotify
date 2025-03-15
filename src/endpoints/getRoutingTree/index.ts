@@ -19,13 +19,16 @@ export class GetRoutingTree extends OpenAPIRoute {
 				description: "Sucessfully got config",
 				content: {
 					"application/json": {
-						schema: z.record(
-							FlatRouteConfigSpec.omit({ group_wait: true, group_interval: true, repeat_interval: true }).extend({
-								group_wait: z.string(),
-								group_interval: z.string(),
-								repeat_interval: z.string(),
-							})
-						),
+						schema: z.object({
+							roots: z.array(z.string()),
+							tree: z.record(
+								FlatRouteConfigSpec.omit({ group_wait: true, group_interval: true, repeat_interval: true }).extend({
+									group_wait: z.string(),
+									group_interval: z.string(),
+									repeat_interval: z.string(),
+								})
+							),
+						}),
 					},
 				},
 			},
@@ -57,6 +60,6 @@ export class GetRoutingTree extends OpenAPIRoute {
 		}
 
 		ctx.status(HTTPResponses.OK);
-		return ctx.json(flattenedRoutingTree["tree"]);
+		return ctx.json(flattenedRoutingTree);
 	}
 }
