@@ -5,6 +5,7 @@ import { GetAlertGroups } from "./endpoints/getAlertGroups";
 import { GetAlerts } from "./endpoints/getAlerts";
 import { GetConfig } from "./endpoints/getConfig";
 import { GetRequiredFiles } from "./endpoints/getRequiredFiles";
+import { GetRoutingTree } from "./endpoints/getRoutingTree";
 import GetSilence from "./endpoints/getSilence";
 import { GetSilences } from "./endpoints/getSilences";
 import { GetStats } from "./endpoints/getStats";
@@ -63,6 +64,7 @@ openapi.get("/api/v2/silences", GetSilences);
 openapi.post("/api/v2/silences", PostSilence);
 openapi.post("/api/v1/config", PostConfig);
 openapi.get("/api/v1/config", GetConfig);
+openapi.get("/api/v1/config/tree", GetRoutingTree);
 
 // Export the Hono app
 export default app;

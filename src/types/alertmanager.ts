@@ -1698,6 +1698,12 @@ export const AlertmanagerConfigSpec = z
 export type AlertmanagerConfig = z.infer<typeof AlertmanagerConfigSpec>;
 export type RouteConfig = z.infer<typeof RouteConfigSpec>;
 
+export const FlatRouteConfigSpec = baseRouteSpec
+	.extend({
+		routes: z.array(z.string()),
+	})
+	.openapi({ description: "an entry in the routing tree, linked with IDs rather than embedding routes directly" });
+
 export type FlatRouteConfig = Omit<RouteConfig, "routes"> & {
 	routes: string[];
 };
