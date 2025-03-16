@@ -47,6 +47,7 @@ export default () => {
 		screen = <ExtraFilesUpload />;
 	} else if (onboardingState === OnboardingState.Done) {
 		// Redirect to app.
+		window.location.replace("/");
 	}
 
 	return <div class="home">{screen}</div>;

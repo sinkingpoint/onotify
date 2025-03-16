@@ -1,4 +1,4 @@
-import { MouseEventHandler } from "preact/compat";
+import { JSX, MouseEventHandler } from "preact/compat";
 import { useEffect, useState } from "preact/hooks";
 import { getRequiredFiles } from "../../pkg/api/client";
 import { buildTrie, NeededFile, trieNode } from "./trie";
@@ -141,11 +141,19 @@ export const ExtraFilesUpload = () => {
 		secrets.every((s) => s.uploaded === UploadStatus.Uploaded) &&
 		templates.every((t) => t.uploaded === UploadStatus.Uploaded);
 
-	let progressButton;
+	let progressButton: JSX.Element;
 	if (allUploaded) {
-		progressButton = <button class="p-2 bg-green-600 rounded my-3">Let's go!</button>;
+		progressButton = (
+			<a href="/">
+				<button class="p-2 bg-green-600 rounded my-3">Let's go!</button>
+			</a>
+		);
 	} else {
-		progressButton = <button class="p-2 bg-yellow-600 rounded my-3">Skip!</button>;
+		progressButton = (
+			<a href="/">
+				<button class="p-2 bg-yellow-600 rounded my-3">Skip!</button>
+			</a>
+		);
 	}
 
 	return (
