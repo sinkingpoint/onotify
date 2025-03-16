@@ -6,6 +6,7 @@ import { SilenceCard } from "../../components/SilenceCard";
 import { SkeletonLoader } from "../../components/Skeleton";
 import TogglableChit from "../../components/TogglableChit";
 import { getSilences, GetSilencesResponse } from "../../pkg/api/client";
+import { StringMatcherSpec } from "../../pkg/types/alertmanager";
 import { GettableSilenceSpec, Matcher } from "../../pkg/types/api";
 import { DataPull, matcherToString, setURLParam, useQuery } from "../../pkg/types/utils";
 import { matcherIsSame } from "../../pkg/utils/matcher";
@@ -36,11 +37,12 @@ const getSilencePage = (query: DataPull<GetSilencesResponse, unknown>) => {
 
 export default () => {
 	const DEFAULT_PAGE_SIZE = 10;
+	const params = new URLSearchParams(window.location.search);
 	const [currentPage, setCurrentPage] = useState(1);
-	const [active, setActive] = useState(true);
-	const [expired, setExpired] = useState(false);
+	const [active, setActive] = useState((params.get("active") ?? "true") === "true");
+	const [expired, setExpired] = useState((params.get("expired") ?? "false") === "true");
 
-	const [matchers, setMatchers] = useState([]);
+	const [matchers, setMatchers] = useState(params.getAll("filter").map((m) => StringMatcherSpec.parse(m)));
 	const silences = useQuery(() => {
 		return getSilences({
 			query: {
@@ -99,9 +101,19 @@ export default () => {
 					value="Active Silences"
 					toggled={active}
 					class="mr-2"
-					onClick={(toggled) => setActive(toggled)}
+					onClick={(toggled) => {
+						setActive(toggled);
+						setURLParam("active", toggled);
+					}}
 				/>
-				<TogglableChit value="Expired Silences" toggled={expired} onClick={(toggled) => setExpired(toggled)} />
+				<TogglableChit
+					value="Expired Silences"
+					toggled={expired}
+					onClick={(toggled) => {
+						setExpired(toggled);
+						setURLParam("expired", toggled);
+					}}
+				/>
 			</span>
 			<span>
 				<Paginator totalPages={numPages} currentPage={currentPage} setCurrentPage={setCurrentPage} maxPagesInRange={5}>
