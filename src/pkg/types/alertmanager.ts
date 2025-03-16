@@ -1,6 +1,7 @@
 import { extendZodWithOpenApi } from "@asteasolutions/zod-to-openapi";
 import hash from "object-hash";
 import { z, ZodTypeDef } from "zod";
+import { Matcher } from "./api";
 import { DurationSpec } from "./duration";
 
 extendZodWithOpenApi(z);
@@ -10,7 +11,7 @@ extendZodWithOpenApi(z);
 export const enforceMutuallyExclusive = (
 	k1: string,
 	k2: string,
-	require_one: boolean = false,
+	require_one: boolean = false
 ): [(val: any) => boolean, string] => {
 	let msg = `${k1} and ${k2} are mutually exclusive`;
 	if (require_one) {
@@ -220,7 +221,7 @@ const unquote = (s: string): string => {
 
 export const StringMatcherSpec = z
 	.string()
-	.transform((val) => {
+	.transform((val): Matcher => {
 		const parts = val.match(/^([^{}!=~,\\"'`\s]+)(=|!=|=~|!~)(".+")$/);
 
 		if (!parts || parts.length != 4) {
@@ -354,7 +355,16 @@ type RouteSpec = outRouteSpec;
 
 export const RouteConfigSpec: z.ZodType<outRouteSpec, ZodTypeDef, inRouteSpec> = baseRouteSpec
 	.extend({
-		routes: z.lazy(() => RouteConfigSpec.array()).optional(),
+		routes: z
+			.lazy(() => RouteConfigSpec.array())
+			.optional()
+			.openapi({
+				type: "array",
+				items: {
+					type: "object",
+				},
+				description: "the routes below this one in the tree",
+			}),
 	})
 	.strict()
 	.openapi({ description: "a route to send alerts" });
@@ -837,40 +847,54 @@ export const SlackConfigSpec = z
 		color: z.string().default('{{ if eq .Status "firing" }}danger{{ else }}good{{ end }}').openapi({
 			description: "a template that indicates the color to use for the alert",
 		}),
-		fallback: z.string().default('{{ template "slack.default.fallback" . }}'),
-		fields: z.array(SlackFieldConfigSpec).default([]),
-		footer: z.string().default('{{ template "slack.default.footer" . }}'),
-		mrkdwn_in: z.array(z.string()).default(["fallback", "pretext", "text"]),
-		pretext: z.string().default('{{ template "slack.default.pretext" . }}'),
-		short_fields: z.boolean().default(false),
-		text: z.string().default('{{ template "slack.default.text" . }}'),
-		title: z.string().default('{{ template "slack.default.title" . }}'),
-		title_link: z.string().default('{{ template "slack.default.titlelink" . }}'),
-		image_url: z.string().optional(),
-		thumb_url: z.string().optional(),
+		fallback: z.string().default('{{ template "slack.default.fallback" . }}').openapi({
+			description: "a fallback message displayed in notifications",
+		}),
+		fields: z.array(SlackFieldConfigSpec).default([]).openapi({ description: "the fields of the message" }),
+		footer: z
+			.string()
+			.default('{{ template "slack.default.footer" . }}')
+			.openapi({ description: "the message displayed in the footer" }),
+		mrkdwn_in: z.array(z.string()).default(["fallback", "pretext", "text"]).openapi({ description: "" }),
+		pretext: z.string().default('{{ template "slack.default.pretext" . }}').openapi({ description: "" }),
+		short_fields: z.boolean().default(false).openapi({ description: "" }),
+		text: z.string().default('{{ template "slack.default.text" . }}').openapi({ description: "" }),
+		title: z.string().default('{{ template "slack.default.title" . }}').openapi({ description: "" }),
+		title_link: z.string().default('{{ template "slack.default.titlelink" . }}').openapi({ description: "" }),
+		image_url: z.string().optional().openapi({ description: "" }),
+		thumb_url: z.string().optional().openapi({ description: "" }),
 
 		http_config: HTTPConfigSpec.optional(),
 	})
 	.strict()
-	.refine(...enforceMutuallyExclusive("api_url", "api_url_file", true));
+	.refine(...enforceMutuallyExclusive("api_url", "api_url_file", true))
+	.openapi({
+		description: "configuration options for messages sent to slack",
+	});
 
 export const AWSSigv4ConfigSpec = z
 	.object({
 		// The AWS region. If blank, the region from the default credentials chain is used.
-		region: z.string().optional(),
+		region: z.string().openapi({ description: "The AWS region. Cannot be blank" }),
 
 		// The AWS API keys. Both access_key and secret_key must be supplied or both must be blank.
-		// If blank the environment variables `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` are used.
-		access_key: z.string().optional(),
-		secret_key: z.string().optional(),
+		access_key: z.string().optional().openapi({
+			description: "The AWS API access key. Both access_key and secret_key must be supplied.",
+		}),
+		secret_key: z.string().optional().openapi({
+			description: "The AWS API secret key. Both access_key and secret_key must be supplied.",
+		}),
 
 		// Named AWS profile used to authenticate.
-		profile: z.string().optional(),
+		profile: z.string().optional().openapi({ description: "Named AWS profile used to authenticate." }),
 
 		// AWS Role ARN, an alternative to using AWS API keys.
-		role_arn: z.string().optional(),
+		role_arn: z.string().optional().openapi({ description: "AWS Role ARN, an alternative to using AWS API keys." }),
 	})
-	.strict();
+	.strict()
+	.openapi({
+		description: "configuration options for authenticating with AWS",
+	});
 
 export const SNSConfigSpec = z
 	.object({
@@ -878,70 +902,107 @@ export const SNSConfigSpec = z
 		send_resolved: z.boolean().default(true).openapi({ description: "whether to notify about resolved alerts" }),
 
 		// The SNS API URL i.e. https://sns.us-east-2.amazonaws.com.
-		// If not specified, the SNS API URL from the SNS SDK will be used.
-		api_url: z.string().optional(),
+		api_url: z.string().openapi({ description: "The SNS API URL e.g. https://sns.us-east-2.amazonaws.com" }),
 
 		// Configures AWS's Signature Verification 4 signing process to sign requests.
-		sigv4: AWSSigv4ConfigSpec.optional(),
+		sigv4: AWSSigv4ConfigSpec.openapi({
+			description: "Configures AWS's Signature Verification 4 signing process to sign requests.",
+		}),
 
 		// SNS topic ARN, i.e. arn:aws:sns:us-east-2:698519295917:My-Topic
 		// If you don't specify this value, you must specify a value for the phone_number or target_arn.
 		// If you are using a FIFO SNS topic you should set a message group interval longer than 5 minutes
 		// to prevent messages with the same group key being deduplicated by the SNS default deduplication window
-		topic_arn: z.string().optional(),
+		topic_arn: z
+			.string()
+			.optional()
+			.openapi({ description: "SNS topic ARN, e.g. arn:aws:sns:us-east-2:698519295917:My-Topic" }),
 
 		// Subject line when the message is delivered to email endpoints.
-		subject: z.string().default('{{ template "sns.default.subject" .}}'),
+		subject: z
+			.string()
+			.default('{{ template "sns.default.subject" .}}')
+			.openapi({ description: "Subject line when the message is delivered to email endpoints." }),
 
 		// Phone number if message is delivered via SMS in E.164 format.
 		// If you don't specify this value, you must specify a value for the topic_arn or target_arn.
-		phone_number: z.string().optional(),
+		phone_number: z
+			.string()
+			.optional()
+			.openapi({ description: "Phone number if message is delivered via SMS in E.164 format." }),
 
-		// The  mobile platform endpoint ARN if message is delivered via mobile notifications.
+		// The mobile platform endpoint ARN if message is delivered via mobile notifications.
 		// If you don't specify this value, you must specify a value for the topic_arn or phone_number.
-		target_arn: z.string().optional(),
+		target_arn: z
+			.string()
+			.optional()
+			.openapi({ description: "The mobile platform endpoint ARN if message is delivered via mobile notifications." }),
 
 		// The message content of the SNS notification.
-		message: z.string().default('{{ template "sns.default.message" .}}'),
+		message: z
+			.string()
+			.default('{{ template "sns.default.message" .}}')
+			.openapi({ description: "The message content of the SNS notification." }),
 
 		// SNS message attributes.
-		attributes: z.record(z.string(), z.string()).default({}),
+		attributes: z.record(z.string(), z.string()).default({}).openapi({ description: "SNS message attributes." }),
 
 		// The HTTP client's configuration.
 		http_config: HTTPConfigSpec.optional(),
 	})
-	.strict();
+	.strict()
+	.openapi({ description: "configuration options for sending messages to AWS SNS" });
 
 export const TelegramConfigSpec = z
 	.object({
 		// Whether to notify about resolved alerts.
 		send_resolved: z.boolean().default(true).openapi({ description: "whether to notify about resolved alerts" }),
 
-		// The Telegram API URL i.e. https://api.telegram.org.
+		// The Telegram API URL e.g. https://api.telegram.org.
 		// If not specified, default API URL will be used.
-		api_url: z.string().optional(),
+		api_url: z.string().optional().openapi({
+			description:
+				"The Telegram API URL e.g. https://api.telegram.org. If not specified, default API URL will be used.",
+		}),
 
 		// Telegram bot token. It is mutually exclusive with `bot_token_file`.
-		bot_token: z.string().optional(),
+		bot_token: z.string().optional().openapi({
+			description: "Telegram bot token. It is mutually exclusive with `bot_token_file`.",
+		}),
+
 		// Read the Telegram bot token from a file. It is mutually exclusive with `bot_token`.
-		bot_token_file: z.string().optional(),
+		bot_token_file: z.string().optional().openapi({
+			description: "Read the Telegram bot token from a file. It is mutually exclusive with `bot_token`.",
+		}),
 
 		// ID of the chat where to send the messages.
-		chat_id: z.number().int().optional(),
+		chat_id: z.number().int().optional().openapi({
+			description: "ID of the chat where to send the messages.",
+		}),
 
 		// Message template.
-		message: z.string().default('{{ template "telegram.default.message" .}}'),
+		message: z.string().default('{{ template "telegram.default.message" .}}').openapi({
+			description: "Message template.",
+		}),
 
 		// Disable telegram notifications
-		disable_notifications: z.boolean().default(false),
+		disable_notifications: z.boolean().default(false).openapi({
+			description: "Whether or not to disable telegram notifications",
+		}),
 
 		// Parse mode for telegram message, supported values are MarkdownV2, Markdown, HTML and empty string for plain text.
-		parse_mode: z.string().default("HTML"),
+		parse_mode: z.enum(["MarkdownV2", "Markdown", "HTML", ""]).default("HTML").openapi({
+			description:
+				"Parse mode for telegram message, supported values are MarkdownV2, Markdown, HTML and empty string for plain text.",
+		}),
 
 		http_config: HTTPConfigSpec.optional(),
 	})
 	.strict()
-	.refine(...enforceMutuallyExclusive("bot_token", "bot_token_file", true));
+	.refine(...enforceMutuallyExclusive("bot_token", "bot_token_file", true))
+	.openapi({
+		description: "Configuration options for sending messages to telegram",
+	});
 
 export const VictorOpsConfigSpec = z
 	.object({
@@ -950,34 +1011,55 @@ export const VictorOpsConfigSpec = z
 
 		// The API key to use when talking to the VictorOps API.
 		// It is mutually exclusive with `api_key_file`.
-		api_key: z.string().optional(),
+		api_key: z.string().optional().openapi({
+			description:
+				"The API key to use when talking to the VictorOps API. It is mutually exclusive with `api_key_file`.",
+		}),
 
 		// Reads the API key to use when talking to the VictorOps API from a file.
 		// It is mutually exclusive with `api_key`.
-		api_key_file: z.string().optional(),
+		api_key_file: z.string().optional().openapi({
+			description:
+				"Reads the API key to use when talking to the VictorOps API from a file. It is mutually exclusive with `api_key`.",
+		}),
 
 		// The VictorOps API URL.
-		api_url: z.string().optional(),
+		api_url: z.string().optional().openapi({
+			description: "The VictorOps API URL.",
+		}),
 
 		// A key used to map the alert to a team.
-		routing_key: z.string(),
+		routing_key: z.string().openapi({ description: "A key used to map the alert to a team." }),
 
 		// Describes the behavior of the alert (CRITICAL, WARNING, INFO).
-		message_type: z.string().default("CRITICAL"),
+		message_type: z
+			.enum(["CRITICAL", "WARNING", "INFO"])
+			.default("CRITICAL")
+			.openapi({ description: "Describes the behavior of the alert (CRITICAL, WARNING, INFO)." }),
 
 		// Contains summary of the alerted problem.
-		entire_display_name: z.string().default('{{ template "victorops.default.entity_display_name" . }}'),
+		entire_display_name: z
+			.string()
+			.default('{{ template "victorops.default.entity_display_name" . }}')
+			.openapi({ description: "Contains summary of the alerted problem." }),
 
 		// Contains long explanation of the alerted problem.
-		state_message: z.string().default('{{ template "victorops.default.state_message" . }}'),
+		state_message: z
+			.string()
+			.default('{{ template "victorops.default.state_message" . }}')
+			.openapi({ description: "Contains long explanation of the alerted problem." }),
 
 		// The monitoring tool the state message is from.
-		monitoring_tool: z.string().default('{{ template "victorops.default.monitoring_tool" . }}'),
+		monitoring_tool: z
+			.string()
+			.default('{{ template "victorops.default.monitoring_tool" . }}')
+			.openapi({ description: "The monitoring tool the state message is from." }),
 
 		http_config: HTTPConfigSpec.optional(),
 	})
 	.strict()
-	.refine(...enforceMutuallyExclusive("api_key", "api_key_file"));
+	.refine(...enforceMutuallyExclusive("api_key", "api_key_file"))
+	.openapi({ description: "Configuration options for sending notifications to VictorOps" });
 
 export const WebhookConfigSpec = z
 	.object({
@@ -986,17 +1068,26 @@ export const WebhookConfigSpec = z
 
 		// The endpoint to send HTTP POST requests to.
 		// url and url_file are mutually exclusive.
-		url: z.string().optional(),
-		url_file: z.string().optional(),
+		url: z
+			.string()
+			.optional()
+			.openapi({ description: "the endpoint to send HTTP POST requests to. Mutually exclusive with url_file" }),
+		url_file: z.string().optional().openapi({
+			description: "the endpoint to send HTTP POST requests to, as read from a file. Mutually exclusive with url_file",
+		}),
 
 		http_config: HTTPConfigSpec.optional(),
 
 		// The maximum number of alerts to include in a single webhook message. Alerts
 		// above this threshold are truncated. When leaving this at its default value of 0, all alerts are included.
-		max_alerts: z.number().int().default(0),
+		max_alerts: z.number().int().default(0).openapi({
+			description:
+				"The maximum number of alerts to include in a single webhook message. Alerts  above this threshold are truncated. When leaving this at its default value of 0, all alerts are included.",
+		}),
 	})
 	.strict()
-	.refine(...enforceMutuallyExclusive("url", "url_file", true));
+	.refine(...enforceMutuallyExclusive("url", "url_file", true))
+	.openapi({ description: "Configuration options for sending notifications to a webhook" });
 
 export type WebhookConfig = z.infer<typeof WebhookConfigSpec>;
 
@@ -1006,47 +1097,79 @@ export const WeChatConfigSpec = z
 		send_resolved: z.boolean().default(false).openapi({ description: "whether to notify about resolved alerts" }),
 
 		// The API key to use when talking to the WeChat API.
-		api_secret: z.string().optional(),
+		api_secret: z.string().optional().openapi({
+			description: "The API key to use when talking to the WeChat API.",
+		}),
 
 		// The WeChat API URL.
-		api_url: z.string().optional(),
+		api_url: z.string().optional().openapi({
+			description: "The WeChat API URL.",
+		}),
 
 		// The corp id for authentication.
-		corp_id: z.string().optional(),
+		corp_id: z.string().optional().openapi({
+			description: "The corp id for authentication.",
+		}),
 
 		// API request data as defined by the WeChat API.
-		message: z.string().default('{{ template "wechat.default.message" . }}'),
+		message: z.string().default('{{ template "wechat.default.message" . }}').openapi({
+			description: "API request data as defined by the WeChat API.",
+		}),
 
 		// Type of the message type, supported values are `text` and `markdown`.
-		message_type: z.string().default("text"),
+		message_type: z.enum(["text", "markdown"]).default("text").openapi({
+			description: "Type of the message type, supported values are `text` and `markdown`.",
+		}),
 
-		agent_id: z.string().default('{{ template "wechat.default.agent_id" . }}'),
-		to_user: z.string().default('{{ template "wechat.default.to_user" . }}'),
-		to_party: z.string().default('{{ template "wechat.default.to_party" . }}'),
-		to_tag: z.string().default('{{ template "wechat.default.to_tag" . }}'),
+		agent_id: z.string().default('{{ template "wechat.default.agent_id" . }}').openapi({
+			description: "the ID of the agent to send messages as",
+		}),
+		to_user: z.string().default('{{ template "wechat.default.to_user" . }}').openapi({
+			description: "the ID of the user to send messages to",
+		}),
+		to_party: z.string().default('{{ template "wechat.default.to_party" . }}').openapi({
+			description: "the ID of the party so send messages to",
+		}),
+		to_tag: z.string().default('{{ template "wechat.default.to_tag" . }}').openapi({
+			description: "",
+		}),
 	})
-	.strict();
+	.strict()
+	.openapi({
+		description: "Configuration options for sending notifications to WeChat",
+	});
 
-export const WebexConfigSpec = z.object({
-	// Whether to notify about resolved alerts.
-	send_resolved: z.boolean().default(false).openapi({ description: "whether to notify about resolved alerts" }),
+export const WebexConfigSpec = z
+	.object({
+		// Whether to notify about resolved alerts.
+		send_resolved: z.boolean().default(false).openapi({ description: "whether to notify about resolved alerts" }),
 
-	// The Webex Teams API URL i.e. https://webexapis.com/v1/messages
-	// If not specified, default API URL will be used.
-	api_url: z.string().optional(),
+		// The Webex Teams API URL i.e. https://webexapis.com/v1/messages
+		// If not specified, default API URL will be used.
+		api_url: z.string().optional().openapi({
+			description: "The Webex Teams API URL e.g. https://webexapis.com/v1/messages",
+		}),
 
-	// ID of the Webex Teams room where to send the messages.
-	room_id: z.string(),
+		// ID of the Webex Teams room where to send the messages.
+		room_id: z.string().openapi({
+			description: "ID of the Webex Teams room where to send the messages.",
+		}),
 
-	// Message template.
-	message: z.string().default('{{ template "webex.default.message" .}}'),
+		// Message template.
+		message: z.string().default('{{ template "webex.default.message" .}}').openapi({
+			description: "Message template.",
+		}),
 
-	http_config: HTTPConfigSpec.optional(),
-});
+		http_config: HTTPConfigSpec.optional(),
+	})
+	.strict()
+	.openapi({
+		description: "Configuration options for sending notifications to WebEx",
+	});
 
 export const ReceiverSpec = z
 	.object({
-		name: z.string(),
+		name: z.string().openapi({ description: "the name of the receiver" }),
 		discord_configs: z.array(DiscordConfigSpec).optional(),
 		email_configs: z.array(EmailConfigSpec).optional(),
 		msteams_configs: z.array(MSTeamsConfigSpec).optional(),
@@ -1061,7 +1184,10 @@ export const ReceiverSpec = z
 		webhook_configs: z.array(WebhookConfigSpec).optional(),
 		wechat_configs: z.array(WeChatConfigSpec).optional(),
 	})
-	.strict();
+	.strict()
+	.openapi({
+		description: "Configuration options for receivers to send notifications to",
+	});
 
 export type Receiver = z.infer<typeof ReceiverSpec>;
 
@@ -1069,212 +1195,263 @@ export const InhibitRuleSpec = z
 	.object({
 		// DEPRECATED: Use target_matchers below.
 		// Matchers that have to be fulfilled in the alerts to be muted.
-		target_match: z.record(LabelNameSpec, z.string()).optional(),
+		target_match: z.record(LabelNameSpec, z.string()).optional().openapi({
+			description: "DEPRECATED: Use target_matchers.  Matchers that have to be fulfilled in the alerts to be muted.",
+			deprecated: true,
+		}),
 
 		// DEPRECATED: Use target_matchers below.
-		target_match_re: z.record(LabelNameSpec, z.string()).optional(),
+		target_match_re: z.record(LabelNameSpec, z.string()).optional().openapi({
+			description:
+				"DEPRECATED: Use target_matchers.  Matchers that have to be fulfilled in the alerts to be muted, with values interpreted as a Regex",
+			deprecated: true,
+		}),
 
 		// A list of matchers that have to be fulfilled by the target alerts to be muted.
-		target_matchers: z.array(StringMatcherSpec).optional(),
+		target_matchers: z.array(StringMatcherSpec).optional().openapi({
+			description: "A list of matchers that have to be fulfilled by the target alerts to be muted.",
+		}),
 
 		// DEPRECATED: Use source_matchers below.
 		// Matchers for which one or more alerts have to exist for the inhibition to take effect.
-		source_match: z.record(LabelNameSpec, z.string()).optional(),
+		source_match: z.record(LabelNameSpec, z.string()).optional().openapi({
+			description:
+				"DEPRECATED: Use source_matchers. Matchers for which one or more alerts have to exist for the inhibition to take effect.",
+			deprecated: true,
+		}),
 
 		// DEPRECATED: Use source_matchers below.
-		source_match_re: z.record(LabelNameSpec, z.string()).optional(),
+		source_match_re: z.record(LabelNameSpec, z.string()).optional().openapi({
+			description:
+				"DEPRECATED: Use source_matchers. Matchers for which one or more alerts have to exist for the inhibition to take effect, with values interpreted as a Regex",
+			deprecated: true,
+		}),
 
 		// A list of matchers for which one or more alerts have to exist for the inhibition to take effect.
-		source_matchers: z.array(StringMatcherSpec).optional(),
+		source_matchers: z.array(StringMatcherSpec).optional().openapi({
+			description: "A list of matchers for which one or more alerts have to exist for the inhibition to take effect.",
+		}),
 
 		// Labels that must have an equal value in the source and target alert for the inhibition to take effect.
-		equal: z.array(LabelNameSpec).default([]),
+		equal: z.array(LabelNameSpec).default([]).openapi({
+			description:
+				"Labels that must have an equal value in the source and target alert for the inhibition to take effect.",
+		}),
 	})
-	.strict();
+	.strict()
+	.openapi({ description: "Configuration options for inhibition rules" });
 
 export type InhibitRule = z.infer<typeof InhibitRuleSpec>;
 
-export const TimeSpec = z.string().transform((val) => {
-	let parts = val.split(":").map((n) => parseInt(n));
-	if (!parts || parts.length !== 2) {
-		throw `expected HH:MM`;
-	}
-
-	if (parts[0] < 0 || parts[0] >= 24) {
-		throw `hour must be between 0-23`;
-	}
-
-	if (parts[1] < 0 || parts[1] >= 60) {
-		throw `hour must be 0-60`;
-	}
-
-	return { hour: parts[0], minute: parts[1] };
-});
-
-export const WeekdayRangeSpec = z.string().transform((a) => {
-	const days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
-
-	if (!a.includes(":")) {
-		if (!days.includes(a)) {
-			throw `unknown day: ${a}`;
+export const TimeSpec = z
+	.string()
+	.transform((val) => {
+		let parts = val.split(":").map((n) => parseInt(n));
+		if (!parts || parts.length !== 2) {
+			throw `expected HH:MM`;
 		}
 
-		return { type: "single", day: days.indexOf(a) };
-	}
-
-	const parts = a.split(":");
-	if (!parts || parts.length != 2) {
-		throw "Weekday must be `<day>`, or `<from>:<until>";
-	}
-
-	const start = parts[0].toLowerCase();
-	const end = parts[1].toLowerCase();
-	if (!days.includes(start)) {
-		throw `unknown day: ${start}`;
-	}
-
-	if (!days.includes(end)) {
-		throw `unknown day ${end}`;
-	}
-
-	const startIndex = days.indexOf(start);
-	const endIndex = days.indexOf(end);
-	if (startIndex >= endIndex) {
-		throw `start day ${start} must be before end day ${end}`;
-	}
-
-	return { type: "range", start: startIndex, end: endIndex };
-});
-
-export const DaysOfMonthRange = z.string().transform((a) => {
-	if (!a.includes(":")) {
-		const num = parseInt(a, 10);
-		if (Number.isNaN(num)) {
-			throw `expected number: ${a}`;
+		if (parts[0] < 0 || parts[0] >= 24) {
+			throw `hour must be between 0-23`;
 		}
 
-		if (num === 0) {
+		if (parts[1] < 0 || parts[1] >= 60) {
+			throw `hour must be 0-60`;
+		}
+
+		return { hour: parts[0], minute: parts[1] };
+	})
+	.openapi({ description: "A time, in the format of HH:MM", example: "13:05" });
+
+export const WeekdayRangeSpec = z
+	.string()
+	.transform((a) => {
+		const days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
+
+		if (!a.includes(":")) {
+			if (!days.includes(a)) {
+				throw `unknown day: ${a}`;
+			}
+
+			return { type: "single", day: days.indexOf(a) };
+		}
+
+		const parts = a.split(":");
+		if (!parts || parts.length != 2) {
+			throw "Weekday must be `<day>`, or `<from>:<until>";
+		}
+
+		const start = parts[0].toLowerCase();
+		const end = parts[1].toLowerCase();
+		if (!days.includes(start)) {
+			throw `unknown day: ${start}`;
+		}
+
+		if (!days.includes(end)) {
+			throw `unknown day ${end}`;
+		}
+
+		const startIndex = days.indexOf(start);
+		const endIndex = days.indexOf(end);
+		if (startIndex >= endIndex) {
+			throw `start day ${start} must be before end day ${end}`;
+		}
+
+		return { type: "range", start: startIndex, end: endIndex };
+	})
+	.openapi({
+		description: "A range of days, in the format `day`, or `from:to`",
+		examples: ["monday", "monday:thursday"],
+	});
+
+export const DaysOfMonthRange = z
+	.string()
+	.transform((a) => {
+		if (!a.includes(":")) {
+			const num = parseInt(a, 10);
+			if (Number.isNaN(num)) {
+				throw `expected number: ${a}`;
+			}
+
+			if (num === 0) {
+				throw `days_of_month_range cannot be 0`;
+			}
+
+			return { type: "single", day: num };
+		}
+
+		const parts = a.split(":");
+		if (!parts || parts.length != 2) {
+			throw `days_of_month_range must be <day> or <start>:<end>`;
+		}
+
+		const p1 = parseInt(parts[0], 10);
+		const p2 = parseInt(parts[1], 10);
+		if (Number.isNaN(p1)) {
+			throw `days_of_month_range expects a number, not ${p1}`;
+		}
+
+		if (p1 === 0 || p2 === 0) {
 			throw `days_of_month_range cannot be 0`;
 		}
 
-		return { type: "single", day: num };
-	}
-
-	const parts = a.split(":");
-	if (!parts || parts.length != 2) {
-		throw `days_of_month_range must be <day> or <start>:<end>`;
-	}
-
-	const p1 = parseInt(parts[0], 10);
-	const p2 = parseInt(parts[1], 10);
-	if (Number.isNaN(p1)) {
-		throw `days_of_month_range expects a number, not ${p1}`;
-	}
-
-	if (p1 === 0 || p2 === 0) {
-		throw `days_of_month_range cannot be 0`;
-	}
-
-	if (Number.isNaN(p2)) {
-		throw `days_of_month_range expects a number, not ${p2}`;
-	}
-
-	if (p1 >= p2) {
-		throw `days_of_month_range expects ${p1} to be less than ${p2}`;
-	}
-
-	return { type: "range", start: p1, end: p2 };
-});
-
-export const MonthRange = z.string().transform((a) => {
-	const months = [
-		"buffer", // Months start at 1, so this makes it easier to calculate indexes.
-		"january",
-		"february",
-		"march",
-		"april",
-		"may",
-		"june",
-		"july",
-		"august",
-		"september",
-		"october",
-		"november",
-		"december",
-	];
-
-	a = a.toLowerCase();
-	if (!a.includes(":")) {
-		const index = months.indexOf(a);
-		const n = index !== -1 ? index : parseInt(a, 10);
-		if (n > months.length || n <= 0 || Number.isNaN(n)) {
-			throw `month_range expects a month or a number(1-12), not ${a}`;
+		if (Number.isNaN(p2)) {
+			throw `days_of_month_range expects a number, not ${p2}`;
 		}
 
-		return { type: "single", month: n };
-	}
-
-	const parts = a.split(":");
-	if (!parts || parts.length != 2) {
-		throw `month_range expects <start>:<end>`;
-	}
-
-	let startIndex = months.indexOf(parts[0]);
-	startIndex = startIndex !== -1 ? startIndex : parseInt(parts[0], 10);
-	if (startIndex > months.length || startIndex <= 0 || Number.isNaN(startIndex)) {
-		throw `month_range expects a month or a number(1-12), not ${parts[0]}`;
-	}
-
-	let endIndex = months.indexOf(parts[1]);
-	endIndex = endIndex !== -1 ? endIndex : parseInt(parts[1], 10);
-	if (endIndex > months.length || endIndex <= 0 || Number.isNaN(endIndex)) {
-		throw `month_range expects a month or a number(1-12), not ${parts[1]}`;
-	}
-
-	return { type: "range", start: startIndex, end: endIndex };
-});
-
-export const YearRange = z.string().transform((a) => {
-	if (!a.includes(":")) {
-		const n = parseInt(a, 10);
-		if (Number.isNaN(n)) {
-			throw `year_range expects a number, not ${a}`;
+		if (p1 >= p2) {
+			throw `days_of_month_range expects ${p1} to be less than ${p2}`;
 		}
-		return { type: "single", year: n };
-	}
 
-	const parts = a.split(":");
-	if (!parts || parts.length != 2) {
-		throw `year_range expects <start>:<end>`;
-	}
+		return { type: "range", start: p1, end: p2 };
+	})
+	.openapi({
+		description: "A range of days, in the format `day`, or `from:to`",
+		examples: ["1", "12:30"],
+	});
 
-	const p1 = parseInt(parts[0], 10);
-	if (Number.isNaN(p1)) {
-		throw `year_range expects a number, not ${parts[0]}`;
-	}
+export const MonthRange = z
+	.string()
+	.transform((a) => {
+		const months = [
+			"buffer", // Months start at 1, so this makes it easier to calculate indexes.
+			"january",
+			"february",
+			"march",
+			"april",
+			"may",
+			"june",
+			"july",
+			"august",
+			"september",
+			"october",
+			"november",
+			"december",
+		];
 
-	const p2 = parseInt(parts[1], 10);
-	if (Number.isNaN(p2)) {
-		throw `year_range expects a number, not ${parts[1]}`;
-	}
+		a = a.toLowerCase();
+		if (!a.includes(":")) {
+			const index = months.indexOf(a);
+			const n = index !== -1 ? index : parseInt(a, 10);
+			if (n > months.length || n <= 0 || Number.isNaN(n)) {
+				throw `month_range expects a month or a number(1-12), not ${a}`;
+			}
 
-	if (p1 >= p2) {
-		throw `year_range expects start year (${p1}) to be before the end year ${p2}`;
-	}
+			return { type: "single", month: n };
+		}
 
-	return { type: "range", start: p1, end: p2 };
-});
+		const parts = a.split(":");
+		if (!parts || parts.length != 2) {
+			throw `month_range expects <start>:<end>`;
+		}
+
+		let startIndex = months.indexOf(parts[0]);
+		startIndex = startIndex !== -1 ? startIndex : parseInt(parts[0], 10);
+		if (startIndex > months.length || startIndex <= 0 || Number.isNaN(startIndex)) {
+			throw `month_range expects a month or a number(1-12), not ${parts[0]}`;
+		}
+
+		let endIndex = months.indexOf(parts[1]);
+		endIndex = endIndex !== -1 ? endIndex : parseInt(parts[1], 10);
+		if (endIndex > months.length || endIndex <= 0 || Number.isNaN(endIndex)) {
+			throw `month_range expects a month or a number(1-12), not ${parts[1]}`;
+		}
+
+		return { type: "range", start: startIndex, end: endIndex };
+	})
+	.openapi({
+		description: "A range of months, in the format `month`, or `from:to`",
+		examples: ["january", "march:november"],
+	});
+
+export const YearRange = z
+	.string()
+	.transform((a) => {
+		if (!a.includes(":")) {
+			const n = parseInt(a, 10);
+			if (Number.isNaN(n)) {
+				throw `year_range expects a number, not ${a}`;
+			}
+			return { type: "single", year: n };
+		}
+
+		const parts = a.split(":");
+		if (!parts || parts.length != 2) {
+			throw `year_range expects <start>:<end>`;
+		}
+
+		const p1 = parseInt(parts[0], 10);
+		if (Number.isNaN(p1)) {
+			throw `year_range expects a number, not ${parts[0]}`;
+		}
+
+		const p2 = parseInt(parts[1], 10);
+		if (Number.isNaN(p2)) {
+			throw `year_range expects a number, not ${parts[1]}`;
+		}
+
+		if (p1 >= p2) {
+			throw `year_range expects start year (${p1}) to be before the end year ${p2}`;
+		}
+
+		return { type: "range", start: p1, end: p2 };
+	})
+	.openapi({
+		description: "A range of years, in the format `year`, or `from:to`",
+		examples: ["2019", "2020:2024"],
+	});
 
 export const TimeRangeSpec = z
 	.object({
 		start_time: TimeSpec,
 		end_time: TimeSpec,
 	})
-	.strict();
+	.strict()
+	.openapi({ description: "a range of times" });
 
 export const TimeIntervalSpec = z
 	.object({
-		name: z.string(),
+		name: z.string().openapi({ description: "the name of the time interval" }),
 		time_intervals: z.array(
 			z.object({
 				times: z.array(TimeRangeSpec).optional(),
@@ -1282,11 +1459,12 @@ export const TimeIntervalSpec = z
 				days_of_month: z.array(DaysOfMonthRange).optional(),
 				months: z.array(MonthRange).optional(),
 				years: z.array(YearRange).optional(),
-				location: z.string().default("UTC"), // TODO: Validate this.
-			}),
+				location: z.string().default("UTC").openapi({ description: "the timezone to interpret times in" }), // TODO: Validate this.
+			})
 		),
 	})
-	.strict();
+	.strict()
+	.openapi({ description: "a time interval that can be used in muting alerts" });
 
 export type TimeInterval = z.infer<typeof TimeIntervalSpec>;
 
@@ -1305,65 +1483,124 @@ export const walkTree = (tree: RouteSpec, process: (node: RouteSpec, parent?: Ro
 export const GlobalConfigSpec = z
 	.object({
 		// The default SMTP `from` header field.
-		smtp_from: z.string().optional(),
+		smtp_from: z.string().optional().openapi({ description: "The default SMTP `from` header field." }),
 
 		// The default SMTP smarthost used for sending emails, including port number.
 		// Example: smtp.example.org:587
-		smtp_smarthost: z.string().optional(),
+		smtp_smarthost: z.string().optional().openapi({
+			description: "The default SMTP smarthost used for sending emails, including port number.",
+			example: "smtp.example.org:587",
+		}),
 
 		// The default hostname to identify to the SMTP server.
 		// default: localhost
-		smtp_hello: z.string().default("localhost"),
+		smtp_hello: z.string().default("localhost").openapi({
+			description: "The default hostname to identify to the SMTP server.",
+		}),
 
-		// // SMTP Auth using CRAM-MD5, LOGIN and PLAIN. If empty, Alertmanager doesn't authenticate to the SMTP server.
-		smtp_auth_username: z.string().optional(),
+		// SMTP Auth using CRAM-MD5, LOGIN and PLAIN. If empty, Alertmanager doesn't authenticate to the SMTP server.
+		smtp_auth_username: z.string().optional().openapi({
+			description:
+				"SMTP Auth using CRAM-MD5, LOGIN and PLAIN. If empty, Alertmanager doesn't authenticate to the SMTP server.",
+		}),
 
 		// SMTP Auth using LOGIN and PLAIN.
-		smtp_auth_password: z.string().optional(),
-		smtp_auth_password_file: z.string().optional(),
+		smtp_auth_password: z.string().optional().openapi({
+			description:
+				"The password to use to authenticate against the SMTP server, using PLAIN. Mutually exclusive with smtp_auth_password_file",
+		}),
+		smtp_auth_password_file: z.string().optional().openapi({
+			description:
+				"The password to use to authenticate against the SMTP server, loaded from a file, using PLAIN. Mutually exclusive with smtp_auth_password_file",
+		}),
 
 		// SMTP Auth using PLAIN.
-		smtp_auth_identity: z.string().optional(),
+		smtp_auth_identity: z.string().optional().openapi({
+			description: "SMTP Auth using PLAIN.",
+		}),
 
 		// SMTP Auth using CRAM-MD5.
-		smtp_auth_secret: z.string().optional(),
+		smtp_auth_secret: z.string().optional().openapi({
+			description: "SMTP Auth using CRAM-MD5.",
+		}),
 
-		// // The default SMTP TLS requirement.
-		smtp_require_tls: z.boolean().default(true),
+		// The default SMTP TLS requirement.
+		smtp_require_tls: z.boolean().default(true).openapi({
+			description: "The default SMTP TLS requirement.",
+		}),
 
-		slack_api_url: z.string().optional(),
-		slack_api_url_file: z.string().optional(),
-		victorops_api_key: z.string().optional(),
-		victorops_api_key_file: z.string().optional(),
-		victorops_api_url: z.string().default("https://alert.victorops.com/integrations/generic/20131114/alert/"),
-		pagerduty_url: z.string().default("https://events.pagerduty.com/v2/enqueue"),
-		opsgenie_api_key: z.string().optional(),
-		opsgenie_api_key_file: z.string().optional(),
-		opsgenie_api_url: z.string().default("https://api.opsgenie.com/"),
-		wechat_api_url: z.string().default("https://qyapi.weixin.qq.com/cgi-bin/"),
-		wechat_api_secret: z.string().optional(),
-		wechat_api_corp_id: z.string().optional(),
-		telegram_api_url: z.string().default("https://api.telegram.org"),
-		webex_api_url: z.string().default("https://webexapis.com/v1/messages"),
+		slack_api_url: z.string().optional().openapi({
+			description: "The default URL to use when sending messages to slack",
+		}),
+		slack_api_url_file: z.string().optional().openapi({
+			description: "The default URL to use when sending messages to slack, loaded from a file",
+		}),
+		victorops_api_key: z.string().optional().openapi({
+			description: "The default api key to use when sending messages to victorops",
+		}),
+		victorops_api_key_file: z.string().optional().openapi({
+			description: "The default api key to use when sending messages to victorops, loaded from a file",
+		}),
+		victorops_api_url: z.string().default("https://alert.victorops.com/integrations/generic/20131114/alert/").openapi({
+			description: "The default URL to use when sending messages to VictorOps",
+		}),
+		pagerduty_url: z.string().default("https://events.pagerduty.com/v2/enqueue").openapi({
+			description: "The default URL to use when sending messages to Pagerduty",
+		}),
+		opsgenie_api_key: z.string().optional().openapi({
+			description: "The default API Key to use when sending messages to OpsGenie",
+		}),
+		opsgenie_api_key_file: z.string().optional().openapi({
+			description: "The default API Key to use when sending messages to OpsGenie, loaded from a file",
+		}),
+		opsgenie_api_url: z.string().default("https://api.opsgenie.com/").openapi({
+			description: "The default URL to use when sending messages to OpsGenie",
+		}),
+		wechat_api_url: z.string().default("https://qyapi.weixin.qq.com/cgi-bin/").openapi({
+			description: "The default URL to use when sending messages to WeChat",
+		}),
+		wechat_api_secret: z.string().optional().openapi({
+			description: "The default API Key to use when sending messages to WeChat",
+		}),
+		wechat_api_corp_id: z.string().optional().openapi({
+			description: "The default Corp ID to use when sending messages to WeChat",
+		}),
+		telegram_api_url: z.string().default("https://api.telegram.org").openapi({
+			description: "The default URL to use when sending messages to Telegram",
+		}),
+		webex_api_url: z.string().default("https://webexapis.com/v1/messages").openapi({
+			description: "The default URL to use when sending messages to WebEx",
+		}),
 		http_config: HTTPConfigSpec.default(HTTPConfigSpec.parse({})),
 
 		// resolve_timeout is the default value used by alertmanager if the alert does
 		// not include EndsAt, after this time passes it can declare the alert as resolved if it has not been updated.
 		// This has no impact on alerts from Prometheus, as they always include EndsAt.
-		resolve_timeout: z.string().default("5s"),
+		resolve_timeout: z.string().default("5s").openapi({
+			description:
+				"resolve_timeout is the default value used by alertmanager if the alert does not include EndsAt, after this time passes it can declare the alert as resolved if it has not been updated.",
+		}),
 	})
-	.strict();
+	.strict()
+	.refine(...enforceMutuallyExclusive("smtp_auth_password", "smtp_auth_password_file"))
+	.refine(...enforceMutuallyExclusive("slack_api_url", "slack_api_url_file"))
+	.refine(...enforceMutuallyExclusive("victorops_api_key", "victorops_api_key_file"))
+	.refine(...enforceMutuallyExclusive("opsgenie_api_key", "opsgenie_api_key_file"))
+	.openapi({ description: "the global configs, used as defaults in all receivers" });
 
-export const TemplatePathSpec = z.string().refine((p) => {
-	const parts = p.split(new RegExp(`[/\\\\]`));
-	for (let i = 0; i < parts.length; i++) {
-		if (parts[i].includes("*") && i != parts.length - 1) {
-			return false;
+export const TemplatePathSpec = z
+	.string()
+	.refine((p) => {
+		const parts = p.split(new RegExp(`[/\\\\]`));
+		for (let i = 0; i < parts.length; i++) {
+			if (parts[i].includes("*") && i != parts.length - 1) {
+				return false;
+			}
 		}
-	}
 
-	return true;
-}, "only last component of the template path can contain a wildcard");
+		return true;
+	}, "only last component of the template path can contain a wildcard")
+	.openapi({ description: "a path to load templates from, optionally with a glob" });
 
 export const AlertmanagerConfigSpec = z
 	.object({
@@ -1398,7 +1635,7 @@ export const AlertmanagerConfigSpec = z
 			Object.keys(val.route.match).length === 0 &&
 			Object.keys(val.route.match_re).length === 0 &&
 			val.route.matchers.length === 0,
-		`Root of the routing tree must not contain any matchers`,
+		`Root of the routing tree must not contain any matchers`
 	)
 	.superRefine((conf, ctx) => {
 		// Make sure that all the receivers in the routing tree exist.
@@ -1461,6 +1698,12 @@ export const AlertmanagerConfigSpec = z
 export type AlertmanagerConfig = z.infer<typeof AlertmanagerConfigSpec>;
 export type RouteConfig = z.infer<typeof RouteConfigSpec>;
 
+export const FlatRouteConfigSpec = baseRouteSpec
+	.extend({
+		routes: z.array(z.string()),
+	})
+	.openapi({ description: "an entry in the routing tree, linked with IDs rather than embedding routes directly" });
+
 export type FlatRouteConfig = Omit<RouteConfig, "routes"> & {
 	routes: string[];
 };
@@ -1505,44 +1748,4 @@ export const collapseRoutingTree = (c: AlertmanagerConfig) => {
 
 	const roots = Object.keys(flatNodes).filter((id) => !hasParents.get(id));
 	return { roots: roots, tree: flatNodes };
-};
-
-export type RequiredFiles = {
-	secrets: string[];
-	templates: {
-		path: string;
-		isDir: boolean;
-	}[];
-};
-
-// getRequiredFiles takes a config and returns a list of auxillary files that
-// are needed to assemble the config. This includes secret files, certs, and templates
-// that are referenced in various bits of the config.
-export const getRequiredFiles = (conf: AlertmanagerConfig): RequiredFiles => {
-	let toScan = [conf.global, ...conf.receivers];
-	const requiredFilesSet = new Set<string>();
-	for (const scan of toScan) {
-		for (const key of Object.keys(scan)) {
-			const val = scan[key as keyof typeof scan];
-			// Rather than being super strict here, we simply pull out anything that has a _file suffix.
-			// That should capture everything except templates.
-			if (key.endsWith("_file")) {
-				requiredFilesSet.add(val);
-			} else if (Array.isArray(val)) {
-				toScan.push(...(val as Array<any>));
-			} else if (typeof val === "object") {
-				toScan.push(val);
-			}
-		}
-	}
-
-	return {
-		secrets: [...requiredFilesSet.values()].sort(),
-		templates: conf.templates.map((s) => {
-			return {
-				path: s,
-				isDir: s.includes("*"),
-			};
-		}),
-	};
 };
