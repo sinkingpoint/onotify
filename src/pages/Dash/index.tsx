@@ -1,11 +1,36 @@
 import { AlertCard } from "../../components/AlertCard";
+import InfoBox from "../../components/InfoBox";
+import { SkeletonLoader } from "../../components/Skeleton";
 import StatPanel from "../../components/StatPanel";
-import { getAlerts, getStats } from "../../pkg/api/client";
-import { useQuery } from "../../pkg/types/utils";
+import { getAlerts, GetAlertsResponse, getStats } from "../../pkg/api/client";
+import { DataPull, useQuery } from "../../pkg/types/utils";
 
 const getStatPanel = (title: string, value?: number, error?: string) => {
 	console.log(title, value, error);
 	return <StatPanel title={title} value={value} error={error} class="w-1/3" />;
+};
+
+const getAlertCards = (pull: DataPull<GetAlertsResponse, unknown>) => {
+	if (pull.state === "pending") {
+		// Pending pulls are masked by the skeleton loader.
+		return <></>;
+	}
+
+	if (pull.state === "error") {
+		return <InfoBox style="error" text="Failed to load alerts" />;
+	}
+
+	if (pull.result.length === 0) {
+		return <InfoBox style="info" text="No alerts! Hooray!" class="w-full" />;
+	}
+
+	return (
+		<>
+			{pull.result.map((a) => (
+				<AlertCard alert={a} />
+			))}
+		</>
+	);
 };
 
 export const Dash = () => {
@@ -77,17 +102,11 @@ export const Dash = () => {
 			</span>
 
 			<h2 class="text-2xl font-bold mt-5">Latest Alerts</h2>
-			{alerts.state === "success" && (
-				<div>
-					{alerts.result.map((a) => {
-						return (
-							<>
-								<AlertCard alert={a} class="pb-3" />
-							</>
-						);
-					})}
-				</div>
-			)}
+			<span class="w-full flex flex-col">
+				<SkeletonLoader layout="paragraph" repeat={3} pull={alerts}>
+					{getAlertCards(alerts)}
+				</SkeletonLoader>
+			</span>
 		</div>
 	);
 };
