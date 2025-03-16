@@ -19,12 +19,12 @@ const getAlertsPage = (query: DataPull<GetAlertsResponse, unknown>) => {
 	}
 
 	if (query.state === "error") {
-		return <InfoBox style="error" text="Failed to fetch alerts" class="my-1 w-full" />;
+		return <InfoBox style="error" text="Failed to fetch alerts" class="my-1 w-1/2" />;
 	}
 
 	const alerts = query.result;
 	if (alerts.length === 0) {
-		return <InfoBox style="warn" text="No alerts found" class="my-1 w-full" />;
+		return <InfoBox style="warn" text="No alerts found" class="my-1 w-1/2" />;
 	}
 
 	return (
