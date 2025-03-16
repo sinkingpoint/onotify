@@ -12,6 +12,7 @@ export const internalAlertToAlertmanager = (a: CachedAlert) => {
 			inhibitedBy: a.inhibitedBy,
 			mutedBy: [], // TODO
 		},
+		history: a.history,
 		receivers: a.receivers.map((r) => {
 			return {
 				name: r,
