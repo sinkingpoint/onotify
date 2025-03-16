@@ -6,6 +6,7 @@ import Paginator from "../../components/Paginator";
 import { SkeletonLoader } from "../../components/Skeleton";
 import TogglableChit from "../../components/TogglableChit";
 import { getAlerts, GetAlertsResponse } from "../../pkg/api/client";
+import { StringMatcherSpec } from "../../pkg/types/alertmanager";
 import { Matcher } from "../../pkg/types/api";
 import { DataPull, matcherToString, setURLParam, useQuery } from "../../pkg/types/utils";
 import { matcherIsSame } from "../../pkg/utils/matcher";
@@ -37,12 +38,13 @@ const getAlertsPage = (query: DataPull<GetAlertsResponse, unknown>) => {
 };
 
 export default () => {
-	const [matchers, setMatchers] = useState([]);
-	const [active, setActive] = useState(true);
-	const [silenced, setSilenced] = useState(false);
-	const [inhibited, setInihibited] = useState(false);
-	const [muted, setMuted] = useState(false);
-	const [resolved, setResolved] = useState(false);
+	const params = new URLSearchParams(window.location.search);
+	const [matchers, setMatchers] = useState(params.getAll("filter").map((m) => StringMatcherSpec.parse(m)));
+	const [active, setActive] = useState((params.get("active") ?? "true") === "true");
+	const [silenced, setSilenced] = useState((params.get("silenced") ?? "false") === "true");
+	const [inhibited, setInihibited] = useState((params.get("inhibited") ?? "false") === "true");
+	const [muted, setMuted] = useState((params.get("muted") ?? "false") === "true");
+	const [resolved, setResolved] = useState((params.get("resolved") ?? "false") === "true");
 	const [currentPage, setCurrentPage] = useState(1);
 
 	const alerts = useQuery(() => {
@@ -103,25 +105,50 @@ export default () => {
 			</span>
 
 			<span class="py-2">
-				<TogglableChit value="Active Alerts" toggled={active} class="mr-2" onClick={(toggled) => setActive(toggled)} />
+				<TogglableChit
+					value="Active Alerts"
+					toggled={active}
+					class="mr-2"
+					onClick={(toggled) => {
+						setActive(toggled);
+						setURLParam("active", toggled);
+					}}
+				/>
 				<TogglableChit
 					value="Silenced Alerts"
 					toggled={silenced}
 					class="mr-2"
-					onClick={(toggled) => setSilenced(toggled)}
+					onClick={(toggled) => {
+						setSilenced(toggled);
+						setURLParam("silenced", toggled);
+					}}
 				/>
 				<TogglableChit
 					value="Inhibited Alerts"
 					toggled={inhibited}
 					class="mr-2"
-					onClick={(toggled) => setInihibited(toggled)}
+					onClick={(toggled) => {
+						setURLParam("inhibited", toggled);
+						setInihibited(toggled);
+					}}
 				/>
-				<TogglableChit value="Muted Alerts" toggled={muted} class="mr-2" onClick={(toggled) => setMuted(toggled)} />
+				<TogglableChit
+					value="Muted Alerts"
+					toggled={muted}
+					class="mr-2"
+					onClick={(toggled) => {
+						setMuted(toggled);
+						setURLParam("muted", toggled);
+					}}
+				/>
 				<TogglableChit
 					value="Resolved Alerts"
 					toggled={resolved}
 					class="mr-2"
-					onClick={(toggled) => setResolved(toggled)}
+					onClick={(toggled) => {
+						setResolved(toggled);
+						setURLParam("resolved", toggled);
+					}}
 				/>
 			</span>
 
