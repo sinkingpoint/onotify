@@ -78,10 +78,12 @@ export default () => {
 		}
 		switch (alert.status.state) {
 			case "active":
-				if (alert.endsAt && Date.parse(alert.endsAt) < Date.now()) {
+				const alertEnd = alert.endsAt ? Date.parse(alert.endsAt) : 0;
+				if (alertEnd !== 0 && alertEnd < Date.now()) {
 					return "Resolved";
+				} else {
+					return "Active";
 				}
-				return "Active";
 			case "supressed":
 				return "Supressed";
 		}
