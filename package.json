@@ -6,7 +6,8 @@
 		"build": "vite build",
 		"preview": "vite preview",
 		"fmt": "prettier --config ./.prettierrc -w './**/*.tsx'",
-		"generate": "npx @hey-api/openapi-ts -c @hey-api/client-fetch -i ./src/pkg/api/openapi.json -o ./src/pkg/api/client && npx prettier -w ."
+		"generate": "npx @hey-api/openapi-ts -c @hey-api/client-fetch -i ./src/pkg/api/openapi.json -o ./src/pkg/api/client && npx prettier -w .",
+		"deploy": "npm run build && wrangler pages deploy ./dist"
 	},
 	"dependencies": {
 		"@asteasolutions/zod-to-openapi": "^7.3.0",
@@ -33,7 +34,8 @@
 		"tailwindcss": "^3.4.16",
 		"ts-jest": "^29.2.5",
 		"typescript": "^5.7.2",
-		"vite": "^5.3.3"
+		"vite": "^5.3.3",
+		"wrangler": "^4.2.0"
 	},
 	"eslintConfig": {
 		"extends": "preact"

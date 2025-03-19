@@ -10,6 +10,7 @@ import { StringMatcherSpec } from "../../pkg/types/alertmanager";
 import { GettableSilenceSpec, Matcher } from "../../pkg/types/api";
 import { DataPull, matcherToString, setURLParam, useQuery } from "../../pkg/types/utils";
 import { matcherIsSame } from "../../pkg/utils/matcher";
+import { getURLSearchParams } from "../../pkg/utils/preact-shims";
 
 const getSilencePage = (query: DataPull<GetSilencesResponse, unknown>) => {
 	if (query.state === "pending") {
@@ -37,7 +38,7 @@ const getSilencePage = (query: DataPull<GetSilencesResponse, unknown>) => {
 
 export default () => {
 	const DEFAULT_PAGE_SIZE = 10;
-	const params = new URLSearchParams(window.location.search);
+	const params = getURLSearchParams();
 	const [currentPage, setCurrentPage] = useState(1);
 	const [active, setActive] = useState((params.get("active") ?? "true") === "true");
 	const [expired, setExpired] = useState((params.get("expired") ?? "false") === "true");

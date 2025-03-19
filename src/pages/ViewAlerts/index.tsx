@@ -10,6 +10,7 @@ import { StringMatcherSpec } from "../../pkg/types/alertmanager";
 import { Matcher } from "../../pkg/types/api";
 import { DataPull, matcherToString, setURLParam, useQuery } from "../../pkg/types/utils";
 import { matcherIsSame } from "../../pkg/utils/matcher";
+import { getURLSearchParams } from "../../pkg/utils/preact-shims";
 
 const DEFAULT_PAGE_SIZE = 10;
 
@@ -38,7 +39,7 @@ const getAlertsPage = (query: DataPull<GetAlertsResponse, unknown>) => {
 };
 
 export default () => {
-	const params = new URLSearchParams(window.location.search);
+	const params = getURLSearchParams();
 	const [matchers, setMatchers] = useState(params.getAll("filter").map((m) => StringMatcherSpec.parse(m)));
 	const [active, setActive] = useState((params.get("active") ?? "true") === "true");
 	const [silenced, setSilenced] = useState((params.get("silenced") ?? "false") === "true");

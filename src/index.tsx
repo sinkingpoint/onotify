@@ -15,7 +15,7 @@ import { client } from "./pkg/api/client/client.gen.js";
 
 export function App() {
 	client.setConfig({
-		baseUrl: "http://localhost:8787",
+		baseUrl: "http://api.onotifi.com",
 		headers: {
 			Authorization: "Bearer notify-test",
 		},

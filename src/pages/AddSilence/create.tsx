@@ -6,6 +6,7 @@ import { TextBox } from "../../components/TextBox";
 import { StringMatcherSpec } from "../../pkg/types/alertmanager";
 import { Matcher } from "../../pkg/types/api";
 import { matcherToString, setURLParam } from "../../pkg/types/utils";
+import { getURLSearchParams } from "../../pkg/utils/preact-shims";
 import { PreviewProps } from "./preview";
 import { formatDate, getSilenceEnd } from "./utils";
 
@@ -18,7 +19,7 @@ interface CreateSilenceProps {
 }
 
 export const CreateSilence = ({ onPreview }: CreateSilenceProps) => {
-	const params = new URLSearchParams(window.location.search);
+	const params = getURLSearchParams();
 	const [matchers, setMatchers] = useState<Matcher[]>(params.getAll("matcher").map((m) => StringMatcherSpec.parse(m)));
 
 	const [duration, setDuration] = useState<string>(params.get("duration") ?? "1h");
