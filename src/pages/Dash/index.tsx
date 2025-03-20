@@ -83,7 +83,7 @@ export const Dash = () => {
 
 	return (
 		<div class="w-full flex flex-col">
-			<span class="flex flex-row justify-between w-full">
+			<span class="flex flex-col md:flex-row justify-between w-full overflow-wrap">
 				{getStatPanel(
 					"Firing Alerts",
 					alertStats.state === "success" ? (alertStats.result.buckets[0]?.value ?? 0) : undefined,
