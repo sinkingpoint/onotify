@@ -5,9 +5,9 @@ import InfoBox from "../../components/InfoBox";
 import { MatcherCard } from "../../components/MatcherCard";
 import { SilenceCard } from "../../components/SilenceCard";
 import { SkeletonLoader } from "../../components/Skeleton";
-import { getAlerts, GetAlertsResponse, getSilences, GetSilencesResponse } from "../../pkg/api/client";
+import { getAlerts, GetAlertsResponse, getSilences, GetSilencesResponse, postAlerts } from "../../pkg/api/client";
 import { GettableSilenceSpec } from "../../pkg/types/api";
-import { DataPull, useQuery } from "../../pkg/types/utils";
+import { DataPull, matcherToString, useQuery } from "../../pkg/types/utils";
 
 const silenceCards = (pull: DataPull<GetSilencesResponse, any>) => {
 	if (!pull || pull.state === "pending") {
@@ -36,7 +36,10 @@ const inhibitedCards = (pull: DataPull<GetAlertsResponse, any>) => {
 export default () => {
 	const location = useRoute();
 	const fingerprint = location.params["fingerprint"];
-	const alertPull = useQuery(() => getAlerts({ query: { fingerprints: [fingerprint] } }), [fingerprint]);
+	const alertPull = useQuery(
+		() => getAlerts({ query: { fingerprints: [fingerprint], resolved: true } }),
+		[fingerprint],
+	);
 	const alert = alertPull.state === "success" && alertPull.result.length ? alertPull.result[0] : undefined;
 	const silencePull = (() => {
 		if (alert && alert.status.silencedBy.length > 0) {
@@ -72,6 +75,38 @@ export default () => {
 		return undefined;
 	})();
 
+	const onSilenceAlert = () => {
+		if (alert) {
+			const matchers = Object.keys(alert.labels)
+				.map((k) => ({
+					name: k,
+					value: alert.labels[k],
+					isRegex: false,
+					isEqual: true,
+				}))
+				.map((m) => `matcher=${matcherToString(m)}`)
+				.join("&");
+
+			window.location.href = `/silences/new?${matchers}`;
+		}
+	};
+
+	const onReopen = async () => {
+		if (alertPull.state === "success" && alert) {
+			alert.endsAt = new Date(Date.now() + 1000 * 60 * 60).toISOString();
+			await postAlerts({ body: [alert] });
+			alertPull.refresh();
+		}
+	};
+
+	const onResolve = async () => {
+		if (alertPull.state === "success" && alert) {
+			alert.endsAt = new Date(Date.now()).toISOString();
+			await postAlerts({ body: [alert] });
+			alertPull.refresh();
+		}
+	};
+
 	const statusText = (() => {
 		if (!alert) {
 			return "";
@@ -97,6 +132,25 @@ export default () => {
 	} else {
 		contents = (
 			<>
+				<div class="flex gap-5">
+					{statusText != "" && statusText !== "Resolved" && (
+						<>
+							<button class="p-2 bg-green-600 rounded my-3" onClick={onSilenceAlert}>
+								Silence Alert
+							</button>
+
+							<button class="p-2 bg-green-600 rounded my-3" onClick={onResolve}>
+								Resolve Alert
+							</button>
+						</>
+					)}
+
+					{statusText === "Resolved" && (
+						<button class="p-2 bg-green-600 rounded my-3" onClick={onReopen}>
+							Re-Open Alert
+						</button>
+					)}
+				</div>
 				<div>
 					<h2 class="text-xl inline">Status: </h2>
 					<SkeletonLoader layout="single-line" pull={alertPull}>

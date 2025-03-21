@@ -21,10 +21,13 @@ export const matcherToString = (matcher: Matcher) => {
 	return `${matcher.name}${comparison}"${matcher.value}"`;
 };
 
+type RefreshFunc = () => void;
+
 interface DataPullSuccess<T> {
 	state: "success";
 	headers: Headers;
 	result: T;
+	refresh: RefreshFunc;
 }
 
 interface DataPullPending {
@@ -35,6 +38,7 @@ interface DataPullError<T> {
 	state: "error";
 	headers: Headers;
 	error: T;
+	refresh: RefreshFunc;
 }
 
 export type DataPull<TSuccess, TError> = DataPullSuccess<TSuccess> | DataPullPending | DataPullError<TError>;
@@ -56,17 +60,46 @@ export const useQuery = <TSuccess, TError>(
 				return;
 			}
 
+			const refresh = async () => {
+				setPull({
+					state: "pending",
+				});
+
+				const result = await puller();
+				if (result === null) {
+					return;
+				}
+
+				if ("error" in result && result.error) {
+					setPull({
+						state: "error",
+						headers: result.response.headers,
+						error: result.error,
+						refresh,
+					});
+				} else if (result.data) {
+					setPull({
+						state: "success",
+						headers: result.response.headers,
+						result: result.data,
+						refresh,
+					});
+				}
+			};
+
 			if ("error" in result && result.error) {
 				setPull({
 					state: "error",
 					headers: result.response.headers,
 					error: result.error,
+					refresh: refresh,
 				});
 			} else if (result.data) {
 				setPull({
 					state: "success",
 					headers: result.response.headers,
 					result: result.data,
+					refresh: refresh,
 				});
 			}
 		};
