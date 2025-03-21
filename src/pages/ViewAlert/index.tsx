@@ -103,7 +103,7 @@ export default () => {
 						<span>{statusText}</span>
 					</SkeletonLoader>
 				</div>
-				<div class="flex flex-row justify-between my-5 gap-5">
+				<div class="flex flex-col md:flex-row justify-between gap-5">
 					<div class="basis-1/2">
 						<h2 class="text-xl">Labels</h2>
 						<SkeletonLoader pull={alertPull} layout="paragraph">
@@ -131,7 +131,7 @@ export default () => {
 					</div>
 				</div>
 
-				<div class="flex flex-row justify-between gap-5">
+				<div class="flex flex-col md:flex-row justify-between gap-5">
 					<div class="basis-1/2">
 						<h2 class="text-xl">Silenced By</h2>
 						<SkeletonLoader pull={silencePull ?? alertPull} layout="paragraph">
