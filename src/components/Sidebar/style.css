@@ -22,10 +22,17 @@
 	background-color: var(--highlight);
 }
 
+.side-bar-item:hover {
+	background-color: var(--background-two);
+}
+
+.side-bar-item.active:hover {
+	background-color: var(--highlight);
+}
+
 .side-bar {
 	background-color: var(--background-three);
 	height: 100vh;
   overflow: hidden;
 	transition: min-width 0.2s ease-in-out;
-	z-index: 1;
 }
