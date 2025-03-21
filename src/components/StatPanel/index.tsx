@@ -8,7 +8,7 @@ interface StatPanelProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 export default ({ title, value, error, ...props }: StatPanelProps) => {
-	const classes = "stat-panel flex flex-col " + (props.class ?? "");
+	const classes = "stat-panel flex flex-col flex-grow " + (props.class ?? "");
 	const getContents = () => {
 		if (error) {
 			return <InfoBox style="error" text={error} />;

@@ -9,6 +9,14 @@ interface ConfigUploadProps {
 	uploadSucessCallback?: () => void;
 }
 
+const DEFAULT_CONFIG = `global: {}
+
+route:
+  receiver: default
+
+receivers:
+  - name: default`;
+
 export const ConfigUpload = ({ uploadSucessCallback: uploadSuccessCallback }: ConfigUploadProps) => {
 	const [config, setConfig] = useState<string>("");
 	const [parseStatus, setParseStatus] = useState<ConfigStatusProps>({});
@@ -32,9 +40,9 @@ export const ConfigUpload = ({ uploadSucessCallback: uploadSuccessCallback }: Co
 		}
 	};
 
-	const handleConfigChange = () => {
-		setConfig(configTextBoxRef.current.value);
-		setParseStatus(parseConfig(configTextBoxRef.current.value));
+	const handleConfigChange = (config?: string) => {
+		setConfig(config ?? configTextBoxRef.current.value);
+		setParseStatus(parseConfig(config ?? configTextBoxRef.current.value));
 	};
 
 	const upload = async () => {
@@ -78,10 +86,14 @@ export const ConfigUpload = ({ uploadSucessCallback: uploadSuccessCallback }: Co
 				<span class="flex flex-col grow">
 					<span class="text-lg my-3">
 						<h2>
-							Paste your Alertmanager config, or{" "}
+							Paste your Alertmanager config,{" "}
 							<label for="config-file" class="btn">
 								upload one
 							</label>
+							, or{" "}
+							<span class="btn" onClick={() => handleConfigChange(DEFAULT_CONFIG)}>
+								use a sample
+							</span>
 						</h2>
 					</span>
 					<span class="flex flex-row grow">
@@ -98,7 +110,9 @@ export const ConfigUpload = ({ uploadSucessCallback: uploadSuccessCallback }: Co
 								value={config}
 								class="config-input grow mb-5 mr-5 p-3"
 								ref={configTextBoxRef}
-								onInput={handleConfigChange}
+								onInput={() => {
+									handleConfigChange();
+								}}
 							/>
 						</span>
 
@@ -153,7 +167,7 @@ const ConfigStatus = ({ parseError, config }: ConfigStatusProps) => {
 		return (
 			<>
 				<XCircleIcon class="size-6 inline" style={{ color: "red" }} />
-				Hrmm... That doesn't look like valid YAML...
+				Hrmm... That doesn't look valid... {parseError}
 			</>
 		);
 	} else if (config) {
