@@ -25,4 +25,8 @@
 .side-bar {
 	background-color: var(--background-three);
 	height: 100vh;
+  overflow: hidden;
+	z-index: 1;
+
+	transition: width 0.3s ease-in-out;
 }

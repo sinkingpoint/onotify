@@ -11,7 +11,7 @@ import { useLocation } from "preact-iso";
 import { HTMLAttributes, useRef, useState } from "preact/compat";
 import "./style.css";
 
-interface SideBarItemProps extends HTMLAttributes<HTMLDivElement> {
+interface SideBarItemProps extends HTMLAttributes<HTMLAnchorElement> {
 	title: string;
 	href: string;
 	icon?: VNode<any>;
@@ -76,7 +76,7 @@ const SideBarGroup = ({ title, icon, initialExpanded, children }: SideBarGroupPr
 	);
 };
 
-const SideBarItem = ({ title, href, icon }: SideBarItemProps) => {
+const SideBarItem = ({ title, href, icon, ...props }: SideBarItemProps) => {
 	const { url } = useLocation();
 	let classes = "side-bar-item py-3 flex flex-row w-full";
 	if (url === href) {
@@ -84,7 +84,7 @@ const SideBarItem = ({ title, href, icon }: SideBarItemProps) => {
 	}
 
 	return (
-		<a class={classes + (!icon ? " pl-14" : "")} href={href}>
+		<a {...props} class={classes + (!icon ? " pl-14" : "")} href={href}>
 			{icon && <span class="pr-4">{icon}</span>}
 			<span>{title}</span>
 		</a>
@@ -102,7 +102,7 @@ export const SideBar = () => {
 
 	if (state === "open") {
 		return (
-			<nav class="flex flex-col rounded-r top-0 sticky side-bar min-w-80">
+			<nav class="flex flex-col rounded-r top-0 sticky side-bar w-96">
 				<div class="p-4">
 					<h1>Onotify</h1>
 				</div>
@@ -119,12 +119,16 @@ export const SideBar = () => {
 				<SideBarGroup title="Config" icon={<DocumentTextIcon class="inline size-6" />} initialExpanded={true}>
 					<SideBarItem title="Receivers" href="/config/receivers" />
 				</SideBarGroup>
+
+				<SideBarItem title="Collapse" href="#" onClick={() => setState("closed")} />
 			</nav>
 		);
 	} else {
 		return (
-			<nav class="flex flex-col flex-grow rounded-r top-0 sticky side-bar">
-				<Bars3BottomLeftIcon class="inline size-6" />
+			<nav class="flex flex-col rounded-r top-0 sticky side-bar w-16">
+				<span class="pt-5 self-center">
+					<Bars3BottomLeftIcon class="inline size-10" onClick={() => setState("open")} />
+				</span>
 			</nav>
 		);
 	}
