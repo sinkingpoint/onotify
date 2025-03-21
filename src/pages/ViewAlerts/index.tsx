@@ -105,11 +105,10 @@ export default () => {
 				<FilterInput handleNewMatcher={handleNewMatcher} removeMatcher={removeMatcher} matchers={matchers} />
 			</span>
 
-			<span class="py-2">
+			<span class="py-2 flex flex-row flex-wrap gap-2">
 				<TogglableChit
 					value="Active Alerts"
 					toggled={active}
-					class="mr-2"
 					onClick={(toggled) => {
 						setActive(toggled);
 						setURLParam("active", toggled);
@@ -118,7 +117,6 @@ export default () => {
 				<TogglableChit
 					value="Silenced Alerts"
 					toggled={silenced}
-					class="mr-2"
 					onClick={(toggled) => {
 						setSilenced(toggled);
 						setURLParam("silenced", toggled);
@@ -127,7 +125,6 @@ export default () => {
 				<TogglableChit
 					value="Inhibited Alerts"
 					toggled={inhibited}
-					class="mr-2"
 					onClick={(toggled) => {
 						setURLParam("inhibited", toggled);
 						setInihibited(toggled);
@@ -136,7 +133,6 @@ export default () => {
 				<TogglableChit
 					value="Muted Alerts"
 					toggled={muted}
-					class="mr-2"
 					onClick={(toggled) => {
 						setMuted(toggled);
 						setURLParam("muted", toggled);
@@ -145,7 +141,6 @@ export default () => {
 				<TogglableChit
 					value="Resolved Alerts"
 					toggled={resolved}
-					class="mr-2"
 					onClick={(toggled) => {
 						setResolved(toggled);
 						setURLParam("resolved", toggled);

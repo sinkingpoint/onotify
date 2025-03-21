@@ -6,7 +6,6 @@ import { getAlerts, GetAlertsResponse, getStats } from "../../pkg/api/client";
 import { DataPull, useQuery } from "../../pkg/types/utils";
 
 const getStatPanel = (title: string, value?: number, error?: string) => {
-	console.log(title, value, error);
 	return <StatPanel title={title} value={value} error={error} />;
 };
 
@@ -83,7 +82,7 @@ export const Dash = () => {
 
 	return (
 		<div class="w-full flex flex-col">
-			<span class="flex flex-col md:flex-row justify-between w-full overflow-wrap">
+			<span class="flex flex-col md:flex-row justify-between w-full overflow-wrap gap-5">
 				{getStatPanel(
 					"Firing Alerts",
 					alertStats.state === "success" ? (alertStats.result.buckets[0]?.value ?? 0) : undefined,

@@ -76,16 +76,16 @@ export const CreateSilence = ({ onPreview }: CreateSilenceProps) => {
 
 	const end = useMemo(() => {
 		const endDate = getSilenceEnd(duration);
-		return endDate !== null ? <span>Ends {formatDate(endDate)}</span> : <span>Invalid duration</span>;
+		return endDate !== null ? <>Ends {formatDate(endDate)}</> : <>Invalid duration</>;
 	}, [duration]);
 
 	return (
 		<>
 			<h2 class="text-xl mb-1 mt-0">Duration</h2>
-			<div class="flex justify-start flex-wrap items-center mb-2">
+			<div class="flex flex-col md:flex-row flex-wrap mb-2">
 				<DurationInput onChange={(d) => handleSetDuration(d)} duration={duration} />
 
-				<span class="pl-10">{end}</span>
+				<span class="sm:ml-0 sm:mt-5 md:mt-0 md:ml-5">{end}</span>
 			</div>
 
 			<h2 class="text-xl mb-1 mt-0">Matchers</h2>

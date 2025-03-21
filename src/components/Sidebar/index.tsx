@@ -102,7 +102,7 @@ export const SideBar = () => {
 
 	if (state === "open") {
 		return (
-			<nav class="flex flex-col rounded-r top-0 sticky side-bar w-64">
+			<nav class="flex flex-col rounded-r top-0 sticky side-bar min-w-64">
 				<div class="p-4 flex flex-row justify-between">
 					<h1>Onotify</h1>
 					<span class="side-bar-chevron flex flex-col justify-center" onClick={() => setState("closed")}>
@@ -126,7 +126,7 @@ export const SideBar = () => {
 		);
 	} else {
 		return (
-			<nav class="flex flex-col rounded-r top-0 sticky side-bar w-16">
+			<nav class="flex flex-col rounded-r top-0 sticky side-bar min-w-16">
 				<span class="my-5 py-2 self-center side-bar-chevron">
 					<Bars3BottomLeftIcon class="inline size-10" onClick={() => setState("open")} />
 				</span>

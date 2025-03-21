@@ -44,6 +44,7 @@ main {
 	margin: 0 auto;
 	width: 1280px;
 	padding: 5rem;
+	z-index: 0;
 }
 
 @media (max-width: 639px) {

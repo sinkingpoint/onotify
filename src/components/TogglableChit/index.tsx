@@ -8,7 +8,7 @@ interface ToggleableChitProps {
 }
 
 export default ({ value, toggled, onClick, ...props }: ToggleableChitProps) => {
-	let className = "cursor-pointer select-none rounded-xl px-3 py-1 toggleable-chit";
+	let className = "cursor-pointer select-none rounded-xl px-3 py-1 toggleable-chit whitespace-nowrap";
 	if (!toggled) {
 		className += " line-through decoration-2";
 	}

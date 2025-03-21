@@ -128,7 +128,7 @@ export default ({ onChange, duration }: DurationInputProps) => {
 
 	if (mode === "simple") {
 		contents = (
-			<span class="flex flex-row">
+			<span class="flex flex-col md:flex-row justify-start">
 				<NumberInput
 					start={day}
 					label="Days"
