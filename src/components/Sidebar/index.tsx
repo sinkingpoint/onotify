@@ -1,7 +1,7 @@
 import {
+	Bars3BottomLeftIcon,
 	BellAlertIcon,
 	BellSlashIcon,
-	ChevronDownIcon,
 	ChevronUpIcon,
 	DocumentTextIcon,
 	HomeIcon,
@@ -27,6 +27,10 @@ interface SideBarGroupProps {
 const SideBarGroup = ({ title, icon, initialExpanded, children }: SideBarGroupProps) => {
 	const [expanded, setExpanded] = useState(initialExpanded);
 	const firstChildRef = useRef<SideBarItemElement>();
+	const containsActiveChild = Array.isArray(children)
+		? children.some((child) => child.props.href === useLocation().url)
+		: children.props.href === useLocation().url;
+
 	const triggerGroupClick = () => {
 		if (firstChildRef.current) {
 			setExpanded(true);
@@ -43,21 +47,28 @@ const SideBarGroup = ({ title, icon, initialExpanded, children }: SideBarGroupPr
 	}
 
 	const toggleExpanded = (e: MouseEvent) => {
+		// Disable toggling if a child is active, so we don't hide the active button.
+		if (containsActiveChild) {
+			e.preventDefault();
+			return;
+		}
+
 		e.stopPropagation();
 		setExpanded(!expanded);
 	};
 
+	const chevronClasses =
+		"inline size-6 ml-auto" + (!expanded ? " rotate-180" : "") + (containsActiveChild ? " fill-[#999999]" : "");
+
 	return (
 		<span>
-			<span class="flex flex-row justify-between side-bar-item" onClick={triggerGroupClick}>
+			<span class="flex flex-row justify-between side-bar-item side-bar-group" onClick={triggerGroupClick}>
 				<span class="pr-4">{icon}</span>
 				<span>{title}</span>
 				<span class="flex-grow" />
-				{expanded ? (
-					<ChevronUpIcon class="inline size-6 ml-auto" onClick={toggleExpanded} />
-				) : (
-					<ChevronDownIcon class="inline size-6 ml-auto" onClick={toggleExpanded} />
-				)}
+				<span class="side-bar-chevron py-3">
+					<ChevronUpIcon class={chevronClasses} onClick={toggleExpanded} />
+				</span>
 			</span>
 
 			<span class={expanded ? "" : "hidden"}>{children}</span>
@@ -67,14 +78,14 @@ const SideBarGroup = ({ title, icon, initialExpanded, children }: SideBarGroupPr
 
 const SideBarItem = ({ title, href, icon }: SideBarItemProps) => {
 	const { url } = useLocation();
-	let classes = "side-bar-item flex flex-row";
+	let classes = "side-bar-item py-3 flex flex-row w-full";
 	if (url === href) {
 		classes += " active";
 	}
 
 	return (
-		<a class={classes} href={href}>
-			<span class="pr-4">{icon}</span>
+		<a class={classes + (!icon ? " pl-14" : "")} href={href}>
+			{icon && <span class="pr-4">{icon}</span>}
 			<span>{title}</span>
 		</a>
 	);
@@ -83,25 +94,38 @@ const SideBarItem = ({ title, href, icon }: SideBarItemProps) => {
 type SideBarItemElement = ReturnType<typeof SideBarItem>;
 
 export const SideBar = () => {
-	return (
-		<nav class="flex flex-col flex-grow rounded-r top-0 sticky side-bar">
-			<div class="p-4">
-				<h1>Onotify</h1>
-			</div>
-			<SideBarItem title="Home" href="/" icon={<HomeIcon class="inline size-6" />} />
-			<SideBarGroup title="Alerts" icon={<BellAlertIcon class="inline size-6" />} initialExpanded={true}>
-				<SideBarItem title="Overview" href="/alerts" />
-			</SideBarGroup>
-
-			<SideBarGroup title="Silences" icon={<BellSlashIcon class="inline size-6" />} initialExpanded={true}>
-				<SideBarItem title="Overview" href="/silences" />
-				<SideBarItem title="New Silence" href="/silences/new" />
-			</SideBarGroup>
-
-			<SideBarGroup title="Config" icon={<DocumentTextIcon class="inline size-6" />} initialExpanded={true}>
-				<SideBarItem title="Routing Tree" href="/config/tree" />
-				<SideBarItem title="Receivers" href="/config/receivers" />
-			</SideBarGroup>
-		</nav>
+	const MIN_WIDTH_FOR_DEFAULT_OPEN = 800;
+	console.log(window.innerWidth);
+	const [state, setState] = useState<"open" | "closed">(
+		window !== undefined && window.innerWidth >= MIN_WIDTH_FOR_DEFAULT_OPEN ? "open" : "closed",
 	);
+
+	if (state === "open") {
+		return (
+			<nav class="flex flex-col rounded-r top-0 sticky side-bar min-w-80">
+				<div class="p-4">
+					<h1>Onotify</h1>
+				</div>
+				<SideBarItem title="Home" href="/" icon={<HomeIcon class="inline size-6" />} />
+				<SideBarGroup title="Alerts" icon={<BellAlertIcon class="inline size-6" />} initialExpanded={true}>
+					<SideBarItem title="Overview" href="/alerts" />
+				</SideBarGroup>
+
+				<SideBarGroup title="Silences" icon={<BellSlashIcon class="inline size-6" />} initialExpanded={true}>
+					<SideBarItem title="Overview" href="/silences" />
+					<SideBarItem title="New Silence" href="/silences/new" />
+				</SideBarGroup>
+
+				<SideBarGroup title="Config" icon={<DocumentTextIcon class="inline size-6" />} initialExpanded={true}>
+					<SideBarItem title="Receivers" href="/config/receivers" />
+				</SideBarGroup>
+			</nav>
+		);
+	} else {
+		return (
+			<nav class="flex flex-col flex-grow rounded-r top-0 sticky side-bar">
+				<Bars3BottomLeftIcon class="inline size-6" />
+			</nav>
+		);
+	}
 };

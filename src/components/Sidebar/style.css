@@ -1,11 +1,20 @@
 .side-bar-item {
 	display: flex;
 	align-items: center;
-	padding: 10px 20px;
+	padding-left: 20px;
 	cursor: pointer;
 }
 
-.side-bar-item:hover {
+.side-bar-chevron {
+	padding-left: 20px;
+	padding-right: 20px;
+}
+
+.side-bar-chevron:hover {
+	background-color: var(--background-two);
+}
+
+.side-bar-group:not(:has(:hover)):hover {
 	background-color: var(--background-two);
 }
 
@@ -16,5 +25,4 @@
 .side-bar {
 	background-color: var(--background-three);
 	height: 100vh;
-	max-width: 200px;
 }
