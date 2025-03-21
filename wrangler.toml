@@ -12,7 +12,7 @@ enabled = true
 [[d1_databases]]
 binding = "DB"
 database_name = "onotify"
-database_id = "6c0521ab-ef05-4e93-b246-4a56a7ca8069"
+database_id = "d7098067-4df0-4f70-a075-784676dbad34"
 
 [[kv_namespaces]]
 binding = "CONFIGS"
