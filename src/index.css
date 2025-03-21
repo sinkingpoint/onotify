@@ -45,6 +45,7 @@ main {
 	width: 1280px;
 	padding: 5rem;
 	z-index: 0;
+	overflow-y: hidden;
 }
 
 @media (max-width: 639px) {

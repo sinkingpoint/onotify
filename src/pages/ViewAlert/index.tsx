@@ -132,21 +132,21 @@ export default () => {
 	} else {
 		contents = (
 			<>
-				<div class="flex gap-5">
+				<div class="flex gap-3 flex-wrap my-3">
 					{statusText != "" && statusText !== "Resolved" && (
 						<>
-							<button class="p-2 bg-green-600 rounded my-3" onClick={onSilenceAlert}>
+							<button class="p-2 bg-green-600 rounded whitespace-nowrap" onClick={onSilenceAlert}>
 								Silence Alert
 							</button>
 
-							<button class="p-2 bg-green-600 rounded my-3" onClick={onResolve}>
+							<button class="p-2 bg-green-600 rounded whitespace-nowrap" onClick={onResolve}>
 								Resolve Alert
 							</button>
 						</>
 					)}
 
 					{statusText === "Resolved" && (
-						<button class="p-2 bg-green-600 rounded my-3" onClick={onReopen}>
+						<button class="p-2 bg-green-600 rounded" onClick={onReopen}>
 							Re-Open Alert
 						</button>
 					)}
@@ -160,15 +160,17 @@ export default () => {
 				<div class="flex flex-col md:flex-row justify-between gap-5">
 					<div class="basis-1/2">
 						<h2 class="text-xl">Labels</h2>
-						<SkeletonLoader pull={alertPull} layout="paragraph">
-							{alert && Object.keys(alert.labels).length > 0 ? (
-								Object.keys(alert.labels).map((k) => (
-									<MatcherCard matcher={{ isEqual: true, isRegex: false, name: k, value: alert.labels[k] }} />
-								))
-							) : (
-								<i>None</i>
-							)}
-						</SkeletonLoader>
+						<span class="flex flex-wrap">
+							<SkeletonLoader pull={alertPull} layout="paragraph">
+								{alert && Object.keys(alert.labels).length > 0 ? (
+									Object.keys(alert.labels).map((k) => (
+										<MatcherCard matcher={{ isEqual: true, isRegex: false, name: k, value: alert.labels[k] }} />
+									))
+								) : (
+									<i>None</i>
+								)}
+							</SkeletonLoader>
+						</span>
 					</div>
 
 					<div class="basis-1/2">
