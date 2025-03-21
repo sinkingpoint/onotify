@@ -14,7 +14,7 @@ export default ({ title, value, error, ...props }: StatPanelProps) => {
 			return <InfoBox style="error" text={error} />;
 		}
 
-		if (value === undefined) {
+		if (typeof value === "undefined") {
 			return <div class="skeleton w-3/4 h-3/4 self-center" />;
 		}
 
