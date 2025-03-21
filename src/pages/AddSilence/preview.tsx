@@ -69,17 +69,24 @@ export const PreviewSilence = ({ duration, matchers, comment }: PreviewProps) =>
 
 		try {
 			setCreateStatus(UploadStatus.Uploading);
-			const { data: id } = await postSilence({
+			const resp = await postSilence({
 				body: {
 					matchers,
-					startsAt: formatDate(startTime),
-					endsAt: formatDate(endTime),
+					startsAt: startTime.toISOString(),
+					endsAt: endTime.toISOString(),
 					comment,
 				},
 			});
 
-			setCreateStatus(UploadStatus.Uploaded);
-			window.location.href = "/silences/" + id;
+			if (resp.error) {
+				console.log(resp.error);
+				return;
+			}
+
+			if (typeof resp.data !== "undefined") {
+				setCreateStatus(UploadStatus.Uploaded);
+				window.location.href = "/silences/" + resp.data;
+			}
 		} catch (e) {
 			setCreateStatus(UploadStatus.Error);
 			// TODO: Show a toast here.
