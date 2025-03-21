@@ -11,7 +11,7 @@ interface TextBoxProps extends InputHTMLAttributes<HTMLSpanElement> {
 
 export const MatcherCard = ({ onDelete, matcher, ...props }: TextBoxProps) => {
 	props.class ??= "";
-	props.class += " bg-transparent matcher-card";
+	props.class += " bg-transparent matcher-card whitespace-nowrap";
 
 	const input = <span {...props}>{matcherToString(matcher)}</span>;
 	if (!onDelete) {

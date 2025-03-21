@@ -15,22 +15,20 @@ export default ({ title, value, error, ...props }: StatPanelProps) => {
 		}
 
 		if (typeof value === "undefined") {
-			return <div class="skeleton w-3/4 h-3/4 self-center" />;
+			return <span class="stat-panel-skeleton w-3/4 h-3/4 self-center" />;
 		}
 
 		return <span class="flex flex-row w-full justify-center text-8xl">{value}</span>;
 	};
 
 	return (
-		<div class={classes}>
-			{title ? (
+		<span class={classes}>
+			{title && (
 				<span class="flex flex-row w-full justify-start">
 					<h1>{title}</h1>
 				</span>
-			) : (
-				<></>
 			)}
 			{getContents()}
-		</div>
+		</span>
 	);
 };

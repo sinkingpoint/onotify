@@ -7,7 +7,7 @@ import { DataPull, useQuery } from "../../pkg/types/utils";
 
 const getStatPanel = (title: string, value?: number, error?: string) => {
 	console.log(title, value, error);
-	return <StatPanel title={title} value={value} error={error} class="w-1/3" />;
+	return <StatPanel title={title} value={value} error={error} />;
 };
 
 const getAlertCards = (pull: DataPull<GetAlertsResponse, unknown>) => {

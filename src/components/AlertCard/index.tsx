@@ -37,7 +37,7 @@ export const AlertCard = ({ alert, ...props }: AlertCardProps) => {
 
 				<span>
 					<label class="inline font-bold">Labels:</label>
-					<span class="flex flex-row">
+					<span class="flex flex-row flex-wrap">
 						{Object.keys(alert.labels).map((labelName) => (
 							<MatcherCard
 								matcher={{ name: labelName, value: alert.labels[labelName], isEqual: true, isRegex: false }}
