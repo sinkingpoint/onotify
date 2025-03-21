@@ -66,8 +66,8 @@ const SideBarGroup = ({ title, icon, initialExpanded, children }: SideBarGroupPr
 				<span class="pr-4">{icon}</span>
 				<span>{title}</span>
 				<span class="flex-grow" />
-				<span class="side-bar-chevron py-3">
-					<ChevronUpIcon class={chevronClasses} onClick={toggleExpanded} />
+				<span class="side-bar-chevron py-3" onClick={toggleExpanded}>
+					<ChevronUpIcon class={chevronClasses} />
 				</span>
 			</span>
 
@@ -84,7 +84,7 @@ const SideBarItem = ({ title, href, icon, ...props }: SideBarItemProps) => {
 	}
 
 	return (
-		<a {...props} class={classes + (!icon ? " pl-14" : "")} href={href}>
+		<a {...props} class={classes + (!icon ? " pl-[3.75rem]" : "")} href={href}>
 			{icon && <span class="pr-4">{icon}</span>}
 			<span>{title}</span>
 		</a>
@@ -95,16 +95,18 @@ type SideBarItemElement = ReturnType<typeof SideBarItem>;
 
 export const SideBar = () => {
 	const MIN_WIDTH_FOR_DEFAULT_OPEN = 800;
-	console.log(window.innerWidth);
 	const [state, setState] = useState<"open" | "closed">(
 		window !== undefined && window.innerWidth >= MIN_WIDTH_FOR_DEFAULT_OPEN ? "open" : "closed",
 	);
 
 	if (state === "open") {
 		return (
-			<nav class="flex flex-col rounded-r top-0 sticky side-bar w-96">
-				<div class="p-4">
+			<nav class="flex flex-col rounded-r top-0 sticky side-bar w-64">
+				<div class="p-4 flex flex-row justify-between">
 					<h1>Onotify</h1>
+					<span class="side-bar-chevron flex flex-col justify-center" onClick={() => setState("closed")}>
+						<ChevronUpIcon class="inline size-6 ml-auto -rotate-90" />
+					</span>
 				</div>
 				<SideBarItem title="Home" href="/" icon={<HomeIcon class="inline size-6" />} />
 				<SideBarGroup title="Alerts" icon={<BellAlertIcon class="inline size-6" />} initialExpanded={true}>
@@ -119,14 +121,12 @@ export const SideBar = () => {
 				<SideBarGroup title="Config" icon={<DocumentTextIcon class="inline size-6" />} initialExpanded={true}>
 					<SideBarItem title="Receivers" href="/config/receivers" />
 				</SideBarGroup>
-
-				<SideBarItem title="Collapse" href="#" onClick={() => setState("closed")} />
 			</nav>
 		);
 	} else {
 		return (
 			<nav class="flex flex-col rounded-r top-0 sticky side-bar w-16">
-				<span class="pt-5 self-center">
+				<span class="my-5 py-2 self-center side-bar-chevron">
 					<Bars3BottomLeftIcon class="inline size-10" onClick={() => setState("open")} />
 				</span>
 			</nav>
