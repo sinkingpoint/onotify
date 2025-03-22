@@ -24,7 +24,7 @@ export function App() {
 	return (
 		<LocationProvider>
 			<SideBar />
-			<main>
+			<main class="p-8 md:p-20">
 				<Router>
 					<Route path="/" component={Dash} />
 					<Route path="/onboarding" component={Onboarding} />

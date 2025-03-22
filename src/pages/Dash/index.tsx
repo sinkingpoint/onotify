@@ -6,7 +6,7 @@ import { getAlerts, GetAlertsResponse, getStats } from "../../pkg/api/client";
 import { DataPull, useQuery } from "../../pkg/types/utils";
 
 const getStatPanel = (title: string, value?: number, error?: string) => {
-	return <StatPanel title={title} value={value} error={error} />;
+	return <StatPanel title={title} value={value} error={error} class="basis-1/3" />;
 };
 
 const getAlertCards = (pull: DataPull<GetAlertsResponse, unknown>) => {

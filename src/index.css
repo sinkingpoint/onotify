@@ -43,7 +43,6 @@ main {
 	max-width: 100%;
 	margin: 0 auto;
 	width: 1280px;
-	padding: 5rem;
 	z-index: 0;
 	overflow-y: hidden;
 }
