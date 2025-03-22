@@ -25,7 +25,7 @@ export const SilenceCard = ({ silence, ...props }: SilenceCardProps) => {
 					<span class="font-bold">Created by: </span>
 					{silence.createdBy}
 				</span>
-				<span class="flex flex-row justify-between">
+				<span class="flex flex-col md:flex-row justify-between">
 					<span class="pr-3">
 						<span class="font-bold">{startedAt}</span> {formatDate(new Date(silence.startsAt))}
 					</span>
@@ -37,7 +37,7 @@ export const SilenceCard = ({ silence, ...props }: SilenceCardProps) => {
 					<span class="font-bold">Comment: </span>
 					{silence.comment}
 				</span>
-				<span class="flex flex-row">
+				<span class="flex flex-wrap">
 					{silence.matchers.map((m) => (
 						<MatcherCard matcher={m} />
 					))}
