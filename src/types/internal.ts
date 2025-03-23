@@ -3,6 +3,7 @@ import { Matcher, PostableSilence } from "./api";
 
 interface EnvVars {
 	WORKERS_ENV?: string;
+	HONEYCOMB_API_KEY?: string;
 }
 
 export interface Bindings extends EnvVars {

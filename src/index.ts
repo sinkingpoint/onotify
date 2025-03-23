@@ -1,3 +1,4 @@
+import { instrument } from "@microlabs/otel-cf-workers";
 import { fromHono } from "chanfana";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
@@ -14,6 +15,7 @@ import { PostSilence } from "./endpoints/postSilences";
 import { PostConfig } from "./endpoints/uploadConfig";
 import { PostRequiredFiles } from "./endpoints/uploadRequiredFile";
 import { Bindings } from "./types/internal";
+import { OTelConfFn } from "./utils/observability";
 export { AlertDispatch } from "./alert-dispatch";
 export { AccountController } from "./dos/account-controller";
 export { AlertGroupController } from "./dos/alert-group-controller/alert-group-controller";
@@ -59,4 +61,4 @@ openapi.get("/api/v1/config", GetConfig);
 openapi.get("/api/v1/config/tree", GetRoutingTree);
 
 // Export the Hono app
-export default app;
+export default instrument(app, OTelConfFn);
