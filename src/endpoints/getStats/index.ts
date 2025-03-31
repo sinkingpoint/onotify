@@ -1,10 +1,11 @@
 import { OpenAPIRoute } from "chanfana";
 import { Context } from "hono";
 import { z } from "zod";
-import { AccountController } from "../../dos/account-controller";
+import { AccountControllerActions } from "../../dos/account-controller";
 import { GetStatsParams, GetStatsParamsSpec, StatsBucket, StatsResponseSpec } from "../../types/api";
 import { Errors, HTTPResponses } from "../../types/http";
-import { Bindings } from "../../types/internal";
+import { Bindings, CachedAlert, Silence } from "../../types/internal";
+import { callRPC } from "../../utils/rpc";
 import { checkAPIKey, toErrorString } from "../utils/auth";
 import { accountControllerName } from "../utils/kv";
 
@@ -31,8 +32,8 @@ export class GetStats extends OpenAPIRoute {
 		},
 	};
 
-	private async alertStats(controller: DurableObjectStub<AccountController>, params: GetStatsParams) {
-		const alerts = await controller.getAlerts({
+	private async alertStats(controller: DurableObjectStub, params: GetStatsParams) {
+		const alerts = (await callRPC(controller, AccountControllerActions.GetAlerts, {
 			filter: params.filter,
 			startTime: params.startTime,
 			endTime: params.endTime,
@@ -40,18 +41,18 @@ export class GetStats extends OpenAPIRoute {
 			silenced: params.silenced,
 			inhibited: params.inhibited,
 			muted: params.muted,
-		});
+		})) as CachedAlert[];
 
 		return this.group(alerts, "startsAt", params);
 	}
 
-	private async silenceStats(controller: DurableObjectStub<AccountController>, params: GetStatsParams) {
-		const silences = await controller.getSilences({
+	private async silenceStats(controller: DurableObjectStub, params: GetStatsParams) {
+		const silences = (await callRPC(controller, AccountControllerActions.GetSilences, {
 			matchers: params.filter,
 			startTime: params.startTime,
 			endTime: params.endTime,
 			expired: params.expired,
-		});
+		})) as Silence[];
 
 		return this.group(silences, "startsAt", params);
 	}

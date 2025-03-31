@@ -1,17 +1,17 @@
-import { AccountController, AlertGroupController, SilenceController } from "..";
 import { Matcher, PostableSilence } from "./api";
 
 interface EnvVars {
 	WORKERS_ENV?: string;
 	HONEYCOMB_API_KEY?: string;
+	HONEYCOMB_DATASET?: string;
 }
 
 export interface Bindings extends EnvVars {
 	DB: D1Database;
 	CONFIGS: KVNamespace;
-	ALERT_GROUP_CONTROLLER: DurableObjectNamespace<AlertGroupController>;
-	ACCOUNT_CONTROLLER: DurableObjectNamespace<AccountController>;
-	SILENCE_CONTROLLER: DurableObjectNamespace<SilenceController>;
+	ALERT_GROUP_CONTROLLER: DurableObjectNamespace;
+	ACCOUNT_CONTROLLER: DurableObjectNamespace;
+	SILENCE_CONTROLLER: DurableObjectNamespace;
 	ALERT_DISPATCH: Workflow;
 }
 
@@ -64,6 +64,10 @@ export interface AlertGroup {
 	labelNames: string[];
 	labelValues: string[];
 	alerts: DehydratedAlert[];
+}
+
+export interface HydratedAlertGroup extends Omit<AlertGroup, "alerts"> {
+	alerts: CachedAlert[];
 }
 
 export type Silence = PostableSilence & {

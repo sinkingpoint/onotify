@@ -18,7 +18,7 @@ import { Bindings } from "./types/internal";
 import { OTelConfFn } from "./utils/observability";
 export { AlertDispatch } from "./alert-dispatch";
 export { AccountController } from "./dos/account-controller";
-export { AlertGroupController } from "./dos/alert-group-controller/alert-group-controller";
+export { default as AlertGroupController } from "./dos/alert-group-controller";
 export { default as SilenceController } from "./dos/silence-controller";
 export { app };
 const LOCAL_ORIGIN = "http://localhost:5173";

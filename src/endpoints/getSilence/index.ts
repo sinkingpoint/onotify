@@ -1,9 +1,11 @@
 import { OpenAPIRoute } from "chanfana";
 import { Context } from "hono";
 import { z } from "zod";
+import { AccountControllerActions } from "../../dos/account-controller";
 import { GettableSilenceSpec } from "../../types/api";
 import { Errors, HTTPResponses } from "../../types/http";
-import { Bindings } from "../../types/internal";
+import { Bindings, Silence } from "../../types/internal";
+import { callRPC } from "../../utils/rpc";
 import { internalSilenceToAlertmanager } from "../utils/api";
 import { checkAPIKey, toErrorString } from "../utils/auth";
 import { accountControllerName } from "../utils/kv";
@@ -43,7 +45,9 @@ export default class GetSilence extends OpenAPIRoute {
 		const controllerID = c.env.ACCOUNT_CONTROLLER.idFromName(controllerName);
 		const controller = c.env.ACCOUNT_CONTROLLER.get(controllerID);
 
-		const silence = await controller.getSilence(data.params.id);
+		const silence = (await callRPC(controller, AccountControllerActions.GetSilence, data.params.id)) as
+			| Silence
+			| undefined;
 		if (!silence) {
 			c.status(HTTPResponses.NotFound);
 			return c.text("Silence not found");

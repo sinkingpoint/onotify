@@ -1,10 +1,12 @@
 import { OpenAPIRoute } from "chanfana";
 import { Context } from "hono";
+import { AccountControllerActions } from "../../dos/account-controller";
 import { GetAlertsParamsSpec, GettableAlert, GettableAlertsSpec, PaginationHeaders } from "../../types/api";
 import { Errors, HTTPResponses } from "../../types/http";
-import { Bindings } from "../../types/internal";
+import { Bindings, CachedAlert } from "../../types/internal";
 import { checkAPIKey, toErrorString } from "../utils/auth";
 import { accountControllerName } from "../utils/kv";
+import { callRPC } from "../../utils/rpc";
 
 const getFieldFromAlert = (alert: GettableAlert, field: string) => {
 	switch (field) {
@@ -76,7 +78,7 @@ export class GetAlerts extends OpenAPIRoute {
 		const controller = c.env.ACCOUNT_CONTROLLER.get(controllerID);
 
 		const outputAlerts: GettableAlert[] = [];
-		for (const alert of await controller.getAlerts({
+		const internalAlerts = (await callRPC(controller, AccountControllerActions.GetAlerts, {
 			fingerprints,
 			active,
 			silenced,
@@ -86,7 +88,9 @@ export class GetAlerts extends OpenAPIRoute {
 			muted,
 			filter,
 			receiver,
-		})) {
+		})) as CachedAlert[];
+
+		for (const alert of internalAlerts) {
 			outputAlerts.push({
 				fingerprint: alert.fingerprint,
 				labels: alert.labels,

@@ -1,8 +1,10 @@
 import { OpenAPIRoute } from "chanfana";
 import { Context } from "hono";
+import { AccountControllerActions } from "../../dos/account-controller";
 import { GetSilencesParamsSpec, GettableSilencesSpec, PaginationHeaders } from "../../types/api";
 import { Errors, HTTPResponses } from "../../types/http";
 import { Bindings, Silence } from "../../types/internal";
+import { callRPC } from "../../utils/rpc";
 import { internalSilenceToAlertmanager } from "../utils/api";
 import { checkAPIKey, toErrorString } from "../utils/auth";
 import { accountControllerName } from "../utils/kv";
@@ -60,7 +62,13 @@ export class GetSilences extends OpenAPIRoute {
 		const controllerID = c.env.ACCOUNT_CONTROLLER.idFromName(controllerName);
 		const controller = c.env.ACCOUNT_CONTROLLER.get(controllerID);
 
-		let silences = await controller.getSilences({ id, matchers: filter, active, expired });
+		let silences = (await callRPC(controller, AccountControllerActions.GetSilences, {
+			id,
+			matchers: filter,
+			active,
+			expired,
+		})) as Silence[];
+
 		if (sort) {
 			const fields = sort.map((s) => {
 				const [field, direction] = s.split(":");

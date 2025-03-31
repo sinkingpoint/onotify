@@ -1,9 +1,12 @@
 import { OpenAPIRoute } from "chanfana";
 import { Context } from "hono";
+import { AccountControllerActions } from "../../dos/account-controller";
+import { AlertGroupControllerActions } from "../../dos/alert-group-controller";
 import { collapseRoutingTree } from "../../types/alertmanager";
 import { PostableAlertsSpec } from "../../types/api";
 import { Errors, HTTPResponses } from "../../types/http";
 import { Bindings } from "../../types/internal";
+import { callRPC } from "../../utils/rpc";
 import { checkAPIKey, toErrorString } from "../utils/auth";
 import { alertGroupControllerName, routingTreeKVKey } from "../utils/kv";
 import { groupAlerts } from "./group";
@@ -55,16 +58,22 @@ export class PostAlerts extends OpenAPIRoute {
 				const alertGroupControllerID = c.env.ALERT_GROUP_CONTROLLER.idFromName(controllerName);
 				const alertGroupController = c.env.ALERT_GROUP_CONTROLLER.get(alertGroupControllerID);
 
-				promises.push(alertGroupController.initialize(account_id, routingTree.tree[nodeID], group));
+				promises.push(
+					callRPC(alertGroupController, AlertGroupControllerActions.Initialize, {
+						account_id,
+						route: routingTree.tree[nodeID],
+						group,
+					})
+				);
 			}
 		}
 
 		const accountControllerID = c.env.ACCOUNT_CONTROLLER.idFromName(`account-controller-${account_id}`);
 
 		const accountController = c.env.ACCOUNT_CONTROLLER.get(accountControllerID);
-		promises.push(accountController.addAlerts(receiveredAlerts));
+		promises.push(callRPC(accountController, AccountControllerActions.AddAlerts, receiveredAlerts));
 		for (const groupKey of Object.keys(groups)) {
-			promises.push(accountController.addAlertGroups(groups[groupKey]));
+			promises.push(callRPC(accountController, AccountControllerActions.AddAlertGroups, groups[groupKey]));
 		}
 		c.executionCtx.waitUntil(Promise.all(promises));
 

@@ -3,6 +3,7 @@
 // This can be rm'd once https://github.com/cloudflare/workerd/issues/2247 is resolved.
 
 import { ResolveConfigFn } from "@microlabs/otel-cf-workers";
+import { Span, SpanOptions, Tracer } from "@opentelemetry/api";
 import { ExportResult, ExportResultCode, hrTimeToMicroseconds } from "@opentelemetry/core";
 import { ReadableSpan, SpanExporter } from "@opentelemetry/sdk-trace-base";
 import { Bindings } from "../types/internal";
@@ -84,11 +85,22 @@ export const OTelConfFn: ResolveConfigFn = (env: Bindings) => {
 	const exporter = env.HONEYCOMB_API_KEY
 		? {
 				url: "https://api.honeycomb.io/v1/traces",
-				headers: { "x-honeycomb-team": env.HONEYCOMB_API_KEY },
+				headers: {
+					"x-honeycomb-team": env.HONEYCOMB_API_KEY,
+					"x-honeycomb-dataset": env.HONEYCOMB_DATASET ?? "onotify-prod",
+				},
 		  }
 		: new ConsoleSpanExporter();
 	return {
 		exporter,
 		service: { name: "onotify" },
 	};
+};
+
+export const runInSpan = <T>(tracer: Tracer, spanName: string, attributes: SpanOptions, fn: (span: Span) => T) => {
+	return tracer.startActiveSpan(spanName, attributes, (span) => {
+		const ret = fn(span);
+		span.end();
+		return ret;
+	});
 };

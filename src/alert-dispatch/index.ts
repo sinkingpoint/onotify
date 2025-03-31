@@ -1,8 +1,10 @@
-import { WorkflowEntrypoint, WorkflowStep, WorkflowEvent } from "cloudflare:workers";
-import { AlertState, alertState, Bindings, CachedAlert } from "../types/internal";
+import { WorkflowEntrypoint, WorkflowEvent, WorkflowStep } from "cloudflare:workers";
+import { AccountControllerActions } from "../dos/account-controller";
 import { accountControllerName, receiversKVKey } from "../endpoints/utils/kv";
-import { Receiver } from "../types/alertmanager";
 import WebhookIntegration from "../integrations/webhook";
+import { Receiver } from "../types/alertmanager";
+import { AlertState, alertState, Bindings, CachedAlert } from "../types/internal";
+import { callRPC } from "../utils/rpc";
 
 type Params = {
 	accountId: string;
@@ -15,7 +17,7 @@ type DispatchFunction<T> = (
 	name: string,
 	conf: T,
 	alerts: CachedAlert[],
-	groupLabels: Record<string, string>,
+	groupLabels: Record<string, string>
 ) => Promise<void>;
 
 const dispatch = async <T extends { send_resolved: boolean }>(
@@ -23,7 +25,7 @@ const dispatch = async <T extends { send_resolved: boolean }>(
 	configs: T[] | undefined,
 	alerts: CachedAlert[],
 	groupLabels: Record<string, string>,
-	receiver: DispatchFunction<T>,
+	receiver: DispatchFunction<T>
 ) => {
 	if (!configs) {
 		return;
@@ -63,13 +65,15 @@ export class AlertDispatch extends WorkflowEntrypoint<Bindings, Params> {
 		const receiver = receivers[receiverName] as Receiver;
 
 		// First, resolve the alerts to a final list of alerts to send.
-		const alerts = await step.do("resolve alerts", () => {
-			return accountController.getAlerts({
-				fingerprints: alertFingerprints,
-				silenced: false,
-				inhibited: false,
-			});
-		});
+		const alerts = await step.do(
+			"resolve alerts",
+			() =>
+				callRPC(accountController, AccountControllerActions.GetAlerts, {
+					fingerprints: alertFingerprints,
+					silenced: false,
+					inhibited: false,
+				}) as Promise<CachedAlert[]>
+		);
 
 		if (alerts.length === 0) {
 			// There are no alerts that aren't silenced or inhibited, bail.
@@ -77,7 +81,7 @@ export class AlertDispatch extends WorkflowEntrypoint<Bindings, Params> {
 		}
 
 		await step.do("webhooks", () =>
-			dispatch(receiver.name, receiver.webhook_configs, alerts, groupLabels, WebhookIntegration),
+			dispatch(receiver.name, receiver.webhook_configs, alerts, groupLabels, WebhookIntegration)
 		);
 	}
 }

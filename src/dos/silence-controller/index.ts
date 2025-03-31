@@ -1,5 +1,9 @@
-import { DurableObject } from "cloudflare:workers";
+import { instrumentDO } from "@microlabs/otel-cf-workers";
+import { trace } from "@opentelemetry/api";
 import { Bindings } from "../../types/internal";
+import { OTelConfFn, runInSpan } from "../../utils/observability";
+import { callRPC, rpcFetch } from "../../utils/rpc";
+import { AccountControllerActions } from "../account-controller";
 
 const SILENCE_ID_KEY = "silenceID";
 const ACCOUNT_ID_KEY = "accountID";
@@ -18,53 +22,79 @@ const getAlarmTime = (startsAt: number, endsAt: number) => {
 	}
 };
 
-export default class SilenceController extends DurableObject<Bindings> {
+export enum SilenceControllerActions {
+	Initialize = "initialize",
+	Delete = "delete",
+}
+
+const getTracer = () => {
+	return trace.getTracer("SilenceController");
+};
+
+class SilenceControllerDO implements DurableObject {
 	silenceID: string;
-	accountControllerID: DurableObjectId | undefined;
+	accountControllerID: string;
 	startTime: number;
 	endTime: number;
-	constructor(ctx: DurableObjectState, env: Bindings) {
-		super(ctx, env);
-
+	state: DurableObjectState;
+	env: Bindings;
+	constructor(state: DurableObjectState, env: Bindings) {
 		this.silenceID = "";
 		this.startTime = 0;
 		this.endTime = 0;
+		this.accountControllerID = "";
+		this.state = state;
+		this.env = env;
 
-		ctx.blockConcurrencyWhile(async () => {
-			this.silenceID = (await ctx.storage.get(SILENCE_ID_KEY)) ?? "";
-			const accountControllerIDStr = await ctx.storage.get<string>(ACCOUNT_ID_KEY);
-			if (accountControllerIDStr) {
-				this.accountControllerID = env.ACCOUNT_CONTROLLER.idFromString(accountControllerIDStr);
-			}
-			this.startTime = (await ctx.storage.get(START_TIME_KEY)) ?? 0;
-			this.endTime = (await ctx.storage.get(END_TIME_KEY)) ?? 0;
+		runInSpan(getTracer(), "SilenceController::constructor", {}, () => {
+			state.blockConcurrencyWhile(async () => {
+				this.silenceID = (await state.storage.get(SILENCE_ID_KEY)) ?? "";
+				this.accountControllerID = (await state.storage.get<string>(ACCOUNT_ID_KEY)) ?? "";
+				this.startTime = (await state.storage.get(START_TIME_KEY)) ?? 0;
+				this.endTime = (await state.storage.get(END_TIME_KEY)) ?? 0;
+			});
 		});
 	}
 
-	async initialize(accountControllerID: DurableObjectId, silenceID: string, startTime: number, endTime: number) {
-		const newAlarmTime = getAlarmTime(startTime, endTime);
-		if (newAlarmTime === 0) {
-			return;
-		}
+	private async initialize({
+		accountControllerID,
+		silenceID,
+		startTime,
+		endTime,
+	}: {
+		accountControllerID: string;
+		silenceID: string;
+		startTime: number;
+		endTime: number;
+	}) {
+		return runInSpan(getTracer(), "SilenceController::initialize", {}, async (span) => {
+			const newAlarmTime = getAlarmTime(startTime, endTime);
+			if (newAlarmTime === 0) {
+				return;
+			}
 
-		this.accountControllerID = accountControllerID;
-		this.silenceID = silenceID;
-		this.startTime = startTime;
-		this.endTime = endTime;
+			this.accountControllerID = accountControllerID;
+			this.silenceID = silenceID;
+			this.startTime = startTime;
+			this.endTime = endTime;
 
-		await this.ctx.storage.put(SILENCE_ID_KEY, silenceID);
-		await this.ctx.storage.put(ACCOUNT_ID_KEY, accountControllerID.toString());
-		await this.ctx.storage.put(START_TIME_KEY, startTime);
-		await this.ctx.storage.put(END_TIME_KEY, endTime);
-		const currentAlarm = await this.ctx.storage.getAlarm();
-		if (!currentAlarm || currentAlarm !== newAlarmTime) {
-			await this.ctx.storage.setAlarm(newAlarmTime);
-		}
+			await this.state.storage.put(SILENCE_ID_KEY, silenceID);
+			await this.state.storage.put(ACCOUNT_ID_KEY, accountControllerID.toString());
+			await this.state.storage.put(START_TIME_KEY, startTime);
+			await this.state.storage.put(END_TIME_KEY, endTime);
+			const currentAlarm = await this.state.storage.getAlarm();
+			if (!currentAlarm || currentAlarm !== newAlarmTime) {
+				span.addEvent("Reset Alarm");
+				await this.state.storage.setAlarm(newAlarmTime);
+			}
+		});
 	}
 
-	async delete() {
-		await this.ctx.storage.deleteAll();
-		await this.ctx.storage.deleteAlarm();
+	private async delete() {
+		return runInSpan(getTracer(), "SilenceController::delete", {}, async () => {
+			await this.state.storage.deleteAll();
+			await this.state.storage.deleteAlarm();
+		});
 	}
 
 	async alarm() {
@@ -72,16 +102,30 @@ export default class SilenceController extends DurableObject<Bindings> {
 			throw `BUG: SilenceController ${this.silenceID} has no accountControllerID`;
 		}
 
-		const accountController = this.env.ACCOUNT_CONTROLLER.get(this.accountControllerID);
+		const accountControllerID = this.env.ACCOUNT_CONTROLLER.idFromString(this.accountControllerID);
+		const accountController = this.env.ACCOUNT_CONTROLLER.get(accountControllerID);
 
 		if (this.endTime <= Date.now()) {
-			await accountController.markSilenceExpired(this.silenceID);
+			await callRPC(accountController, AccountControllerActions.MarkSilenceExpired, this.silenceID);
 			await this.delete();
 		} else if (this.startTime <= Date.now()) {
-			await accountController.markSilenceStarted(this.silenceID);
-			await this.ctx.storage.setAlarm(this.endTime);
+			await callRPC(accountController, AccountControllerActions.MarkSilenceStarted, this.silenceID);
+			await this.state.storage.setAlarm(this.endTime);
 		} else {
-			await this.ctx.storage.setAlarm(this.startTime);
+			await this.state.storage.setAlarm(this.startTime);
 		}
 	}
+
+	async fetch(request: Request) {
+		const rpcMethods = {
+			[SilenceControllerActions.Initialize]: this.initialize,
+			[SilenceControllerActions.Delete]: this.delete,
+		};
+
+		return rpcFetch(this, request, rpcMethods);
+	}
 }
+
+const SilenceController = instrumentDO(SilenceControllerDO, OTelConfFn);
+
+export default SilenceController;

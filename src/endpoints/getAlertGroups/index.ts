@@ -1,8 +1,10 @@
 import { OpenAPIRoute } from "chanfana";
 import { Context } from "hono";
+import { AccountControllerActions } from "../../dos/account-controller";
 import { GetAlertGroupsOptionsSpec } from "../../types/api";
 import { Errors, HTTPResponses } from "../../types/http";
-import { Bindings } from "../../types/internal";
+import { Bindings, HydratedAlertGroup } from "../../types/internal";
+import { callRPC } from "../../utils/rpc";
 import { internalAlertToAlertmanager } from "../utils/api";
 import { checkAPIKey, toErrorString } from "../utils/auth";
 import { accountControllerName } from "../utils/kv";
@@ -35,8 +37,11 @@ export class GetAlertGroups extends OpenAPIRoute {
 		const controllerName = accountControllerName(authResult.accountID);
 		const controllerID = c.env.ACCOUNT_CONTROLLER.idFromName(controllerName);
 		const controller = c.env.ACCOUNT_CONTROLLER.get(controllerID);
-
-		const internalGroups = await controller.getAlertGroups(query);
+		const internalGroups = (await callRPC(
+			controller,
+			AccountControllerActions.GetAlertGroups,
+			query
+		)) as HydratedAlertGroup[];
 		const foldedAlerts = internalGroups.map((g) => {
 			const labels: Record<string, string> = {};
 			for (let i = 0; i < g.labelNames.length; i++) {

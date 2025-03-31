@@ -1,8 +1,10 @@
 import { OpenAPIRoute } from "chanfana";
 import { Context } from "hono";
+import { AccountControllerActions } from "../../dos/account-controller";
 import { PostableSilenceSpec } from "../../types/api";
 import { Errors, HTTPResponses } from "../../types/http";
 import { Bindings } from "../../types/internal";
+import { callRPC } from "../../utils/rpc";
 import { checkAPIKey, toErrorString } from "../utils/auth";
 import { accountControllerName } from "../utils/kv";
 
@@ -42,7 +44,10 @@ export class PostSilence extends OpenAPIRoute {
 
 		let id: string;
 		try {
-			id = await controller.addSilence({ ...data.body, createdBy: authResult.userID });
+			id = (await callRPC(controller, AccountControllerActions.AddSilence, {
+				...data.body,
+				createdBy: authResult.userID,
+			})) as string;
 		} catch (e) {
 			c.status(HTTPResponses.BadRequest);
 			return c.text(e as string);
