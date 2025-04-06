@@ -1,3 +1,4 @@
+import { Notifier } from "integrations/types";
 import { WebhookConfig } from "../../types/alertmanager";
 import { alertState, AlertState, CachedAlert } from "../../types/internal";
 
@@ -27,7 +28,7 @@ const getCommon = (r: Record<string, string>[]): Record<string, string> => {
 	return common;
 };
 
-export default async (
+const notify: Notifier<WebhookConfig> = async (
 	name: string,
 	config: WebhookConfig,
 	alerts: CachedAlert[],
@@ -74,6 +75,8 @@ export default async (
 
 	console.log(resp);
 };
+
+export default notify;
 
 interface WebhookReceiverPayload {
 	version: "4";
