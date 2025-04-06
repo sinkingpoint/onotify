@@ -3,7 +3,7 @@
 // This can be rm'd once https://github.com/cloudflare/workerd/issues/2247 is resolved.
 
 import { ResolveConfigFn } from "@microlabs/otel-cf-workers";
-import { Span, SpanOptions, Tracer } from "@opentelemetry/api";
+import { Span, SpanOptions, SpanStatusCode, Tracer } from "@opentelemetry/api";
 import { ExportResult, ExportResultCode, hrTimeToMicroseconds } from "@opentelemetry/core";
 import { ReadableSpan, SpanExporter } from "@opentelemetry/sdk-trace-base";
 import { Bindings } from "../types/internal";
@@ -97,10 +97,35 @@ export const OTelConfFn: ResolveConfigFn = (env: Bindings) => {
 	};
 };
 
-export const runInSpan = <T>(tracer: Tracer, spanName: string, attributes: SpanOptions, fn: (span: Span) => T) => {
+export const runInSpan = <T>(
+	tracer: Tracer,
+	spanName: string,
+	attributes: SpanOptions,
+	fn: (span: Span) => Promise<T>,
+) => {
+	return tracer.startActiveSpan(spanName, attributes, async (span) => {
+		try {
+			const ret = await fn(span);
+			span.end();
+			return ret;
+		} catch (e: any) {
+			span.recordException(e.toString());
+			span.setStatus({ code: SpanStatusCode.ERROR });
+			throw e;
+		}
+	});
+};
+
+export const runInSyncSpan = <T>(tracer: Tracer, spanName: string, attributes: SpanOptions, fn: (span: Span) => T) => {
 	return tracer.startActiveSpan(spanName, attributes, (span) => {
-		const ret = fn(span);
-		span.end();
-		return ret;
+		try {
+			const ret = fn(span);
+			span.end();
+			return ret;
+		} catch (e: any) {
+			span.recordException(e.toString());
+			span.setStatus({ code: SpanStatusCode.ERROR });
+			throw e;
+		}
 	});
 };

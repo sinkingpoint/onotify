@@ -2,7 +2,7 @@ import { instrumentDO } from "@microlabs/otel-cf-workers";
 import { trace } from "@opentelemetry/api";
 import { FlatRouteConfig } from "../../types/alertmanager";
 import { AlertGroup, Bindings } from "../../types/internal";
-import { OTelConfFn, runInSpan } from "../../utils/observability";
+import { OTelConfFn, runInSpan, runInSyncSpan } from "../../utils/observability";
 import { rpcFetch } from "../../utils/rpc";
 import { AlertStateMachine } from "./state-machine";
 import { ACCOUNT_ID_KEY, ALERTS_PREFIX, GroupedAlert, LABELS_KV_KEY, PAGE_SIZE, ROUTE_KV_KEY } from "./util";
@@ -66,7 +66,7 @@ class AlertGroupControllerDO implements DurableObject {
 		this.state_machine = new AlertStateMachine(this.state.storage);
 		this.account_id = "";
 
-		runInSpan(getTracer(), "AlertGroupController::constructor", {}, () => {
+		runInSyncSpan(getTracer(), "AlertGroupController::constructor", {}, () => {
 			state.blockConcurrencyWhile(async () => {
 				this.account_id = (await this.state.storage.get(ACCOUNT_ID_KEY)) ?? "";
 				this.labels = await this.state.storage.get(LABELS_KV_KEY);

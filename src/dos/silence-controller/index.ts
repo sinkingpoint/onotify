@@ -1,7 +1,7 @@
 import { instrumentDO } from "@microlabs/otel-cf-workers";
 import { trace } from "@opentelemetry/api";
 import { Bindings } from "../../types/internal";
-import { OTelConfFn, runInSpan } from "../../utils/observability";
+import { OTelConfFn, runInSpan, runInSyncSpan } from "../../utils/observability";
 import { callRPC, rpcFetch } from "../../utils/rpc";
 import { AccountControllerActions } from "../account-controller";
 
@@ -46,7 +46,7 @@ class SilenceControllerDO implements DurableObject {
 		this.state = state;
 		this.env = env;
 
-		runInSpan(getTracer(), "SilenceController::constructor", {}, () => {
+		runInSyncSpan(getTracer(), "SilenceController::constructor", {}, () => {
 			state.blockConcurrencyWhile(async () => {
 				this.silenceID = (await state.storage.get(SILENCE_ID_KEY)) ?? "";
 				this.accountControllerID = (await state.storage.get<string>(ACCOUNT_ID_KEY)) ?? "";

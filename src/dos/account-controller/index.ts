@@ -9,7 +9,7 @@ import {
 	HydratedAlertGroup,
 	ReceiveredAlert,
 } from "../../types/internal";
-import { OTelConfFn, runInSpan } from "../../utils/observability";
+import { OTelConfFn, runInSpan, runInSyncSpan } from "../../utils/observability";
 import { callRPC, rpcFetch } from "../../utils/rpc";
 import { SilenceControllerActions } from "../silence-controller";
 import { AlertDB } from "./alert-db";
@@ -56,7 +56,7 @@ class AccountControllerDO implements DurableObject {
 		this.alertStorage = new AlertDB(new PrefixStorage(state.storage, ALERT_KV_PREFIX), this.silenceStorage);
 		this.alertGroupStorage = new AlertGroupDB(new PrefixStorage(state.storage, ALERT_GROUP_KV_PREFIX));
 
-		runInSpan(getTracer(), "AccountController constructor", {}, (span) => {
+		runInSyncSpan(getTracer(), "AccountController constructor", {}, (span) => {
 			state.blockConcurrencyWhile(async () => {
 				const silences = await getAllSilences(state.storage);
 				this.silenceStorage.init(silences);
