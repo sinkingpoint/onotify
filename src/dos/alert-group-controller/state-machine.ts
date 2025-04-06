@@ -35,8 +35,8 @@ export class AlertStateMachine {
 					}
 
 					return { fingerprint: alert.fingerprint, state: alert.state };
-				})()
-			)
+				})(),
+			),
 		);
 
 		const newFingerprints = (
@@ -49,7 +49,7 @@ export class AlertStateMachine {
 					} else {
 						return undefined;
 					}
-				})
+				}),
 			)
 		).filter((f) => f !== undefined);
 

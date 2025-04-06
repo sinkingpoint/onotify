@@ -63,7 +63,7 @@ export class PostAlerts extends OpenAPIRoute {
 						account_id,
 						route: routingTree.tree[nodeID],
 						group,
-					})
+					}),
 				);
 			}
 		}

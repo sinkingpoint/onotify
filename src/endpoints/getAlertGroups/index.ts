@@ -4,10 +4,10 @@ import { AccountControllerActions } from "../../dos/account-controller";
 import { GetAlertGroupsOptionsSpec } from "../../types/api";
 import { Errors, HTTPResponses } from "../../types/http";
 import { Bindings, HydratedAlertGroup } from "../../types/internal";
-import { callRPC } from "../../utils/rpc";
 import { internalAlertToAlertmanager } from "../utils/api";
 import { checkAPIKey, toErrorString } from "../utils/auth";
 import { accountControllerName } from "../utils/kv";
+import { callRPC } from "utils/rpc";
 
 export class GetAlertGroups extends OpenAPIRoute {
 	schema = {
@@ -40,7 +40,7 @@ export class GetAlertGroups extends OpenAPIRoute {
 		const internalGroups = (await callRPC(
 			controller,
 			AccountControllerActions.GetAlertGroups,
-			query
+			query,
 		)) as HydratedAlertGroup[];
 		const foldedAlerts = internalGroups.map((g) => {
 			const labels: Record<string, string> = {};

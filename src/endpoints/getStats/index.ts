@@ -60,7 +60,7 @@ export class GetStats extends OpenAPIRoute {
 	private group<T>(
 		values: T[],
 		key: Extract<keyof T, keyof { [K in keyof T]: T[K] extends number ? K : never }>,
-		params: GetStatsParams
+		params: GetStatsParams,
 	) {
 		if (values.length === 0) {
 			return { buckets: [] };

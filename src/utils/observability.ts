@@ -89,7 +89,7 @@ export const OTelConfFn: ResolveConfigFn = (env: Bindings) => {
 					"x-honeycomb-team": env.HONEYCOMB_API_KEY,
 					"x-honeycomb-dataset": env.HONEYCOMB_DATASET ?? "onotify-prod",
 				},
-		  }
+			}
 		: new ConsoleSpanExporter();
 	return {
 		exporter,

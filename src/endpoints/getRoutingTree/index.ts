@@ -26,7 +26,7 @@ export class GetRoutingTree extends OpenAPIRoute {
 									group_wait: z.string(),
 									group_interval: z.string(),
 									repeat_interval: z.string(),
-								})
+								}),
 							),
 						}),
 					},
@@ -46,7 +46,7 @@ export class GetRoutingTree extends OpenAPIRoute {
 
 		const flattenedRoutingTree: ReturnType<typeof collapseRoutingTree> = await loadJSONKVKey(
 			ctx.env.CONFIGS,
-			routingTreeKVKey(authResult.accountID)
+			routingTreeKVKey(authResult.accountID),
 		);
 
 		for (const nodeID of Object.keys(flattenedRoutingTree["tree"])) {

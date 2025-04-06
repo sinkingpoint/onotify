@@ -3,7 +3,7 @@ import { runInSpan } from "./observability";
 
 export const rpc = <In, Out>(
 	wrap: (arg: In) => Out | Response | void | Promise<Out> | Promise<Response> | Promise<void>,
-	ths: any
+	ths: any,
 ) => {
 	return async (r: Request) => {
 		const inData = await r.json<In>();
@@ -27,7 +27,7 @@ export const rpc = <In, Out>(
 export const callRPC = async <In, Out>(
 	durable: DurableObjectStub,
 	functionName: string,
-	inData: In
+	inData: In,
 ): Promise<Out | undefined> => {
 	const request = new Request(`https://do/${functionName}`, {
 		method: "POST",

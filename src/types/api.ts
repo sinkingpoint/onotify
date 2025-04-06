@@ -234,7 +234,7 @@ export const GetAlertsParamsSpec = z.object({
 				"endsAt:desc",
 				"updatedAt:desc",
 				"alertname:desc",
-			])
+			]),
 		)
 		.optional()
 		.openapi({ description: "The field to sort by" }),

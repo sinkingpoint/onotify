@@ -6,7 +6,8 @@
 		"deploy": "wrangler deploy",
 		"dev": "wrangler dev",
 		"start": "wrangler dev",
-		"cf-typegen": "wrangler types"
+		"cf-typegen": "wrangler types",
+		"fmt": "prettier -w ."
 	},
 	"dependencies": {
 		"@microlabs/otel-cf-workers": "^1.0.0-rc.49",
@@ -26,6 +27,7 @@
 		"@types/service-worker-mock": "^2.0.1",
 		"jest": "^29.7.0",
 		"js-yaml": "^4.1.0",
+		"prettier": "^3.5.3",
 		"ts-jest": "^29.2.5",
 		"wrangler": "^4.7.0"
 	}

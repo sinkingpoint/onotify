@@ -17,7 +17,7 @@ type DispatchFunction<T> = (
 	name: string,
 	conf: T,
 	alerts: CachedAlert[],
-	groupLabels: Record<string, string>
+	groupLabels: Record<string, string>,
 ) => Promise<void>;
 
 const dispatch = async <T extends { send_resolved: boolean }>(
@@ -25,7 +25,7 @@ const dispatch = async <T extends { send_resolved: boolean }>(
 	configs: T[] | undefined,
 	alerts: CachedAlert[],
 	groupLabels: Record<string, string>,
-	receiver: DispatchFunction<T>
+	receiver: DispatchFunction<T>,
 ) => {
 	if (!configs) {
 		return;
@@ -72,7 +72,7 @@ export class AlertDispatch extends WorkflowEntrypoint<Bindings, Params> {
 					fingerprints: alertFingerprints,
 					silenced: false,
 					inhibited: false,
-				}) as Promise<CachedAlert[]>
+				}) as Promise<CachedAlert[]>,
 		);
 
 		if (alerts.length === 0) {
@@ -81,7 +81,7 @@ export class AlertDispatch extends WorkflowEntrypoint<Bindings, Params> {
 		}
 
 		await step.do("webhooks", () =>
-			dispatch(receiver.name, receiver.webhook_configs, alerts, groupLabels, WebhookIntegration)
+			dispatch(receiver.name, receiver.webhook_configs, alerts, groupLabels, WebhookIntegration),
 		);
 	}
 }

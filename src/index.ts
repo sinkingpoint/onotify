@@ -37,7 +37,7 @@ app.use(
 			return c.env.WORKERS_ENV === "local" ? LOCAL_ORIGIN : PROD_ORIGIN;
 		},
 		credentials: true,
-	})
+	}),
 );
 
 // Setup OpenAPI registry

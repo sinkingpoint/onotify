@@ -186,7 +186,7 @@ class AccountControllerDO implements DurableObject {
 						...g,
 						alerts,
 					};
-				})
+				}),
 			);
 
 			return hydratedGroups.filter((g) => g.alerts.length > 0);

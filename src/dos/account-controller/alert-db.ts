@@ -42,7 +42,7 @@ export class AlertDB {
 
 			const silencedBy = cached ? cached.silencedBy : this.silenceDB.silencedBy(a);
 			const inhibitedBy = cached ? cached.inhibitedBy : [];
-			const history = cached ? cached.history ?? [] : [];
+			const history = cached ? (cached.history ?? []) : [];
 			const newState = alertState(a);
 			if (history.length === 0) {
 				history.push({
@@ -198,7 +198,7 @@ export class AlertDB {
 				span.setAttribute("result.size", result.length);
 				span.end();
 				return result;
-			}
+			},
 		);
 	}
 
@@ -239,7 +239,7 @@ export class AlertDB {
 				await this.storage.put(a.fingerprint, a);
 				this.alerts.set(a.fingerprint, a);
 				span.end();
-			}
+			},
 		);
 	}
 
@@ -261,7 +261,7 @@ export class AlertDB {
 				}
 				await Promise.all(promises);
 				span.end();
-			}
+			},
 		);
 	}
 }
