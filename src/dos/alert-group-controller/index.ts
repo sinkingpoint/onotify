@@ -1,11 +1,22 @@
 import { instrumentDO } from "@microlabs/otel-cf-workers";
 import { trace } from "@opentelemetry/api";
-import { FlatRouteConfig } from "../../types/alertmanager";
-import { AlertGroup, Bindings } from "../../types/internal";
+import { accountControllerName, loadJSONKVKey, receiversKVKey } from "../../endpoints/utils/kv";
+import { FlatRouteConfig, Receiver } from "../../types/alertmanager";
+import { AlertGroup, Bindings, CachedAlert, DehydratedAlert } from "../../types/internal";
 import { OTelConfFn, runInSpan, runInSyncSpan } from "../../utils/observability";
-import { rpcFetch } from "../../utils/rpc";
+import { callRPC, rpcFetch } from "../../utils/rpc";
+import { AccountControllerActions } from "../account-controller";
+import { ReceiverConfigInitialiseOpts, ReceiverControllerActions } from "../receiver-controller";
 import { AlertStateMachine } from "./state-machine";
-import { ACCOUNT_ID_KEY, ALERTS_PREFIX, GroupedAlert, LABELS_KV_KEY, PAGE_SIZE, ROUTE_KV_KEY } from "./util";
+import {
+	ACCOUNT_ID_KEY,
+	ALERTS_PREFIX,
+	GroupedAlert,
+	LABELS_KV_KEY,
+	PAGE_SIZE,
+	RECEIVER_CONTROLLER_KEY,
+	ROUTE_KV_KEY,
+} from "./util";
 
 // Gets the list of alert fingerprints in storage.
 const getAlertFingerprints = async (storage: DurableObjectStorage) => {
@@ -55,43 +66,60 @@ const getTracer = () => {
 
 class AlertGroupControllerDO implements DurableObject {
 	route: FlatRouteConfig | undefined;
-	labels: string[] | undefined;
-	state_machine: AlertStateMachine;
-	account_id: string;
+	labels?: Record<string, string>;
+	stateMachine: AlertStateMachine;
+	accountID: string;
 	state: DurableObjectState;
 	env: Bindings;
+	receiverControllerIDs: string[];
 	constructor(state: DurableObjectState, env: Bindings) {
 		this.state = state;
 		this.env = env;
-		this.state_machine = new AlertStateMachine(this.state.storage);
-		this.account_id = "";
+		this.stateMachine = new AlertStateMachine(this.state.storage);
+		this.accountID = "";
+		this.receiverControllerIDs = [];
 
 		runInSyncSpan(getTracer(), "AlertGroupController::constructor", {}, () => {
 			state.blockConcurrencyWhile(async () => {
-				this.account_id = (await this.state.storage.get(ACCOUNT_ID_KEY)) ?? "";
+				this.accountID = (await this.state.storage.get(ACCOUNT_ID_KEY)) ?? "";
 				this.labels = await this.state.storage.get(LABELS_KV_KEY);
 				this.route = await this.state.storage.get(ROUTE_KV_KEY);
+				this.receiverControllerIDs = (await this.state.storage.get(RECEIVER_CONTROLLER_KEY)) ?? [];
 				const [pending_alerts, active_alerts] = await getAlertFingerprints(this.state.storage);
-				this.state_machine.initialise(pending_alerts, active_alerts);
+				this.stateMachine.initialise(pending_alerts, active_alerts);
 			});
 		});
 	}
 
-	async initialize({ account_id, route, group }: { account_id: string; route: FlatRouteConfig; group: AlertGroup }) {
+	private async initialize({
+		account_id,
+		route,
+		group,
+	}: {
+		account_id: string;
+		route: FlatRouteConfig;
+		group: AlertGroup;
+	}) {
 		return runInSpan(getTracer(), "AlertGroupController::initialize", {}, async () => {
-			this.account_id = account_id;
-			this.labels = this.labels ?? group.labelValues;
+			this.accountID = account_id;
+			if (!this.labels) {
+				this.labels = {};
+				for (let i = 0; i < group.labelNames.length; i++) {
+					const label = group.labelNames[i];
+					this.labels[label] = group.labelValues[i];
+				}
+			}
+
 			this.route = route;
 
-			const equalLabels = arraysEqual(this.labels, group.labelValues);
-			if (!equalLabels) {
+			if (!sameLabels(this.labels, group.labelNames, group.labelValues)) {
 				throw `Expected the given labels (${group.labelValues}) to be the same as the existing labels (${this.labels})`;
 			}
 
 			await this.state.storage.put(LABELS_KV_KEY, this.labels);
 			await this.state.storage.put(ROUTE_KV_KEY, this.route);
-			await this.state.storage.put(ACCOUNT_ID_KEY, this.account_id);
-			await Promise.all(group.alerts.map((a) => this.state_machine.handlePendingAlert(a)));
+			await this.state.storage.put(ACCOUNT_ID_KEY, this.accountID);
+			await Promise.all(group.alerts.map((a) => this.stateMachine.handlePendingAlert(a)));
 
 			if (!(await this.state.storage.getAlarm())) {
 				// We have never sent a notification for this group, so wait `group_wait`.
@@ -100,29 +128,79 @@ class AlertGroupControllerDO implements DurableObject {
 		});
 	}
 
-	async alarm() {
-		const page_size = PAGE_SIZE > 0 ? PAGE_SIZE : undefined;
-		while (this.state_machine.hasPendingAlerts()) {
-			const alerts = await this.state_machine.flushPendingAlerts(page_size);
-			const dispatch = await this.env.ALERT_DISPATCH.create({
-				params: {
-					accountId: this.account_id,
-					alertFingerprints: alerts.map((a) => a.fingerprint),
-					receiverName: this.route?.receiver,
-					groupLabels: this.labels,
-				},
-			});
-
-			console.log("dispatching");
+	private async fire(alerts: CachedAlert[]) {
+		if (!this.route?.receiver) {
+			return;
 		}
 
-		if (this.state_machine.hasActiveAlerts()) {
+		const receivers = (await loadJSONKVKey(this.env.CONFIGS, receiversKVKey(this.accountID))) as Record<
+			string,
+			Receiver
+		>;
+
+		const receiver = receivers[this.route.receiver];
+		if (!receiver) {
+			throw new Error(`Receiver ${this.route.receiver} not found`);
+		}
+
+		const createReceiverControllers = async (receiverType: string, configs: any[]) => {
+			for (const conf of configs) {
+				const id = this.env.RECEIVER_CONTROLLER.newUniqueId();
+				const controller = this.env.RECEIVER_CONTROLLER.get(id);
+				const didFire = await callRPC(controller, ReceiverControllerActions.Initialise, {
+					accountId: this.accountID,
+					name: this.route?.receiver,
+					receiverType,
+					alerts,
+					groupLabels: this.labels,
+					receiverConf: conf,
+				} as ReceiverConfigInitialiseOpts);
+
+				if (didFire) {
+					this.receiverControllerIDs.push(id.toString());
+				}
+			}
+		};
+		try {
+			if (receiver.webhook_configs) {
+				createReceiverControllers("webhook", receiver.webhook_configs);
+			}
+
+			if (receiver.pagerduty_configs) {
+				createReceiverControllers("pagerduty", receiver.pagerduty_configs);
+			}
+		} finally {
+			await this.state.storage.put(RECEIVER_CONTROLLER_KEY, this.receiverControllerIDs);
+		}
+	}
+
+	async alarm() {
+		const page_size = PAGE_SIZE > 0 ? PAGE_SIZE : undefined;
+		while (this.stateMachine.hasPendingAlerts()) {
+			const alerts = await this.stateMachine.flushPendingAlerts(page_size);
+			this.fire(await this.hydrateAlerts(alerts));
+		}
+
+		if (this.stateMachine.hasActiveAlerts()) {
 			// We have active alerts, so send the next alerts after `group_interval`.
 			await this.state.storage.setAlarm(Date.now() + this.route!.group_interval);
 		} else {
 			// All the alerts have been dispatched. Delete this group.
 			await this.state.storage.deleteAll();
 		}
+	}
+
+	private async hydrateAlerts(alerts: DehydratedAlert[]) {
+		const fingerprints = alerts.map((a) => a.fingerprint);
+		const controllerName = accountControllerName(this.accountID);
+		const accountControllerID = this.env.ACCOUNT_CONTROLLER.idFromName(controllerName);
+		const accountController = this.env.ACCOUNT_CONTROLLER.get(accountControllerID);
+
+		return await (callRPC(accountController, AccountControllerActions.GetAlerts, {
+			fingerprints: fingerprints,
+			silenced: false,
+			inhibited: false,
+		}) as Promise<CachedAlert[]>);
 	}
 
 	fetch(request: Request) {
@@ -134,8 +212,8 @@ class AlertGroupControllerDO implements DurableObject {
 	}
 }
 
-const arraysEqual = (a: string[], b: string[]): boolean => {
-	return a.length === b.length && a.every((n, i) => b[i] === n);
+const sameLabels = (a: Record<string, string>, labelNames: string[], labelValues: string[]): boolean => {
+	return Object.keys(a).length === labelNames.length && labelNames.every((key, i) => a[key] === labelValues[i]);
 };
 
 const AlertController = instrumentDO(AlertGroupControllerDO, OTelConfFn);

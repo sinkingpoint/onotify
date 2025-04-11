@@ -9,6 +9,7 @@ export const ALERTS_PREFIX = "alert";
 export const LABELS_KV_KEY = "labels";
 export const ROUTE_KV_KEY = "route";
 export const ACCOUNT_ID_KEY = "account-id";
+export const RECEIVER_CONTROLLER_KEY = "receiverControllerIDs";
 
 export type GroupedAlert = {
 	fingerprint: string;

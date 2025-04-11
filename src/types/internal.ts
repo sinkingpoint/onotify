@@ -12,7 +12,7 @@ export interface Bindings extends EnvVars {
 	ALERT_GROUP_CONTROLLER: DurableObjectNamespace;
 	ACCOUNT_CONTROLLER: DurableObjectNamespace;
 	SILENCE_CONTROLLER: DurableObjectNamespace;
-	ALERT_DISPATCH: Workflow;
+	RECEIVER_CONTROLLER: DurableObjectNamespace;
 }
 
 export interface Alert {

@@ -19,11 +19,6 @@ database_id = "d7098067-4df0-4f70-a075-784676dbad34"
 binding = "CONFIGS"
 id = "b04d857d6653487ebee0f8aa63c244dd"
 
-[[workflows]]
-name = "alert-dispatch"
-binding = "ALERT_DISPATCH"
-class_name = "AlertDispatch"
-
 [[durable_objects.bindings]]
 name = "ALERT_GROUP_CONTROLLER"
 class_name = "AlertGroupController"
@@ -35,6 +30,10 @@ class_name = "AccountController"
 [[durable_objects.bindings]]
 name = "SILENCE_CONTROLLER"
 class_name = "SilenceController"
+
+[[durable_objects.bindings]]
+name = "RECEIVER_CONTROLLER"
+class_name = "ReceiverController"
 
 [[migrations]]
 tag = "v1" # Should be unique for each entry
