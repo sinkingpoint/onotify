@@ -26,6 +26,14 @@ export const uploadedFilesKey = (account_id: string): string => {
 	return `onotify-${account_id}-uploaded-file`;
 };
 
+export const templatePathsKVKey = (accountID: string): string => {
+	return `onotify-${accountID}-template-paths`;
+};
+
+export const muteTimeIntervalsKVKey = (accountID: string): string => {
+	return `onotify-${accountID}-mute-time-intervals`;
+};
+
 export const alertGroupControllerName = (accountID: string, nodeID: string, groupLabels: string[]) => {
 	return `alert-group-controller-${accountID}-${nodeID}-${groupLabels}`;
 };

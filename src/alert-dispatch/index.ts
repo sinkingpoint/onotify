@@ -1,10 +1,21 @@
 import { WorkflowEntrypoint, WorkflowEvent, WorkflowStep } from "cloudflare:workers";
+import { Notifier } from "integrations/types";
 import { AccountControllerActions } from "../dos/account-controller";
-import { accountControllerName, receiversKVKey } from "../endpoints/utils/kv";
+import {
+	accountControllerName,
+	globalConfigKVKey,
+	loadJSONKVKey,
+	receiversKVKey,
+	templatePathsKVKey,
+	uploadedFilesKey,
+} from "../endpoints/utils/kv";
+import PagerdutyIntegration from "../integrations/pagerduty";
 import WebhookIntegration from "../integrations/webhook";
-import { Receiver } from "../types/alertmanager";
+import { GlobalConfig, Receiver } from "../types/alertmanager";
 import { AlertState, alertState, Bindings, CachedAlert } from "../types/internal";
 import { callRPC } from "../utils/rpc";
+import { Template } from "@sinkingpoint/gotemplate";
+import { loadTemplateFromAccount } from "utils/template";
 
 type Params = {
 	accountId: string;
@@ -13,19 +24,13 @@ type Params = {
 	groupLabels: Record<string, string>;
 };
 
-type DispatchFunction<T> = (
-	name: string,
-	conf: T,
-	alerts: CachedAlert[],
-	groupLabels: Record<string, string>,
-) => Promise<void>;
-
 const dispatch = async <T extends { send_resolved: boolean }>(
 	name: string,
 	configs: T[] | undefined,
 	alerts: CachedAlert[],
+	template: Template,
 	groupLabels: Record<string, string>,
-	receiver: DispatchFunction<T>,
+	receiver: Notifier<T>,
 ) => {
 	if (!configs) {
 		return;
@@ -43,7 +48,7 @@ const dispatch = async <T extends { send_resolved: boolean }>(
 			continue;
 		}
 
-		promises.push(receiver(name, config, alerts, groupLabels));
+		promises.push(receiver(name, config, template, alerts, groupLabels));
 	}
 
 	await Promise.all(promises);
@@ -56,13 +61,18 @@ export class AlertDispatch extends WorkflowEntrypoint<Bindings, Params> {
 		const accountControllerID = this.env.ACCOUNT_CONTROLLER.idFromName(controllerName);
 		const accountController = this.env.ACCOUNT_CONTROLLER.get(accountControllerID);
 
-		const kvKey = receiversKVKey(accountId);
-		const rawReceivers = await this.env.CONFIGS.get(kvKey);
-		if (!rawReceivers) {
-			throw `failed to load receivers from account!`;
+		const receivers = (await loadJSONKVKey(this.env.CONFIGS, receiversKVKey(accountId))) as Record<string, Receiver>;
+		const receiver = receivers[receiverName];
+		if (!receiver) {
+			throw `Failed to load receiver ${receiver} from ${accountId}`;
 		}
-		const receivers = JSON.parse(rawReceivers);
-		const receiver = receivers[receiverName] as Receiver;
+
+		const templatePaths = (await loadJSONKVKey(this.env.CONFIGS, templatePathsKVKey(accountId))) as string[];
+		const template = loadTemplateFromAccount(accountId, this.env.CONFIGS, templatePaths);
+
+		const loadUploadedFile = (filename: string) => {
+			return this.env.CONFIGS.get(`${uploadedFilesKey(accountId)}-${filename}`);
+		};
 
 		// First, resolve the alerts to a final list of alerts to send.
 		const alerts = await step.do(
@@ -81,7 +91,27 @@ export class AlertDispatch extends WorkflowEntrypoint<Bindings, Params> {
 		}
 
 		await step.do("webhooks", () =>
-			dispatch(receiver.name, receiver.webhook_configs, alerts, groupLabels, WebhookIntegration),
+			dispatch(
+				receiver.name,
+				receiver.webhook_configs,
+				alerts,
+				loadUploadedFile,
+				template,
+				groupLabels,
+				WebhookIntegration,
+			),
+		);
+
+		await step.do("pagerduty", () =>
+			dispatch(
+				receiver.name,
+				receiver.pagerduty_configs,
+				alerts,
+				loadUploadedFile,
+				template,
+				groupLabels,
+				PagerdutyIntegration,
+			),
 		);
 	}
 }

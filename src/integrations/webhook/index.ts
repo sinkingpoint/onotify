@@ -1,6 +1,7 @@
 import { Notifier } from "integrations/types";
 import { WebhookConfig } from "../../types/alertmanager";
 import { alertState, AlertState, CachedAlert } from "../../types/internal";
+import { Template } from "@sinkingpoint/gotemplate";
 
 const USER_AGENT = "onotify + Alertmanager/0.27.0";
 
@@ -31,6 +32,8 @@ const getCommon = (r: Record<string, string>[]): Record<string, string> => {
 const notify: Notifier<WebhookConfig> = async (
 	name: string,
 	config: WebhookConfig,
+	template: Template,
+	loadUploadedFile: (filename: string) => Promise<string | null>,
 	alerts: CachedAlert[],
 	groupLabels: Record<string, string>,
 ) => {

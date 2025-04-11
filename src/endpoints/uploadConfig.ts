@@ -14,9 +14,11 @@ import { checkAPIKey, toErrorString } from "./utils/auth";
 import {
 	globalConfigKVKey,
 	inhibitionsKVKey,
+	muteTimeIntervalsKVKey,
 	receiversKVKey,
 	requiredFilesKey,
 	routingTreeKVKey,
+	templatePathsKVKey,
 	timeIntervalsKVKey,
 } from "./utils/kv";
 
@@ -74,12 +76,13 @@ export class PostConfig extends OpenAPIRoute {
 		promises.push(c.env.CONFIGS.put(receiversKVKey(account_id), JSON.stringify(receivers)));
 		promises.push(c.env.CONFIGS.put(inhibitionsKVKey(account_id), JSON.stringify(config.inhibit_rules)));
 		promises.push(c.env.CONFIGS.put(timeIntervalsKVKey(account_id), JSON.stringify(timeIntervals)));
+		promises.push(c.env.CONFIGS.put(templatePathsKVKey(account_id), JSON.stringify(config.templates)));
+		promises.push(c.env.CONFIGS.put(muteTimeIntervalsKVKey(account_id), JSON.stringify(config.mute_time_intervals)));
 
 		const requiredFiles = getRequiredFiles(config);
 		promises.push(c.env.CONFIGS.put(requiredFilesKey(account_id), JSON.stringify(requiredFiles)));
 
 		await Promise.all(promises);
-		// TODO(https://github.com/sinkingpoint/onotify/issues/4, https://github.com/sinkingpoint/onotify/issues/5): Handle custom templates + `mute_time_intervals`
 
 		return c.text("ok");
 	}

@@ -703,6 +703,8 @@ export const PagerdutyConfigSpec = z
 		description: "configurations to use when sending alerts to pagerduty",
 	});
 
+export type PagerdutyConfig = z.infer<typeof PagerdutyConfigSpec>;
+
 export const PushoverConfigSpec = z
 	.object({
 		// Whether to notify about resolved alerts.
@@ -1587,6 +1589,8 @@ export const GlobalConfigSpec = z
 	.refine(...enforceMutuallyExclusive("victorops_api_key", "victorops_api_key_file"))
 	.refine(...enforceMutuallyExclusive("opsgenie_api_key", "opsgenie_api_key_file"))
 	.openapi({ description: "the global configs, used as defaults in all receivers" });
+
+export type GlobalConfig = z.infer<typeof GlobalConfigSpec>;
 
 export const TemplatePathSpec = z
 	.string()

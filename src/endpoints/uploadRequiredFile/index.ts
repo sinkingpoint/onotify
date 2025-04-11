@@ -37,8 +37,7 @@ export class PostRequiredFiles extends OpenAPIRoute {
 		}
 
 		const { accountID } = authResult;
-		const data = await this.getValidatedData<typeof this.schema>();
-		const config = data.body;
+		const { body: config } = await this.getValidatedData<typeof this.schema>();
 
 		const kvKey = `${uploadedFilesKey(accountID)}-${config.path}`;
 		await c.env.CONFIGS.put(kvKey, config.contents);
