@@ -61,6 +61,11 @@ export enum AlertGroupControllerActions {
 	NotifyReceiverDone = "notify-receiver-done",
 }
 
+interface AlertGroupNotifyReceiverDoneOpts {
+	receiverID: string;
+	success: boolean;
+}
+
 const getTracer = () => {
 	return trace.getTracer("AlertGroupController");
 };
@@ -170,6 +175,7 @@ class AlertGroupControllerDO implements DurableObject {
 							alerts,
 							groupLabels: this.labels,
 							receiverConf: conf,
+							alertGroupControllerID: this.state.id.toString(),
 						} as ReceiverConfigInitialiseOpts);
 
 						if (didFire) {
@@ -219,7 +225,7 @@ class AlertGroupControllerDO implements DurableObject {
 		}
 	}
 
-	private async notifyReceiverDone({ receiverID }: { receiverID: string }) {
+	private async notifyReceiverDone({ receiverID }: AlertGroupNotifyReceiverDoneOpts) {
 		this.receiverControllerIDs = this.receiverControllerIDs.filter((id) => id !== receiverID);
 		await this.state.storage.put(RECEIVER_CONTROLLER_KEY, this.receiverControllerIDs);
 	}
