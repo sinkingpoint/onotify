@@ -187,6 +187,9 @@ class ReceiverControllerDO implements DurableObject {
 	}
 
 	async alarm() {
+		trace.getActiveSpan()?.setAttribute("faas.trigger", "do-alarm");
+		trace.getActiveSpan()?.setAttribute("do-name", "ReceiverController");
+
 		await this.fire();
 	}
 

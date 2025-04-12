@@ -153,7 +153,7 @@ class AccountControllerDO implements DurableObject {
 	private async addAlertGroups(groups: AlertGroup[]) {
 		return runInSpan(getTracer(), "AccountController::addAlertGroups", {}, async () => {
 			for (const group of groups) {
-				this.alertGroupStorage.mergeAlertGroup(group);
+				await this.alertGroupStorage.mergeAlertGroup(group);
 			}
 		});
 	}

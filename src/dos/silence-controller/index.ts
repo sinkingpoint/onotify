@@ -98,6 +98,9 @@ class SilenceControllerDO implements DurableObject {
 	}
 
 	async alarm() {
+		trace.getActiveSpan()?.setAttribute("faas.trigger", "do-alarm");
+		trace.getActiveSpan()?.setAttribute("do-name", "SilenceController");
+
 		if (!this.accountControllerID) {
 			throw `BUG: SilenceController ${this.silenceID} has no accountControllerID`;
 		}
