@@ -61,7 +61,6 @@ export const PreviewSilence = ({ duration, matchers, comment }: PreviewProps) =>
 	}, [duration, startTime]);
 
 	const [currentPage, setCurrentPage] = useState(1);
-
 	const affectedAlerts = useQuery(() => {
 		return getAlerts({
 			query: {

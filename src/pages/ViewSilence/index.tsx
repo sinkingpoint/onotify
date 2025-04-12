@@ -3,6 +3,7 @@ import { useRoute } from "preact-iso";
 import { useMemo, useState } from "preact/hooks";
 import { AlertCard } from "../../components/AlertCard";
 import { MatcherCard } from "../../components/MatcherCard";
+import Paginator from "../../components/Paginator";
 import { getAlerts, GetAlertsResponse, getSilence, postSilence } from "../../pkg/api/client";
 import { DataPull, matcherToString, useQuery } from "../../pkg/types/utils";
 import { formatDate } from "../AddSilence/utils";
@@ -32,7 +33,11 @@ const getAffectAlertTitle = (affectedAlerts: DataPull<GetAlertsResponse, unknown
 			if (affectedAlerts.result.length === 0) {
 				return <>No Affected Alerts</>;
 			} else {
-				return <>{getHumanNumber(affectedAlerts.result.length, "Affected Alert", "Affected Alerts")}</>;
+				return (
+					<>
+						{getHumanNumber(parseInt(affectedAlerts.headers.get("X-Total-Count")), "Affected Alert", "Affected Alerts")}
+					</>
+				);
 			}
 	}
 };
@@ -47,17 +52,33 @@ export default () => {
 
 	const silence = silencePull.state === "success" && silencePull.result ? silencePull.result : undefined;
 
-	const affectedAlerts = useQuery(async () => {
+	const [currentPage, setCurrentPage] = useState(1);
+	const affectedAlerts = useQuery(() => {
 		if (silencePull.state !== "success") {
-			return null;
+			return;
 		}
 
-		const filter = silencePull.result.matchers.map((m) => matcherToString({ ...m, isEqual: m.isEqual ?? true }));
-		return getAlerts({ query: { filter } });
-	}, [silencePull]);
+		return getAlerts({
+			query: {
+				page: currentPage,
+				limit: 10,
+				sort: ["startsAt:desc"],
+				filter: silencePull.result.matchers.map((m) => matcherToString({ isEqual: true, ...m })),
+			},
+		});
+	}, [silencePull, currentPage]);
+
+	const numPages = useMemo(() => {
+		if (affectedAlerts.state !== "success") {
+			return 1;
+		}
+
+		const numSilences = Math.max(parseInt(affectedAlerts.headers.get("X-Total-Count")), 1);
+
+		return Math.ceil(numSilences / 10);
+	}, [affectedAlerts]);
 
 	const startTime = useMemo(() => (silence ? formatDate(new Date(silence.startsAt)) : ""), [silencePull]);
-
 	const endTime = useMemo(() => (silence ? formatDate(new Date(silence.endsAt)) : ""), [silencePull]);
 
 	const matchers = useMemo(() => {
@@ -144,7 +165,15 @@ export default () => {
 
 			<span class="flex flex-col">
 				<h2 class="text-xl inline pt-4 font-bold">{getAffectAlertTitle(affectedAlerts)}</h2>
-				{affectedAlerts.state === "success" && affectedAlerts.result.map((a) => <AlertCard class="p-3" alert={a} />)}
+				<Paginator
+					totalPages={numPages}
+					currentPage={currentPage}
+					setCurrentPage={setCurrentPage}
+					maxPagesInRange={5}
+					class="w-full"
+				>
+					{affectedAlerts.state === "success" && affectedAlerts.result.map((a) => <AlertCard class="p-3" alert={a} />)}
+				</Paginator>
 			</span>
 		</div>
 	);

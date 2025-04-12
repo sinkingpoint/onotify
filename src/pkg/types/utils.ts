@@ -54,7 +54,7 @@ export const useQuery = <TSuccess, TError>(
 	useEffect(() => {
 		const query = async () => {
 			const result = await puller();
-			if (result === null) {
+			if (!result) {
 				// Generally this means that the pull was invalid for some reason, maybe because one of the deps
 				// is not ready yet.
 				return;
