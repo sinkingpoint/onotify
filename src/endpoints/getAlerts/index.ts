@@ -4,9 +4,9 @@ import { AccountControllerActions } from "../../dos/account-controller";
 import { GetAlertsParamsSpec, GettableAlert, GettableAlertsSpec, PaginationHeaders } from "../../types/api";
 import { Errors, HTTPResponses } from "../../types/http";
 import { Bindings, CachedAlert } from "../../types/internal";
+import { callRPC } from "../../utils/rpc";
 import { checkAPIKey, toErrorString } from "../utils/auth";
 import { accountControllerName } from "../utils/kv";
-import { callRPC } from "../../utils/rpc";
 
 const getFieldFromAlert = (alert: GettableAlert, field: string) => {
 	switch (field) {
@@ -149,6 +149,6 @@ export class GetAlerts extends OpenAPIRoute {
 			endIndex = startIndex + limit;
 		}
 		c.res.headers.set("X-Total-Count", totalLength.toString());
-		return c.json(outputAlerts.splice(startIndex, endIndex), HTTPResponses.OK);
+		return c.json(outputAlerts.slice(startIndex, endIndex), HTTPResponses.OK);
 	}
 }
