@@ -205,9 +205,13 @@ export class AlertDB {
 	async addSilence(id: string, s: PostableSilence) {
 		return getTracer().startActiveSpan("AlertDB::addSilence", { attributes: { id } }, async (span) => {
 			const now = Date.now();
-			if (s.startsAt > now || s.endsAt < now) {
+			if (s.startsAt > now) {
 				// The silence isn't active, so there's no need to add it to any alerts as it can't silence anything.
 				return;
+			}
+
+			if (s.endsAt < now) {
+				return this.markSilenceExpired(id);
 			}
 
 			const promises = [];
