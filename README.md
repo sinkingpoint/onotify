@@ -14,6 +14,45 @@ While entirely backwards compatible with Alertmanager (e.g. dashboards like [kar
 
 ## Development
 
-1. Run `wrangler dev` to start a local instance of the API.
-2. Open `http://localhost:8787/` in your browser to see the Swagger interface where you can try the endpoints.
-3. Changes made in the `src/` folder will automatically trigger the server to reload, you only need to refresh the Swagger interface.
+1. Copy the dev vars: `cp ./.dev.vars.placeholder ./.dev.vars`
+2. Create the dev db: `npx wrangler d1 execute onotify --file ./sql/0001-create-db.sql`
+3. Run `wrangler dev` to start a local instance of the API.
+4. Open `http://localhost:8787/` in your browser to see the Swagger interface where you can try the endpoints.
+5. Changes made in the `src/` folder will automatically trigger the server to reload, you only need to refresh the Swagger interface.
+
+## Karma
+
+Karma is a useful UI for alertmanager, and onotify supports it out of the box. With a config such as:
+
+```
+listen:
+  port: 9090
+alertmanager:
+  servers:
+    - name: onotify
+      uri: http://localhost:8787
+      proxy: true
+      headers:
+        authorization: "Bearer notify-test"
+```
+
+You can start karma with:
+
+```
+docker run -d --net host -e CONFIG_FILE="/karma.conf" --name karma -v $(PWD)karma.conf:/karma.conf ghcr.io/prymitive/karma:latest
+```
+
+## Prometheus
+
+You can configure Onotify as an Alertmanager in your Prometheus config with:
+
+```
+alerting:
+  alertmanagers:
+    - scheme: http
+      authorization:
+        credentials: notify-test
+      static_configs:
+        - targets:
+            - localhost:8787
+```
