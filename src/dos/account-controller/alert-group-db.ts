@@ -70,7 +70,7 @@ export class AlertGroupDB {
 			// For new groups, we only store the firing alerts.
 			const newAlerts = newGroup.alerts.filter((n) => n.state === AlertState.Firing);
 			newGroup = { ...newGroup, alerts: newAlerts };
-			this.storage.put(key, newGroup);
+			await this.storage.put(key, newGroup);
 			this.groups.set(key, newGroup);
 			return;
 		}
@@ -90,10 +90,10 @@ export class AlertGroupDB {
 
 		currentGroup.alerts.push(...newAlerts);
 		if (currentGroup.alerts.length === 0) {
-			this.storage.delete(key);
+			await this.storage.delete(key);
 			this.groups.delete(key);
 		} else {
-			this.storage.put(key, currentGroup);
+			await this.storage.put(key, currentGroup);
 			this.groups.set(key, currentGroup);
 		}
 	}
