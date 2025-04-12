@@ -2,6 +2,7 @@ import { ArrowPathIcon } from "@heroicons/react/16/solid";
 import { useMemo, useState } from "preact/hooks";
 import { AlertCard } from "../../components/AlertCard";
 import { MatcherCard } from "../../components/MatcherCard";
+import Paginator from "../../components/Paginator";
 import { getAlerts, GetAlertsResponse, postSilence } from "../../pkg/api/client";
 import { Matcher } from "../../pkg/types/api";
 import { DurationSpec } from "../../pkg/types/duration";
@@ -40,7 +41,11 @@ const getAffectAlertTitle = (affectedAlerts: DataPull<GetAlertsResponse, unknown
 			if (affectedAlerts.result.length === 0) {
 				return <>No Affected Alerts</>;
 			} else {
-				return <>{getHumanNumber(affectedAlerts.result.length, "Affected Alert", "Affected Alerts")}</>;
+				return (
+					<>
+						{getHumanNumber(parseInt(affectedAlerts.headers.get("X-Total-Count")), "Affected Alert", "Affected Alerts")}
+					</>
+				);
 			}
 	}
 };
@@ -55,10 +60,28 @@ export const PreviewSilence = ({ duration, matchers, comment }: PreviewProps) =>
 		return new Date(startTime.getTime() + realDuration);
 	}, [duration, startTime]);
 
-	const affectedAlerts = useQuery(async () => {
-		const filter = matchers.map((m) => matcherToString(m));
-		return getAlerts({ query: { filter } });
-	}, [matchers]);
+	const [currentPage, setCurrentPage] = useState(1);
+
+	const affectedAlerts = useQuery(() => {
+		return getAlerts({
+			query: {
+				page: currentPage,
+				limit: 10,
+				sort: ["startsAt:desc"],
+				filter: matchers.map((m) => matcherToString(m)),
+			},
+		});
+	}, [matchers, currentPage]);
+
+	const numPages = useMemo(() => {
+		if (affectedAlerts.state !== "success") {
+			return 1;
+		}
+
+		const numSilences = Math.max(parseInt(affectedAlerts.headers.get("X-Total-Count")), 1);
+
+		return Math.ceil(numSilences / 10);
+	}, [affectedAlerts]);
 
 	const [createStatus, setCreateStatus] = useState<UploadStatus>(UploadStatus.NotUploaded);
 
@@ -93,7 +116,6 @@ export const PreviewSilence = ({ duration, matchers, comment }: PreviewProps) =>
 		}
 	};
 
-	// TODO: Paginate the affected alerts here.
 	return (
 		<>
 			<span>
@@ -117,7 +139,15 @@ export const PreviewSilence = ({ duration, matchers, comment }: PreviewProps) =>
 
 			<span class="flex flex-col">
 				<h2 class="text-xl inline pt-4 font-bold">{getAffectAlertTitle(affectedAlerts)}</h2>
-				{affectedAlerts.state === "success" && affectedAlerts.result.map((a) => <AlertCard class="p-3" alert={a} />)}
+				<Paginator
+					totalPages={numPages}
+					currentPage={currentPage}
+					setCurrentPage={setCurrentPage}
+					maxPagesInRange={5}
+					class="w-full"
+				>
+					{affectedAlerts.state === "success" && affectedAlerts.result.map((a) => <AlertCard class="p-3" alert={a} />)}
+				</Paginator>
 			</span>
 			<span>
 				<button class="p-2 bg-green-600 rounded my-3" onClick={onCreate}>
