@@ -1,7 +1,7 @@
+import { Template } from "@sinkingpoint/gotemplate";
 import { Notifier } from "integrations/types";
 import { WebhookConfig } from "../../types/alertmanager";
 import { alertState, AlertState, CachedAlert } from "../../types/internal";
-import { Template } from "@sinkingpoint/gotemplate";
 
 const USER_AGENT = "onotify + Alertmanager/0.27.0";
 
