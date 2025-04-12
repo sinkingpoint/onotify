@@ -68,6 +68,15 @@ class Retrier {
 		this.delay *= 2;
 		return newDelay;
 	}
+
+	toString() {
+		return JSON.stringify({ remainingRetries: this.remainingRetries, delay: this.delay });
+	}
+
+	static fromString(str: string) {
+		const obj = JSON.parse(str);
+		return new Retrier(obj.remainingRetries, obj.delay);
+	}
 }
 
 class ReceiverControllerDO implements DurableObject {
@@ -102,7 +111,10 @@ class ReceiverControllerDO implements DurableObject {
 			this.alerts = (await state.storage.get(alertsKey)) ?? [];
 			this.groupLabels = (await state.storage.get(groupLabelsKey)) ?? {};
 			this.hasFired = (await state.storage.get(hasFiredKey)) ?? false;
-			this.retrier = await state.storage.get(retrierKey);
+			const serialisedRetrier = await state.storage.get(retrierKey);
+			if (serialisedRetrier) {
+				this.retrier = Retrier.fromString(serialisedRetrier as any);
+			}
 			this.alertGroupControllerID = (await state.storage.get(alertGroupControllerIdKey)) ?? "";
 		});
 	}
@@ -118,7 +130,7 @@ class ReceiverControllerDO implements DurableObject {
 
 		if (!this.retrier) {
 			this.retrier = new Retrier(maxRetries, 200);
-			await this.state.storage.put(retrierKey, this.retrier);
+			await this.state.storage.put(retrierKey, this.retrier.toString());
 		}
 
 		await this.state.storage.put(accountIdKey, opts.accountId);
