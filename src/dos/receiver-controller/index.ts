@@ -160,12 +160,17 @@ class ReceiverControllerDO implements DurableObject {
 	}
 
 	private async fire() {
+		if (!this.hasFired) {
+			this.hasFired = true;
+			await this.state.storage.put(hasFiredKey, true);
+		}
+
 		const notifier = getNotifier(this.receiverType);
 		if (!notifier) {
 			throw `Invalid notifier ${this.receiverType}`;
 		}
 
-		runInSpan(trace.getTracer("ReceiverController"), "ReceiverController::fire", {}, async (span) => {
+		return runInSpan(trace.getTracer("ReceiverController"), "ReceiverController::fire", {}, async (span) => {
 			const receivers = (await loadJSONKVKey(this.env.CONFIGS, receiversKVKey(this.accountID))) as Record<
 				string,
 				Receiver

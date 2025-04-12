@@ -1,12 +1,11 @@
-import { Template } from "@sinkingpoint/gotemplate";
-import { uploadedFilesKey } from "endpoints/utils/kv";
-import { minimatch } from "minimatch";
-import { runInSpan } from "./observability";
 import { trace } from "@opentelemetry/api";
-import { Alert, alertState, CachedAlert } from "types/internal";
-import { GettableAlert } from "types/api";
+import { Template } from "@sinkingpoint/gotemplate";
+import { minimatch } from "minimatch";
+import { uploadedFilesKey } from "../endpoints/utils/kv";
+import { alertState, CachedAlert } from "../types/internal";
+import { runInSpan } from "./observability";
 
-const DEFAULT_TEMPLATE = `{{ define "__alertmanager" }}Alertmanager{{ end }}
+export const DEFAULT_TEMPLATE = `{{ define "__alertmanager" }}Alertmanager{{ end }}
 {{ define "__alertmanagerURL" }}{{ .ExternalURL }}/#/alerts?receiver={{ .Receiver | urlquery }}{{ end }}
 
 {{ define "__subject" }}[{{ .Status | toUpper }}{{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{ end }}] {{ .GroupLabels.SortedPairs.Values | join " " }} {{ if gt (len .CommonLabels) (len .GroupLabels) }}({{ with .CommonLabels.Remove .GroupLabels.Names }}{{ .Values | join " " }}{{ end }}){{ end }}{{ end }}
@@ -236,7 +235,7 @@ export const loadTemplateFromAccount = async (accountID: string, kvs: KVNamespac
 		"loadTemplateFromAccount",
 		{ attributes: { accountID } },
 		async () => {
-			const template = new Template("");
+			const template = newTemplate();
 			template.parse(DEFAULT_TEMPLATE);
 			const uploadedFilesPrefix = `${uploadedFilesKey(accountID)}-`;
 			const uploadedFileNames = (await kvs.list({ prefix: uploadedFilesPrefix })).keys.map((k) =>
@@ -247,9 +246,15 @@ export const loadTemplateFromAccount = async (accountID: string, kvs: KVNamespac
 			for (const fileKey of templateFileNames) {
 				const file = await kvs.get(uploadedFilesPrefix + fileKey);
 				if (!file) {
-					throw `Failed to load ${fileKey}`;
+					continue;
 				}
-				template.parse(file);
+
+				try {
+					template.parse(file);
+				} catch {
+					console.error(`Failed to parse template ${fileKey} from account ${accountID}`);
+					continue;
+				}
 			}
 
 			return template;
@@ -320,4 +325,83 @@ export const executeTextString = (t: Template, s: string, data: any) => {
 
 	const template = t.clone().option("missingkey=zero").parse(s);
 	return template.execute(data);
+};
+
+// formatGoDate takes a date and formats it using fmt as a go date format.
+// e.g. "2006-01-02 15:04:05" -> "2023-10-01 12:00:00"
+const formatGoDate = (fmt: string, date: number) => {
+	// TODO: Properly implement this.
+	return new Date(date).toISOString().replace(/T/, " ").replace(/\..+/, "").replace(/-/g, "/");
+};
+
+const humanizeDuration = (i: number) => {
+	if (isNaN(i) || !isFinite(i)) {
+		return i.toFixed(4);
+	}
+
+	if (i === 0) {
+		return i.toFixed(4) + "s";
+	}
+
+	if (Math.abs(i) >= 1) {
+		const sign = i < 0 ? "-" : "";
+		i = Math.abs(i);
+		const duration = Math.floor(i);
+		const seconds = duration % 60;
+		const minutes = Math.floor((duration / 60) % 60);
+		const hours = Math.floor((duration / 60 / 60) % 24);
+		const days = Math.floor(duration / 60 / 60 / 24);
+
+		if (days !== 0) {
+			return `${sign}${days}d ${hours}h ${minutes}m ${seconds}s`;
+		}
+		if (hours !== 0) {
+			return `${sign}${hours}h ${minutes}m ${seconds}s`;
+		}
+		if (minutes !== 0) {
+			return `${sign}${minutes}m ${seconds}s`;
+		}
+		return `${sign}${i.toFixed(4)}s`;
+	}
+
+	let prefix = "";
+	for (const p of ["m", "u", "n", "p", "f", "a", "z", "y"]) {
+		if (Math.abs(i) >= 1) {
+			break;
+		}
+		prefix = p;
+		i *= 1000;
+	}
+	return `${i.toFixed(4)}${prefix}s`;
+};
+
+// Returns a new template with the default functions and some extra functions.
+export const newTemplate = (name?: string) => {
+	const template = new Template(name ?? "");
+	const extraFuncs: Record<string, Function> = {
+		toUpper: (s: string) => s.toUpperCase(),
+		toLower: (s: string) => s.toLowerCase(),
+		join: (...args: string[]) => args.slice(1).join(args[0]),
+		match: (...args: string[]) => {
+			const [pattern, str] = args;
+			return new RegExp(pattern).test(str);
+		},
+		safeHTML: (...args: string[]) => args[0].replace(/</g, "&lt;").replace(/>/g, "&gt;"),
+		reReplaceAll: (...args: string[]) => {
+			const [pattern, replacement, str] = args;
+			return str.replace(new RegExp(pattern, "g"), replacement);
+		},
+		stringSlice: (...args: string[]) => args,
+		date: (...args: string[]) => formatGoDate(args[0], parseInt(args[1])),
+		tz: (...args: string[]) => {
+			return parseInt(args[1]); // TODO: Implement timezone support.
+		},
+		since: (...args: string[]) => {
+			const [start, end] = args;
+			return new Date(parseInt(end)).getTime() - new Date(parseInt(start)).getTime();
+		},
+		humanizeDuration: (...args: string[]) => humanizeDuration(parseInt(args[0])),
+	};
+
+	return template.funcs(extraFuncs);
 };

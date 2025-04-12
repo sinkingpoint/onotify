@@ -32,8 +32,8 @@ const getCommon = (r: Record<string, string>[]): Record<string, string> => {
 const notify: Notifier<WebhookConfig> = async (
 	name: string,
 	config: WebhookConfig,
-	template: Template,
-	loadUploadedFile: (filename: string) => Promise<string | null>,
+	_template: Template,
+	_loadUploadedFile: (filename: string) => Promise<string | null>,
 	alerts: CachedAlert[],
 	groupLabels: Record<string, string>,
 ) => {

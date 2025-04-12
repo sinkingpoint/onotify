@@ -172,18 +172,18 @@ class AlertGroupControllerDO implements DurableObject {
 						} as ReceiverConfigInitialiseOpts);
 
 						if (didFire) {
-							console.log("ReceiverController", id, "created");
 							this.receiverControllerIDs.push(id.toString());
 						}
 					}
 				};
+
 				try {
 					if (receiver.webhook_configs) {
-						createReceiverControllers("webhook", receiver.webhook_configs);
+						await createReceiverControllers("webhook", receiver.webhook_configs);
 					}
 
 					if (receiver.pagerduty_configs) {
-						createReceiverControllers("pagerduty", receiver.pagerduty_configs);
+						await createReceiverControllers("pagerduty", receiver.pagerduty_configs);
 					}
 				} finally {
 					await this.state.storage.put(RECEIVER_CONTROLLER_KEY, this.receiverControllerIDs);
