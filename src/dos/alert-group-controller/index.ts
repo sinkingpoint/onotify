@@ -58,6 +58,7 @@ const getAlertFingerprints = async (storage: DurableObjectStorage) => {
 
 export enum AlertGroupControllerActions {
 	Initialize = "initialize",
+	NotifyReceiverDone = "notify-receiver-done",
 }
 
 const getTracer = () => {
@@ -218,6 +219,11 @@ class AlertGroupControllerDO implements DurableObject {
 		}
 	}
 
+	private async notifyReceiverDone({ receiverID }: { receiverID: string }) {
+		this.receiverControllerIDs = this.receiverControllerIDs.filter((id) => id !== receiverID);
+		await this.state.storage.put(RECEIVER_CONTROLLER_KEY, this.receiverControllerIDs);
+	}
+
 	private async hydrateAlerts(alerts: DehydratedAlert[]) {
 		const fingerprints = alerts.map((a) => a.fingerprint);
 		const controllerName = accountControllerName(this.accountID);
@@ -234,6 +240,7 @@ class AlertGroupControllerDO implements DurableObject {
 	fetch(request: Request) {
 		const rpcMethods = {
 			[AlertGroupControllerActions.Initialize]: this.initialize,
+			[AlertGroupControllerActions.NotifyReceiverDone]: this.notifyReceiverDone,
 		};
 
 		return rpcFetch(this, request, rpcMethods);

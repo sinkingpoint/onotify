@@ -6,10 +6,11 @@ import { Notifier } from "integrations/types";
 import { Receiver } from "types/alertmanager";
 import { AlertState, alertState, Bindings, CachedAlert } from "types/internal";
 import { OTelConfFn, runInSpan } from "utils/observability";
-import { rpcFetch } from "utils/rpc";
+import { callRPC, rpcFetch } from "utils/rpc";
 import { loadTemplateFromAccount } from "utils/template";
 import PagerdutyIntegration from "../../integrations/pagerduty";
 import WebhookIntegration from "../../integrations/webhook";
+import { AlertGroupControllerActions } from "../alert-group-controller";
 
 export enum ReceiverControllerActions {
 	Initialise = "initialise",
@@ -17,6 +18,7 @@ export enum ReceiverControllerActions {
 
 export interface ReceiverConfigInitialiseOpts {
 	accountId: string;
+	alertGroupControllerID: string;
 	name: string;
 	receiverType: string;
 	receiverConf: any;
@@ -43,6 +45,8 @@ const alertsKey = "alerts";
 const groupLabelsKey = "groupLabels";
 const hasFiredKey = "hasFired";
 const retrierKey = "retrier";
+const alertGroupControllerIdKey = "alertGroupControllerID";
+
 const maxRetries = 10;
 
 type NotifierConfig = { send_resolved: boolean };
@@ -77,6 +81,7 @@ class ReceiverControllerDO implements DurableObject {
 	groupLabels: Record<string, string>;
 	hasFired: boolean;
 	retrier?: Retrier;
+	alertGroupControllerID: string;
 
 	constructor(state: DurableObjectState, env: Bindings) {
 		this.state = state;
@@ -88,6 +93,7 @@ class ReceiverControllerDO implements DurableObject {
 		this.alerts = [];
 		this.groupLabels = {};
 		this.hasFired = false;
+		this.alertGroupControllerID = "";
 		state.blockConcurrencyWhile(async () => {
 			this.accountID = (await state.storage.get(accountIdKey)) ?? "";
 			this.name = (await state.storage.get(nameKey)) ?? "";
@@ -97,6 +103,7 @@ class ReceiverControllerDO implements DurableObject {
 			this.groupLabels = (await state.storage.get(groupLabelsKey)) ?? {};
 			this.hasFired = (await state.storage.get(hasFiredKey)) ?? false;
 			this.retrier = await state.storage.get(retrierKey);
+			this.alertGroupControllerID = (await state.storage.get(alertGroupControllerIdKey)) ?? "";
 		});
 	}
 
@@ -120,6 +127,7 @@ class ReceiverControllerDO implements DurableObject {
 		await this.state.storage.put(receiverConfKey, opts.receiverConf);
 		await this.state.storage.put(alertsKey, opts.alerts);
 		await this.state.storage.put(groupLabelsKey, opts.groupLabels);
+		await this.state.storage.put(alertGroupControllerIdKey, opts.alertGroupControllerID);
 
 		this.accountID = opts.accountId;
 		this.name = opts.name;
@@ -127,6 +135,7 @@ class ReceiverControllerDO implements DurableObject {
 		this.receiverConf = opts.receiverConf;
 		this.alerts = opts.alerts;
 		this.groupLabels = opts.groupLabels;
+		this.alertGroupControllerID = opts.alertGroupControllerID;
 
 		if (!this.hasFired) {
 			this.state.waitUntil(this.fire());
@@ -138,6 +147,13 @@ class ReceiverControllerDO implements DurableObject {
 	private async delete() {
 		await this.state.storage.deleteAll();
 		await this.state.storage.deleteAlarm();
+		const alertGroupController = this.env.ALERT_GROUP_CONTROLLER.get(
+			this.env.ALERT_GROUP_CONTROLLER.idFromString(this.alertGroupControllerID),
+		);
+
+		await callRPC(alertGroupController, AlertGroupControllerActions.NotifyReceiverDone, {
+			receiverID: this.state.id.toString(),
+		});
 	}
 
 	private async runNotifier<C>(

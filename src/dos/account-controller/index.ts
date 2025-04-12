@@ -69,18 +69,6 @@ class AccountControllerDO implements DurableObject {
 			});
 		});
 	}
-	alarm?(alarmInfo?: AlarmInvocationInfo): void | Promise<void> {
-		throw new Error("Method not implemented.");
-	}
-	webSocketMessage?(ws: WebSocket, message: string | ArrayBuffer): void | Promise<void> {
-		throw new Error("Method not implemented.");
-	}
-	webSocketClose?(ws: WebSocket, code: number, reason: string, wasClean: boolean): void | Promise<void> {
-		throw new Error("Method not implemented.");
-	}
-	webSocketError?(ws: WebSocket, error: unknown): void | Promise<void> {
-		throw new Error("Method not implemented.");
-	}
 
 	private async addAlerts(alerts: ReceiveredAlert[]) {
 		runInSpan(getTracer(), "AccountController::addAlerts", {}, async () => {
