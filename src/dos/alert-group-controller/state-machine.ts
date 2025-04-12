@@ -47,6 +47,7 @@ export class AlertStateMachine {
 
 						return a.fingerprint;
 					} else {
+						await this.storage.delete(alertKVKey(a.fingerprint));
 						return undefined;
 					}
 				}),
@@ -103,13 +104,6 @@ export class AlertStateMachine {
 				this.pending_alert_fingerprints.push(fingerprint);
 				this.active_alert_fingerprints = this.active_alert_fingerprints.filter((f) => f !== fingerprint);
 			}
-		} else {
-			// The alert is just outdated, update it.
-			await this.storage.put(kvKey, {
-				...newAlert,
-				state: current.state,
-				pending: current.pending,
-			});
 		}
 	}
 }
