@@ -16,13 +16,11 @@ import { PostConfig } from "./endpoints/uploadConfig";
 import { PostRequiredFiles } from "./endpoints/uploadRequiredFile";
 import { Bindings } from "./types/internal";
 import { OTelConfFn } from "./utils/observability";
+export { default as ReceiverController } from "dos/receiver-controller";
 export { AccountController } from "./dos/account-controller";
 export { default as AlertGroupController } from "./dos/alert-group-controller";
 export { default as SilenceController } from "./dos/silence-controller";
-export { default as ReceiverController } from "dos/receiver-controller";
 export { app };
-const LOCAL_ORIGIN = "http://localhost:5173";
-const PROD_ORIGIN = "https://dash.onotifi.com";
 
 // Start a Hono app
 const app = new Hono<{ Bindings: Bindings }>();
@@ -34,7 +32,7 @@ app.use(
 		allowHeaders: ["Content-Type", "Authorization"],
 		exposeHeaders: ["X-Total-Count"],
 		origin: (origin, c) => {
-			return c.env.WORKERS_ENV === "local" ? LOCAL_ORIGIN : PROD_ORIGIN;
+			return c.env.UI_ORIGIN;
 		},
 		credentials: true,
 	}),

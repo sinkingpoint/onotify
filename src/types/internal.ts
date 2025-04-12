@@ -4,6 +4,7 @@ interface EnvVars {
 	WORKERS_ENV?: string;
 	HONEYCOMB_API_KEY?: string;
 	HONEYCOMB_DATASET?: string;
+	UI_ORIGIN?: string;
 }
 
 export interface Bindings extends EnvVars {
