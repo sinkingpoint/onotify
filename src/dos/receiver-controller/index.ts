@@ -104,7 +104,7 @@ class ReceiverControllerDO implements DurableObject {
 		if (!opts.receiverConf.send_resolved) {
 			opts.alerts = opts.alerts.filter((a) => alertState(a) == AlertState.Firing);
 			if (opts.alerts.length === 0 && !this.hasFired) {
-				this.state.storage.deleteAll();
+				await this.delete();
 				return false;
 			}
 		}
@@ -135,6 +135,11 @@ class ReceiverControllerDO implements DurableObject {
 		return true;
 	}
 
+	private async delete() {
+		await this.state.storage.deleteAll();
+		await this.state.storage.deleteAlarm();
+	}
+
 	private async runNotifier<C>(
 		span: Span,
 		template: Template,
@@ -152,6 +157,7 @@ class ReceiverControllerDO implements DurableObject {
 			if (!newDelay) {
 				// We failed to send the alerts :/
 				span.setAttribute("completly_failed", true);
+				await this.delete();
 				return;
 			}
 
@@ -167,7 +173,8 @@ class ReceiverControllerDO implements DurableObject {
 
 		const notifier = getNotifier(this.receiverType);
 		if (!notifier) {
-			throw `Invalid notifier ${this.receiverType}`;
+			await this.delete();
+			throw `Receiver ${this.receiverType} not found`;
 		}
 
 		return runInSpan(trace.getTracer("ReceiverController"), "ReceiverController::fire", {}, async (span) => {
@@ -177,6 +184,7 @@ class ReceiverControllerDO implements DurableObject {
 			>;
 			const receiver = receivers[this.name];
 			if (!receiver) {
+				await this.delete();
 				throw `Failed to load receiver ${receiver} from ${this.accountID}`;
 			}
 
