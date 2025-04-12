@@ -37,4 +37,4 @@ class_name = "ReceiverController"
 
 [[migrations]]
 tag = "v1" # Should be unique for each entry
-new_classes = ["AlertGroupController", "AccountController", "SilenceController"]
+new_classes = ["AlertGroupController", "AccountController", "SilenceController", "ReceiverController"]
