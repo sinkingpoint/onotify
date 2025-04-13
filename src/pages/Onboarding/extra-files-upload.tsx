@@ -42,7 +42,7 @@ export const ExtraFilesUpload = () => {
 
 	useEffect(() => {
 		const fetchNeeded = async () => {
-			const { data, error } = await getRequiredFiles();
+			const { data } = await getRequiredFiles();
 			// TODO: Handle errors here.
 			const { secrets, templates } = data;
 			setSecrets(

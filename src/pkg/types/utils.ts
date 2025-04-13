@@ -45,7 +45,7 @@ export type DataPull<TSuccess, TError> = DataPullSuccess<TSuccess> | DataPullPen
 
 export const useQuery = <TSuccess, TError>(
 	puller: () => RequestResult<TSuccess | undefined, TError> | Promise<null>,
-	deps: any[],
+	deps: unknown[],
 ): DataPull<TSuccess, TError> => {
 	const [pull, setPull] = useState<DataPull<TSuccess, TError>>({
 		state: "pending",

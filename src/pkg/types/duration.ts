@@ -8,7 +8,7 @@ export const DurationSpec = z
 	.transform((s) => {
 		let d = 0;
 		let neg = false;
-		let orig = s;
+		const orig = s;
 
 		if (s !== "") {
 			const c = s[0];

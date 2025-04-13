@@ -163,7 +163,7 @@ export default ({ onChange, duration }: DurationInputProps) => {
 					title="Duration in Go format, e.g. 1h"
 					pattern="[0-9]+[mhdw]"
 					value={duration}
-					onInput={(e: any) => onChange(e.target.value)}
+					onInput={(e: unknown) => onChange(e.target.value)}
 					valid={isDurationValid}
 				/>
 			</span>

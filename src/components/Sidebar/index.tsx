@@ -14,12 +14,12 @@ import "./style.css";
 interface SideBarItemProps extends HTMLAttributes<HTMLAnchorElement> {
 	title: string;
 	href: string;
-	icon?: VNode<any>;
+	icon?: VNode<unknown>;
 }
 
 interface SideBarGroupProps {
 	title: string;
-	icon?: VNode<any>;
+	icon?: VNode<unknown>;
 	initialExpanded: boolean;
 	children?: SideBarItemElement | SideBarItemElement[];
 }
@@ -34,7 +34,7 @@ const SideBarGroup = ({ title, icon, initialExpanded, children }: SideBarGroupPr
 	const triggerGroupClick = () => {
 		if (firstChildRef.current) {
 			setExpanded(true);
-			(firstChildRef.current as any).base.click(); // Cast with any here. Base does exist, but I can't figure out how to type it.
+			(firstChildRef.current as unknown).base.click(); // Cast with any here. Base does exist, but I can't figure out how to type it.
 		}
 	};
 

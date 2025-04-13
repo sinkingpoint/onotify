@@ -6,10 +6,10 @@ import { MatcherCard } from "../../components/MatcherCard";
 import { SilenceCard } from "../../components/SilenceCard";
 import { SkeletonLoader } from "../../components/Skeleton";
 import { getAlerts, GetAlertsResponse, getSilences, GetSilencesResponse, postAlerts } from "../../pkg/api/client";
-import { GettableSilenceSpec } from "../../pkg/types/api";
+import { GettableSilence, GettableSilenceSpec, Matcher } from "../../pkg/types/api";
 import { DataPull, matcherToString, useQuery } from "../../pkg/types/utils";
 
-const silenceCards = (pull: DataPull<GetSilencesResponse, any>) => {
+const silenceCards = (pull: DataPull<GetSilencesResponse, unknown>) => {
 	if (!pull || pull.state === "pending") {
 		return;
 	}
@@ -18,10 +18,14 @@ const silenceCards = (pull: DataPull<GetSilencesResponse, any>) => {
 		return <InfoBox style="error" text="Failed to pull silences" />;
 	}
 
-	return pull.result.map((s) => <SilenceCard silence={GettableSilenceSpec.parse(s) as any} />);
+	return pull.result.map((s) => (
+		<SilenceCard
+			silence={GettableSilenceSpec.parse(s) as Omit<GettableSilence, "matchers"> & { matchers: Matcher[] }}
+		/>
+	));
 };
 
-const inhibitedCards = (pull: DataPull<GetAlertsResponse, any>) => {
+const inhibitedCards = (pull: DataPull<GetAlertsResponse, unknown>) => {
 	if (!pull || pull.state === "pending") {
 		return;
 	}
@@ -112,13 +116,14 @@ export default () => {
 			return "";
 		}
 		switch (alert.status.state) {
-			case "active":
+			case "active": {
 				const alertEnd = alert.endsAt ? Date.parse(alert.endsAt) : 0;
 				if (alertEnd !== 0 && alertEnd < Date.now()) {
 					return "Resolved";
 				} else {
 					return "Active";
 				}
+			}
 			case "supressed":
 				return "Supressed";
 		}
@@ -138,7 +143,7 @@ export default () => {
 							<button class="p-2 bg-green-600 rounded whitespace-nowrap" onClick={onSilenceAlert}>
 								Silence Alert
 							</button>
-
+							any
 							<button class="p-2 bg-green-600 rounded whitespace-nowrap" onClick={onResolve}>
 								Resolve Alert
 							</button>

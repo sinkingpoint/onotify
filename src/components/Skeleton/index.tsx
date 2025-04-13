@@ -3,7 +3,7 @@ import { DataPull } from "../../pkg/types/utils";
 import "./style.css";
 
 interface SkeletonLoaderProps extends HTMLAttributes<HTMLDivElement> {
-	pull: DataPull<any, any>;
+	pull: DataPull<unknown, unknown>;
 	children: JSX.Element | JSX.Element[];
 	layout: "single-line" | "paragraph";
 	repeat?: number;

@@ -40,7 +40,7 @@ const RangeSelector = ({ currentPage, totalPages, maxPagesInRange, setCurrentPag
 		endRange++;
 	}
 
-	let range = [];
+	const range = [];
 	if (startRange > 1) {
 		range.push(
 			<span

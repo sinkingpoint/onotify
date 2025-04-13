@@ -13,12 +13,12 @@ enum OnboardingState {
 }
 
 const getOnboardingState = async () => {
-	const { data: config, error: configErr } = await getConfig();
+	const { error: configErr } = await getConfig();
 	if (configErr) {
 		return OnboardingState.ConfigUpload;
 	}
 
-	const { data: requiredFiles, error } = await getRequiredFiles();
+	const { data: requiredFiles } = await getRequiredFiles();
 
 	if (requiredFiles.secrets.some((s) => !s.uploaded) || requiredFiles.templates.some((t) => !t.uploaded)) {
 		return OnboardingState.ExtraFilesUpload;

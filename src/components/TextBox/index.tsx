@@ -36,7 +36,9 @@ export const TextBox = ({ valid, button, onButtonClick, textRef, ...inputProps }
 					e.preventDefault();
 				}}
 				onClick={() => {
-					onButtonClick ? onButtonClick() : {};
+					if (onButtonClick) {
+						onButtonClick();
+					}
 				}}
 			>
 				{button}

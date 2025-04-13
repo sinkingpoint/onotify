@@ -5,8 +5,10 @@ import { GettableSilence, Matcher } from "../../pkg/types/api";
 import { MatcherCard } from "../MatcherCard";
 import "./style.css";
 
+export type SilenceCardSilence = Omit<GettableSilence, "matchers"> & { matchers: Matcher[] };
+
 interface SilenceCardProps extends HTMLAttributes<HTMLSpanElement> {
-	silence: Omit<GettableSilence, "matchers"> & { matchers: Matcher[] };
+	silence: SilenceCardSilence;
 }
 
 export const SilenceCard = ({ silence, ...props }: SilenceCardProps) => {

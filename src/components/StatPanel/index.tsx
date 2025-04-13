@@ -1,7 +1,8 @@
+import { HTMLAttributes } from "preact/compat";
 import InfoBox from "../InfoBox";
 import "./style.css";
 
-interface StatPanelProps extends React.HTMLAttributes<HTMLDivElement> {
+interface StatPanelProps extends HTMLAttributes<HTMLDivElement> {
 	title?: string;
 	value?: number;
 	error?: string;

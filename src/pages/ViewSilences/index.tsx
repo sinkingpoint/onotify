@@ -2,7 +2,7 @@ import { useMemo, useState } from "preact/hooks";
 import FilterInput from "../../components/FilterInput";
 import InfoBox from "../../components/InfoBox";
 import Paginator from "../../components/Paginator";
-import { SilenceCard } from "../../components/SilenceCard";
+import { SilenceCard, SilenceCardSilence } from "../../components/SilenceCard";
 import { SkeletonLoader } from "../../components/Skeleton";
 import TogglableChit from "../../components/TogglableChit";
 import { getSilences, GetSilencesResponse } from "../../pkg/api/client";
@@ -30,7 +30,7 @@ const getSilencePage = (query: DataPull<GetSilencesResponse, unknown>) => {
 	return (
 		<div>
 			{silences.map((s) => (
-				<SilenceCard class="pb-3" silence={GettableSilenceSpec.parse(s) as any} />
+				<SilenceCard class="pb-3" silence={GettableSilenceSpec.parse(s) as SilenceCardSilence} />
 			))}
 		</div>
 	);

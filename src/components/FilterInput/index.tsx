@@ -11,7 +11,7 @@ interface FilterInputProps extends HTMLAttributes<HTMLInputElement> {
 	removeMatcher: (matcher: Matcher) => void;
 }
 
-export default ({ matchers, handleNewMatcher, removeMatcher, ...props }: FilterInputProps) => {
+export default ({ matchers, handleNewMatcher, removeMatcher }: FilterInputProps) => {
 	const matchersInputRef = useRef<HTMLInputElement>();
 	const matcherCards = matchers.map((m) => <MatcherCard matcher={m} onDelete={() => removeMatcher(m)} />);
 
@@ -23,7 +23,7 @@ export default ({ matchers, handleNewMatcher, removeMatcher, ...props }: FilterI
 			matchersInputRef.current.blur();
 			matchersInputRef.current.focus(); // hack for clearing a failed validation.
 			handleNewMatcher(matcher);
-		} catch (e) {
+		} catch {
 			matchersInputRef.current.setCustomValidity("Invalid matcher");
 			matchersInputRef.current.reportValidity();
 		}

@@ -1,7 +1,7 @@
 import { CheckCircleIcon, QuestionMarkCircleIcon, XCircleIcon } from "@heroicons/react/16/solid";
 import yaml from "js-yaml";
 import { useRef, useState } from "preact/hooks";
-import { postConfig } from "../../pkg/api/client";
+import { postConfig, PostConfigData } from "../../pkg/api/client";
 import { AlertmanagerConfig, AlertmanagerConfigSpec, collapseRoutingTree } from "../../pkg/types/alertmanager";
 import { getUploadIcon, UploadStatus } from "./upload";
 
@@ -55,7 +55,7 @@ export const ConfigUpload = ({ uploadSucessCallback: uploadSuccessCallback }: Co
 		}
 
 		try {
-			const loadedConfig = yaml.load(config) as any;
+			const loadedConfig = yaml.load(config) as PostConfigData["body"];
 			const { error } = await postConfig({ body: loadedConfig });
 			if (!error) {
 				setUploadingStatus(UploadStatus.Uploaded);
@@ -68,7 +68,7 @@ export const ConfigUpload = ({ uploadSucessCallback: uploadSuccessCallback }: Co
 		}
 	};
 
-	let uploadIcon = getUploadIcon(uploadingStatus);
+	const uploadIcon = getUploadIcon(uploadingStatus);
 
 	let uploadButton = <></>;
 	if (parseStatus?.config) {
