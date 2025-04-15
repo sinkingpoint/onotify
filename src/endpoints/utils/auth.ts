@@ -1,3 +1,5 @@
+import { SpanStatusCode, trace } from "@opentelemetry/api";
+import * as jose from "jose";
 import { Bindings } from "../../types/internal";
 
 const API_KEY_PREFIX = "notify-";
@@ -24,6 +26,10 @@ export const toErrorString = (e: APIKeyError) => {
 		case "missing scope":
 			return `API Key is not allowed to do that: ${ext}`;
 	}
+};
+
+type APIKeyData = jose.JWTPayload & {
+	scopes: string[];
 };
 
 interface APIKey {
@@ -58,13 +64,57 @@ export const checkAPIKey = async (
 		};
 	}
 
-	if (!key.startsWith(API_KEY_PREFIX)) {
+	if (key.startsWith(API_KEY_PREFIX)) {
+		return validateAPIKey(env, key, ...requiredScopes);
+	} else {
+		return validateUserToken(env, key, ...requiredScopes);
+	}
+};
+
+const validateUserToken = async (env: Bindings, key: string, ...requiredScopes: string[]): Promise<APIKeyResult> => {
+	const jwkKey = JSON.parse(env.AUTH_JWK);
+	const publicKey = await jose.importJWK(jwkKey["keys"][0]);
+
+	try {
+		const { payload } = await jose.jwtVerify<APIKeyData>(key, publicKey, {});
+		if (payload.nbf && payload.nbf !== 0 && payload.nbf > Date.now() / 1000) {
+			return {
+				result: "expired",
+				text: "api key not valid yet",
+			};
+		}
+
+		if (payload.exp && payload.exp !== 0 && payload.exp < Date.now() / 1000) {
+			return {
+				result: "expired",
+				text: "api key expired",
+			};
+		}
+
+		const scopes = validateScopes(payload.scopes ?? [], ...requiredScopes);
+		if (!scopes.result) {
+			return {
+				result: "missing scope",
+				text: `missing scopes: ${scopes.missingScopes.join(", ")}`,
+			};
+		}
+
 		return {
-			result: "malformed",
-			text: `missing ${API_KEY_PREFIX} prefix`,
+			result: "ok",
+			accountID: payload.account_id as string,
+			userID: payload.user_id as string,
+			scopes: payload.scopes ?? [],
+		};
+	} catch (e: any) {
+		trace.getActiveSpan()?.setStatus({ code: SpanStatusCode.ERROR, message: e.toString() });
+		return {
+			result: "invalid",
+			text: "invalid JWT",
 		};
 	}
+};
 
+const validateAPIKey = async (env: Bindings, key: string, ...requiredScopes: string[]): Promise<APIKeyResult> => {
 	type apiKeyResult = {
 		account_id: string;
 		user_id: string;
@@ -105,21 +155,37 @@ export const checkAPIKey = async (
 	}
 
 	const scopes: string[] = ((result["scopes"] as string) ?? "").split(",");
-	if (!scopes.includes(WILDCARD_SCOPE)) {
-		for (const required of requiredScopes) {
-			if (!scopes.includes(required)) {
-				return {
-					result: "missing scope",
-					text: `missing required scope: ${required}`,
-				};
-			}
-		}
+	const validation = validateScopes(scopes, ...requiredScopes);
+	if (!validation.result) {
+		return {
+			result: "missing scope",
+			text: `missing scopes: ${validation.missingScopes.join(", ")}`,
+		};
 	}
 
 	return {
 		result: "ok",
-		accountID: result["account_id"],
-		userID: result["user_id"],
-		scopes: scopes,
+		accountID: result["account_id"] as string,
+		userID: result["user_id"] as string,
+		scopes,
+	};
+};
+
+const validateScopes = (
+	scopes: string[],
+	...requiredScopes: string[]
+): { result: false; missingScopes: string[] } | { result: true } => {
+	if (!scopes.includes(WILDCARD_SCOPE)) {
+		const missingScopes = requiredScopes.filter((scope) => !scopes.includes(scope));
+		if (missingScopes.length > 0) {
+			return {
+				result: false,
+				missingScopes,
+			};
+		}
+	}
+
+	return {
+		result: true,
 	};
 };

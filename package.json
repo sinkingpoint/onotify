@@ -16,6 +16,7 @@
 		"@sinkingpoint/gotemplate": "^0.1.15",
 		"chanfana": "^2.0.2",
 		"hono": "^4.4.7",
+		"jose": "^6.0.10",
 		"minimatch": "^10.0.1",
 		"object-hash": "^3.0.0",
 		"zod": "^3.23.8"
