@@ -1,8 +1,15 @@
+import { InhibitRule } from "types/alertmanager";
 import { AlertGroup, CachedAlert, Silence } from "../../types/internal";
 
 export const ALERT_KV_PREFIX = "alert";
 export const SILENCE_KV_PREFIX = "silence";
 export const ALERT_GROUP_KV_PREFIX = "alert_group";
+export const INHIBITION_KV_PREFIX = "inhibition";
+
+export type CachedInhibition = {
+  rule: InhibitRule;
+  alertFingerprints: string[];
+}
 
 export const silenceKVKey = (id: string) => {
 	return `${SILENCE_KV_PREFIX}-${id}`;
@@ -28,6 +35,12 @@ export const getAllAlertGroups = async (store: DurableObjectStorage): Promise<Ma
 	return store
 		.list<AlertGroup>({ prefix: `${ALERT_GROUP_KV_PREFIX}-` })
 		.then((m) => stripPrefixFromMap(`${ALERT_GROUP_KV_PREFIX}-`, m));
+};
+
+export const getAllInhibitions = async (store: DurableObjectStorage): Promise<Map<string, CachedInhibition>> => {
+  return store
+    .list<CachedInhibition>({ prefix: `${INHIBITION_KV_PREFIX}-` })
+    .then((m) => stripPrefixFromMap(`${INHIBITION_KV_PREFIX}-`, m));
 };
 
 // Returns the given map, with the given prefix removed from all the keys.

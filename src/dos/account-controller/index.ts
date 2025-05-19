@@ -20,10 +20,13 @@ import {
 	ALERT_KV_PREFIX,
 	getAllAlertGroups,
 	getAllAlerts,
+	getAllInhibitions,
 	getAllSilences,
+	INHIBITION_KV_PREFIX,
 	PrefixStorage,
 	SILENCE_KV_PREFIX,
 } from "./util";
+import { InhibitionDB } from "./inhibition-db";
 
 export enum AccountControllerActions {
 	AddAlerts = "add-alerts",
@@ -46,6 +49,7 @@ class AccountControllerDO implements DurableObject {
 	silenceStorage: SilenceDB;
 	alertStorage: AlertDB;
 	alertGroupStorage: AlertGroupDB;
+  inhibitionStorage: InhibitionDB;
 	state: DurableObjectState;
 	env: Bindings;
 
@@ -55,6 +59,7 @@ class AccountControllerDO implements DurableObject {
 		this.silenceStorage = new SilenceDB(new PrefixStorage(state.storage, SILENCE_KV_PREFIX));
 		this.alertStorage = new AlertDB(new PrefixStorage(state.storage, ALERT_KV_PREFIX), this.silenceStorage);
 		this.alertGroupStorage = new AlertGroupDB(new PrefixStorage(state.storage, ALERT_GROUP_KV_PREFIX));
+    this.inhibitionStorage = new InhibitionDB(new PrefixStorage(state.storage, INHIBITION_KV_PREFIX));
 
 		runInSyncSpan(getTracer(), "AccountController constructor", {}, (span) => {
 			state.blockConcurrencyWhile(async () => {
@@ -66,6 +71,9 @@ class AccountControllerDO implements DurableObject {
 
 				const alertGroups = await getAllAlertGroups(state.storage);
 				this.alertGroupStorage.init(alertGroups);
+
+        const inhibitions = await getAllInhibitions(state.storage);
+        this.inhibitionStorage.init(inhibitions);
 			});
 		});
 	}
@@ -74,6 +82,7 @@ class AccountControllerDO implements DurableObject {
 		runInSpan(getTracer(), "AccountController::addAlerts", {}, async () => {
 			alerts.forEach(async (alert) => {
 				await this.alertStorage.addAlert(alert);
+        await this.inhibitionStorage.addAlert(alert);
 			});
 		});
 	}
