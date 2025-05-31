@@ -1,0 +1,15 @@
+.button {
+	color: var(--text-two);
+}
+
+.button-success {
+	background-color: #6ab04c;
+}
+
+.button-warn {
+	background-color: #f6e58d;
+}
+
+.button-error {
+	background-color: #e84118;
+}

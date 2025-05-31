@@ -1,0 +1,22 @@
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+	-webkit-appearance: none;
+	margin: 0;
+}
+
+/* Firefox */
+input[type="number"] {
+	appearance: textfield;
+	-moz-appearance: textfield;
+}
+
+.duration-box-container {
+	--border-color: var(--background-two);
+	border-color: var(--border-color);
+}
+
+.duration-box-container:focus-within,
+.duration-box-container > input[type="number"]:focus-within {
+	--border-color: lightblue;
+	border-color: var(--border-color);
+}

@@ -1,0 +1,31 @@
+.txt-box {
+	padding: 8px;
+}
+
+.txt-box:focus {
+	outline: none;
+}
+
+.txt-box-container {
+	--border-color: var(--background-two);
+	border-color: var(--border-color);
+}
+
+.txt-box-container:focus-within,
+.txt-box-container > input[type="text"]:focus-within {
+	--border-color: lightblue;
+	border-color: var(--border-color);
+}
+
+.txt-box-container > input[type="text"] {
+	border-right: solid 2px var(--border-color);
+}
+
+.txt-box-invalid {
+	--border-color: lightcoral;
+	border-color: var(--border-color);
+}
+
+.txt-box-container > * {
+	padding: 8px;
+}

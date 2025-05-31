@@ -1,0 +1,10 @@
+.silence-card:hover {
+	background-color: var(--background-three);
+}
+.silence-card:hover > .silence-card-view-btn {
+	display: inline;
+}
+
+.silence-card-view-btn {
+	display: none;
+}

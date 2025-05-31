@@ -1,0 +1,11 @@
+.info-box-info {
+	background-color: var(--background-three);
+}
+
+.info-box-warn {
+	background-color: var(--warning);
+}
+
+.info-box-error {
+	background-color: var(--error);
+}

@@ -1,0 +1,18 @@
+.paginator-button-inactive:hover {
+	background-color: var(--background-two);
+	transition: background-color 0.1s linear;
+}
+
+.paginator-button-active {
+	border-color: var(--border-color);
+	border-width: 1px;
+	border-style: solid;
+}
+
+.paginator-ellipsis-container:hover .paginator-ellipsis {
+	display: none;
+}
+
+.paginator-ellipsis-container:hover .paginator-chevron {
+	display: inline-block;
+}

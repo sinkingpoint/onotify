@@ -1,0 +1,16 @@
+.matcher-card {
+	padding: 8px;
+}
+
+.matcher-card-container {
+	--border-color: var(--background-two);
+	border-color: var(--border-color);
+}
+
+.matcher-card-container > span:first-child {
+	border-right: solid 2px var(--border-color);
+}
+
+.matcher-card-container > * {
+	padding: 8px;
+}

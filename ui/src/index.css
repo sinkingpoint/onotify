@@ -1,0 +1,85 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+	font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+	line-height: 1.5;
+	font-weight: 400;
+
+	--text-color: #fcfaf7;
+	--text-two: #3a5a40;
+	--background-color: #344e41;
+	--background-two: #a3b18a;
+	--background-three: #588157;
+	--border-color: #fcfaf7;
+	--highlight: #3a6466;
+	--warning: #d6a600;
+	--error: #d76b6b;
+
+	color: var(--background-color);
+	background-color: var(--text-color);
+
+	font-synthesis: none;
+	text-rendering: optimizeLegibility;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+	-webkit-text-size-adjust: 100%;
+}
+
+body {
+	margin: 0;
+}
+
+#app {
+	display: flex;
+	min-height: 100vh;
+	flex-direction: row;
+}
+
+main {
+	flex: auto;
+	display: flex;
+	max-width: 100%;
+	margin: 0 auto;
+	width: 1280px;
+	z-index: 0;
+	overflow-y: hidden;
+}
+
+@media (max-width: 639px) {
+	main {
+		margin: 2rem;
+	}
+}
+
+@media (prefers-color-scheme: dark) {
+	:root {
+		color: var(--text-color);
+		background-color: var(--background-color);
+	}
+}
+
+h1 {
+	font-size: 2.5rem /* 30px */;
+	line-height: 2.25rem /* 36px */;
+	font-weight: 700;
+	margin-top: 0.75rem /* 12px */;
+	margin-bottom: 0.75rem /* 12px */;
+}
+
+h2 {
+	font-size: 2rem /* 24px */;
+	line-height: 2.25rem /* 36px */;
+	font-weight: 700;
+	margin-top: 0.75rem /* 12px */;
+	margin-bottom: 0.75rem /* 12px */;
+}
+
+h3 {
+	font-size: 1.75rem /* 21px */;
+	line-height: 2rem /* 30px */;
+	font-weight: 700;
+	margin-top: 0.75rem /* 12px */;
+	margin-bottom: 0.75rem /* 12px */;
+}
