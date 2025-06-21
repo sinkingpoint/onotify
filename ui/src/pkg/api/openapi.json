@@ -10026,6 +10026,77 @@
 					}
 				}
 			}
+		},
+		"/api/v1/user/{userID}": {
+			"get": {
+				"operationId": "getUser",
+				"tags": ["alerts"],
+				"summary": "get the details about a user",
+				"parameters": [
+					{
+						"schema": {
+							"type": "string",
+							"description": "The userID of the user to fetch"
+						},
+						"required": true,
+						"name": "userID",
+						"in": "path"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Returned user details"
+					},
+					"400": {
+						"description": "Bad Request",
+						"text/plain": {
+							"schema": {
+								"_def": {
+									"checks": [],
+									"typeName": "ZodString",
+									"coerce": false
+								},
+								"~standard": {
+									"version": 1,
+									"vendor": "zod"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized",
+						"text/plain": {
+							"schema": {
+								"_def": {
+									"checks": [],
+									"typeName": "ZodString",
+									"coerce": false
+								},
+								"~standard": {
+									"version": 1,
+									"vendor": "zod"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error",
+						"text/plain": {
+							"schema": {
+								"_def": {
+									"checks": [],
+									"typeName": "ZodString",
+									"coerce": false
+								},
+								"~standard": {
+									"version": 1,
+									"vendor": "zod"
+								}
+							}
+						}
+					}
+				}
+			}
 		}
 	},
 	"webhooks": {}

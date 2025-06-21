@@ -7023,6 +7023,40 @@ export type GetRoutingTreeResponses = {
 
 export type GetRoutingTreeResponse = GetRoutingTreeResponses[keyof GetRoutingTreeResponses];
 
+export type GetUserData = {
+	body?: never;
+	path: {
+		/**
+		 * The userID of the user to fetch
+		 */
+		userID: string;
+	};
+	query?: never;
+	url: "/api/v1/user/{userID}";
+};
+
+export type GetUserErrors = {
+	/**
+	 * Bad Request
+	 */
+	400: unknown;
+	/**
+	 * Unauthorized
+	 */
+	401: unknown;
+	/**
+	 * Internal Server Error
+	 */
+	500: unknown;
+};
+
+export type GetUserResponses = {
+	/**
+	 * Returned user details
+	 */
+	200: unknown;
+};
+
 export type ClientOptions = {
 	baseUrl: `${string}://${string}` | (string & {});
 };

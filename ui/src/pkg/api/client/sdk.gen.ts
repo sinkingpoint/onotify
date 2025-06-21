@@ -41,6 +41,9 @@ import type {
 	GetRoutingTreeData,
 	GetRoutingTreeResponses,
 	GetRoutingTreeErrors,
+	GetUserData,
+	GetUserResponses,
+	GetUserErrors,
 } from "./types.gen";
 import { client as _heyApiClient } from "./client.gen";
 
@@ -217,6 +220,16 @@ export const getRoutingTree = <ThrowOnError extends boolean = false>(
 ) => {
 	return (options?.client ?? _heyApiClient).get<GetRoutingTreeResponses, GetRoutingTreeErrors, ThrowOnError>({
 		url: "/api/v1/config/tree",
+		...options,
+	});
+};
+
+/**
+ * get the details about a user
+ */
+export const getUser = <ThrowOnError extends boolean = false>(options: Options<GetUserData, ThrowOnError>) => {
+	return (options.client ?? _heyApiClient).get<GetUserResponses, GetUserErrors, ThrowOnError>({
+		url: "/api/v1/user/{userID}",
 		...options,
 	});
 };
