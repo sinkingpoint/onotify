@@ -93,6 +93,10 @@ export type GetAlertsResponses = {
 			[key: string]: string;
 		};
 		/**
+		 * The userID of the user that acknowledged the alert
+		 */
+		acknowledgedBy?: string;
+		/**
 		 * The annotations of the alert
 		 */
 		annotations: {
@@ -319,6 +323,37 @@ export type GetAlertGroupsErrors = {
 export type GetAlertGroupsResponses = {
 	/**
 	 * Successfully got alert groups
+	 */
+	200: unknown;
+};
+
+export type AcknowledgeAlertData = {
+	body: {
+		fingerprint: string;
+	};
+	path?: never;
+	query?: never;
+	url: "/api/v1/alerts/acknowledge";
+};
+
+export type AcknowledgeAlertErrors = {
+	/**
+	 * Bad Request
+	 */
+	400: unknown;
+	/**
+	 * Unauthorized
+	 */
+	401: unknown;
+	/**
+	 * Internal Server Error
+	 */
+	500: unknown;
+};
+
+export type AcknowledgeAlertResponses = {
+	/**
+	 * Alert acknowledged successfully
 	 */
 	200: unknown;
 };

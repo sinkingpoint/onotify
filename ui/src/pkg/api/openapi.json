@@ -182,6 +182,10 @@
 												},
 												"description": "The labels of the alert"
 											},
+											"acknowledgedBy": {
+												"type": "string",
+												"description": "The userID of the user that acknowledged the alert"
+											},
 											"annotations": {
 												"type": "object",
 												"additionalProperties": {
@@ -267,6 +271,10 @@
 									"checks": [],
 									"typeName": "ZodString",
 									"coerce": false
+								},
+								"~standard": {
+									"version": 1,
+									"vendor": "zod"
 								}
 							}
 						}
@@ -279,6 +287,10 @@
 									"checks": [],
 									"typeName": "ZodString",
 									"coerce": false
+								},
+								"~standard": {
+									"version": 1,
+									"vendor": "zod"
 								}
 							}
 						}
@@ -291,6 +303,10 @@
 									"checks": [],
 									"typeName": "ZodString",
 									"coerce": false
+								},
+								"~standard": {
+									"version": 1,
+									"vendor": "zod"
 								}
 							}
 						}
@@ -357,6 +373,10 @@
 									"checks": [],
 									"typeName": "ZodString",
 									"coerce": false
+								},
+								"~standard": {
+									"version": 1,
+									"vendor": "zod"
 								}
 							}
 						}
@@ -369,6 +389,10 @@
 									"checks": [],
 									"typeName": "ZodString",
 									"coerce": false
+								},
+								"~standard": {
+									"version": 1,
+									"vendor": "zod"
 								}
 							}
 						}
@@ -381,6 +405,10 @@
 									"checks": [],
 									"typeName": "ZodString",
 									"coerce": false
+								},
+								"~standard": {
+									"version": 1,
+									"vendor": "zod"
 								}
 							}
 						}
@@ -555,6 +583,10 @@
 									"checks": [],
 									"typeName": "ZodString",
 									"coerce": false
+								},
+								"~standard": {
+									"version": 1,
+									"vendor": "zod"
 								}
 							}
 						}
@@ -567,6 +599,10 @@
 									"checks": [],
 									"typeName": "ZodString",
 									"coerce": false
+								},
+								"~standard": {
+									"version": 1,
+									"vendor": "zod"
 								}
 							}
 						}
@@ -579,6 +615,10 @@
 									"checks": [],
 									"typeName": "ZodString",
 									"coerce": false
+								},
+								"~standard": {
+									"version": 1,
+									"vendor": "zod"
 								}
 							}
 						}
@@ -670,6 +710,10 @@
 									"checks": [],
 									"typeName": "ZodString",
 									"coerce": false
+								},
+								"~standard": {
+									"version": 1,
+									"vendor": "zod"
 								}
 							}
 						}
@@ -682,6 +726,10 @@
 									"checks": [],
 									"typeName": "ZodString",
 									"coerce": false
+								},
+								"~standard": {
+									"version": 1,
+									"vendor": "zod"
 								}
 							}
 						}
@@ -694,6 +742,86 @@
 									"checks": [],
 									"typeName": "ZodString",
 									"coerce": false
+								},
+								"~standard": {
+									"version": 1,
+									"vendor": "zod"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/v1/alerts/acknowledge": {
+			"post": {
+				"operationId": "acknowledgeAlert",
+				"tags": ["alerts"],
+				"summary": "Acknowledge a firing alert",
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"type": "object",
+								"properties": {
+									"fingerprint": {
+										"type": "string"
+									}
+								},
+								"required": ["fingerprint"]
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "Alert acknowledged successfully"
+					},
+					"400": {
+						"description": "Bad Request",
+						"text/plain": {
+							"schema": {
+								"_def": {
+									"checks": [],
+									"typeName": "ZodString",
+									"coerce": false
+								},
+								"~standard": {
+									"version": 1,
+									"vendor": "zod"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized",
+						"text/plain": {
+							"schema": {
+								"_def": {
+									"checks": [],
+									"typeName": "ZodString",
+									"coerce": false
+								},
+								"~standard": {
+									"version": 1,
+									"vendor": "zod"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error",
+						"text/plain": {
+							"schema": {
+								"_def": {
+									"checks": [],
+									"typeName": "ZodString",
+									"coerce": false
+								},
+								"~standard": {
+									"version": 1,
+									"vendor": "zod"
 								}
 							}
 						}
@@ -773,6 +901,10 @@
 									"checks": [],
 									"typeName": "ZodString",
 									"coerce": false
+								},
+								"~standard": {
+									"version": 1,
+									"vendor": "zod"
 								}
 							}
 						}
@@ -785,6 +917,10 @@
 									"checks": [],
 									"typeName": "ZodString",
 									"coerce": false
+								},
+								"~standard": {
+									"version": 1,
+									"vendor": "zod"
 								}
 							}
 						}
@@ -797,6 +933,10 @@
 									"checks": [],
 									"typeName": "ZodString",
 									"coerce": false
+								},
+								"~standard": {
+									"version": 1,
+									"vendor": "zod"
 								}
 							}
 						}
@@ -839,6 +979,10 @@
 									"checks": [],
 									"typeName": "ZodString",
 									"coerce": false
+								},
+								"~standard": {
+									"version": 1,
+									"vendor": "zod"
 								}
 							}
 						}
@@ -851,6 +995,10 @@
 									"checks": [],
 									"typeName": "ZodString",
 									"coerce": false
+								},
+								"~standard": {
+									"version": 1,
+									"vendor": "zod"
 								}
 							}
 						}
@@ -863,6 +1011,10 @@
 									"checks": [],
 									"typeName": "ZodString",
 									"coerce": false
+								},
+								"~standard": {
+									"version": 1,
+									"vendor": "zod"
 								}
 							}
 						}
@@ -971,6 +1123,10 @@
 									"checks": [],
 									"typeName": "ZodString",
 									"coerce": false
+								},
+								"~standard": {
+									"version": 1,
+									"vendor": "zod"
 								}
 							}
 						}
@@ -983,6 +1139,10 @@
 									"checks": [],
 									"typeName": "ZodString",
 									"coerce": false
+								},
+								"~standard": {
+									"version": 1,
+									"vendor": "zod"
 								}
 							}
 						}
@@ -995,6 +1155,10 @@
 									"checks": [],
 									"typeName": "ZodString",
 									"coerce": false
+								},
+								"~standard": {
+									"version": 1,
+									"vendor": "zod"
 								}
 							}
 						}
@@ -1186,6 +1350,10 @@
 									"checks": [],
 									"typeName": "ZodString",
 									"coerce": false
+								},
+								"~standard": {
+									"version": 1,
+									"vendor": "zod"
 								}
 							}
 						}
@@ -1198,6 +1366,10 @@
 									"checks": [],
 									"typeName": "ZodString",
 									"coerce": false
+								},
+								"~standard": {
+									"version": 1,
+									"vendor": "zod"
 								}
 							}
 						}
@@ -1210,6 +1382,10 @@
 									"checks": [],
 									"typeName": "ZodString",
 									"coerce": false
+								},
+								"~standard": {
+									"version": 1,
+									"vendor": "zod"
 								}
 							}
 						}
@@ -1291,6 +1467,10 @@
 									"checks": [],
 									"typeName": "ZodString",
 									"coerce": false
+								},
+								"~standard": {
+									"version": 1,
+									"vendor": "zod"
 								}
 							}
 						}
@@ -1303,6 +1483,10 @@
 									"checks": [],
 									"typeName": "ZodString",
 									"coerce": false
+								},
+								"~standard": {
+									"version": 1,
+									"vendor": "zod"
 								}
 							}
 						}
@@ -1315,6 +1499,10 @@
 									"checks": [],
 									"typeName": "ZodString",
 									"coerce": false
+								},
+								"~standard": {
+									"version": 1,
+									"vendor": "zod"
 								}
 							}
 						}
@@ -5459,6 +5647,10 @@
 									"checks": [],
 									"typeName": "ZodString",
 									"coerce": false
+								},
+								"~standard": {
+									"version": 1,
+									"vendor": "zod"
 								}
 							}
 						}
@@ -5471,6 +5663,10 @@
 									"checks": [],
 									"typeName": "ZodString",
 									"coerce": false
+								},
+								"~standard": {
+									"version": 1,
+									"vendor": "zod"
 								}
 							}
 						}
@@ -5483,6 +5679,10 @@
 									"checks": [],
 									"typeName": "ZodString",
 									"coerce": false
+								},
+								"~standard": {
+									"version": 1,
+									"vendor": "zod"
 								}
 							}
 						}
@@ -9623,6 +9823,10 @@
 									"checks": [],
 									"typeName": "ZodString",
 									"coerce": false
+								},
+								"~standard": {
+									"version": 1,
+									"vendor": "zod"
 								}
 							}
 						}
@@ -9635,6 +9839,10 @@
 									"checks": [],
 									"typeName": "ZodString",
 									"coerce": false
+								},
+								"~standard": {
+									"version": 1,
+									"vendor": "zod"
 								}
 							}
 						}
@@ -9647,6 +9855,10 @@
 									"checks": [],
 									"typeName": "ZodString",
 									"coerce": false
+								},
+								"~standard": {
+									"version": 1,
+									"vendor": "zod"
 								}
 							}
 						}
@@ -9772,6 +9984,10 @@
 									"checks": [],
 									"typeName": "ZodString",
 									"coerce": false
+								},
+								"~standard": {
+									"version": 1,
+									"vendor": "zod"
 								}
 							}
 						}
@@ -9784,6 +10000,10 @@
 									"checks": [],
 									"typeName": "ZodString",
 									"coerce": false
+								},
+								"~standard": {
+									"version": 1,
+									"vendor": "zod"
 								}
 							}
 						}
@@ -9796,6 +10016,10 @@
 									"checks": [],
 									"typeName": "ZodString",
 									"coerce": false
+								},
+								"~standard": {
+									"version": 1,
+									"vendor": "zod"
 								}
 							}
 						}
