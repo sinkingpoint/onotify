@@ -21,4 +21,7 @@ CREATE TABLE IF NOT EXISTS api_keys (
   scopes string
 );
 
-INSERT INTO api_keys VALUES (0, 0, "notify-test", 0, "*");
+INSERT INTO api_keys VALUES ("0", "0", "notify-test", 0, "*");
+INSERT INTO user VALUES ("0", "Test User");
+INSERT INTO account VALUES ("0", "Test Account");
+INSERT INTO account_membership VALUES ("0", "0");

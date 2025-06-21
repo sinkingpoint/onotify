@@ -11,6 +11,7 @@ import { GetRoutingTree } from "./endpoints/getRoutingTree";
 import GetSilence from "./endpoints/getSilence";
 import { GetSilences } from "./endpoints/getSilences";
 import { GetStats } from "./endpoints/getStats";
+import { GetUser } from "./endpoints/getUser";
 import { PostAlerts } from "./endpoints/postAlerts";
 import { PostSilence } from "./endpoints/postSilences";
 import { PostConfig } from "./endpoints/uploadConfig";
@@ -59,6 +60,7 @@ openapi.post("/api/v2/silences", PostSilence);
 openapi.post("/api/v1/config", PostConfig);
 openapi.get("/api/v1/config", GetConfig);
 openapi.get("/api/v1/config/tree", GetRoutingTree);
+openapi.get("/api/v1/user/:userID", GetUser);
 
 // Export the Hono app
 export default instrument(app, OTelConfFn);

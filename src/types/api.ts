@@ -309,3 +309,9 @@ export const PaginationHeaders = z.object({
 export const AcknowledgeAlertBodySpec = z.object({
 	fingerprint: z.string(),
 });
+
+export const GetUserParamsSpec = z.object({
+	userID: z.string().openapi({
+		description: "The userID of the user to fetch",
+	}),
+});

@@ -9,6 +9,11 @@ interface APIKeyError {
 	text?: string;
 }
 
+export interface UserData {
+	id: string;
+	name: string;
+}
+
 // Keys with a wildcard scope are allowed to do anything.
 const WILDCARD_SCOPE = "*";
 
@@ -187,5 +192,53 @@ const validateScopes = (
 
 	return {
 		result: true,
+	};
+};
+
+interface GetUserInfoError {
+	result: "not found" | "unauthorized" | "internal error";
+}
+
+interface GetUserInfoResult {
+	result: "ok";
+	user: UserData;
+}
+
+export type GetUserInfo = GetUserInfoResult | GetUserInfoError;
+
+export const getUserInfo = async (env: Bindings, authResult: APIKeyResult, userID: string): Promise<GetUserInfo> => {
+	if (authResult.result !== "ok") {
+		return {
+			result: "unauthorized",
+		};
+	}
+
+	// The user is allowed to fetch the requested user if they are the same user, or
+	// if the user currently is in an account that the requested user is also in.
+
+	const accountMembership: D1Result<any> = await env.DB.prepare(
+		`SELECT user_id, account_id FROM account_membership WHERE user_id=? AND account_id=?`,
+	)
+		.bind(userID, authResult.accountID)
+		.run();
+
+	if (accountMembership.results.length === 0) {
+		console.log("User not found in account membership");
+		return {
+			result: "not found",
+		};
+	}
+
+	const user: UserData | null = await env.DB.prepare(`SELECT id, name FROM user WHERE id=?`).bind(userID).first();
+	if (!user) {
+		console.log("User not found");
+		return {
+			result: "not found",
+		};
+	}
+
+	return {
+		result: "ok",
+		user,
 	};
 };
