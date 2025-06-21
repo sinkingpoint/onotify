@@ -98,6 +98,7 @@ export class GetAlerts extends OpenAPIRoute {
 				startsAt: new Date(alert.startsAt).toISOString(),
 				endsAt: new Date(alert.endsAt ?? 0).toISOString(),
 				updatedAt: new Date(alert.updatedAt).toISOString(),
+				acknowledgedBy: alert.acknowledgedBy,
 				receivers: alert.receivers.map((r) => {
 					return {
 						name: r,

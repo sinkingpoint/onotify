@@ -116,6 +116,9 @@ export const GettableAlertSpec = z.object({
 	labels: z.record(z.string(), z.string()).openapi({
 		description: "The labels of the alert",
 	}),
+	acknowledgedBy: z.string().optional().openapi({
+		description: "The userID of the user that acknowledged the alert",
+	}),
 	annotations: z.record(z.string(), z.string()).openapi({
 		description: "The annotations of the alert",
 	}),
@@ -302,4 +305,7 @@ export const StatsResponseSpec = z.object({
 
 export const PaginationHeaders = z.object({
 	"X-Total-Count": z.number().int().positive().optional().openapi({ description: "Total number of items" }),
+});
+export const AcknowledgeAlertBodySpec = z.object({
+	fingerprint: z.string(),
 });

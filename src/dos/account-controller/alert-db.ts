@@ -31,7 +31,7 @@ export class AlertDB {
 	}
 
 	async addAlert(a: ReceiveredAlert) {
-		return getTracer().startActiveSpan("AlertDB::addAlert", {}, (span) => {
+		return getTracer().startActiveSpan("AlertDB::addAlert", {}, async (span) => {
 			const cached = this.alerts.get(a.fingerprint);
 			if (cached && alertIsSame(a, cached)) {
 				span.setAttribute("updated", false);
@@ -57,6 +57,13 @@ export class AlertDB {
 				});
 			}
 
+			// Clear acknowledgement if alert is resolved
+			let acknowledgedBy = cached?.acknowledgedBy;
+			const isResolved = a.endsAt && a.endsAt < Date.now();
+			if (isResolved && acknowledgedBy) {
+				acknowledgedBy = undefined;
+			}
+
 			span.end();
 
 			return this.storeAlert({
@@ -64,6 +71,7 @@ export class AlertDB {
 				inhibitedBy,
 				updatedAt: Date.now(),
 				history,
+				acknowledgedBy,
 				...a,
 			});
 		});
@@ -267,5 +275,27 @@ export class AlertDB {
 				span.end();
 			},
 		);
+	}
+
+	// Acknowledge an alert if it is firing
+	async acknowledgeAlert(fingerprint: string, user: string): Promise<boolean> {
+		const alert = await this.getAlert(fingerprint);
+		if (!alert) return false;
+		const isResolved = alert.endsAt && alert.endsAt < Date.now();
+		if (isResolved) return false;
+		alert.acknowledgedBy = user;
+		await this.storeAlert(alert);
+		return true;
+	}
+
+	// Clear acknowledgement when alert resolves
+	async clearAcknowledgementIfResolved(fingerprint: string) {
+		const alert = await this.getAlert(fingerprint);
+		if (!alert) return;
+		const isResolved = alert.endsAt && alert.endsAt < Date.now();
+		if (isResolved && alert.acknowledgedBy) {
+			delete alert.acknowledgedBy;
+			await this.storeAlert(alert);
+		}
 	}
 }

@@ -36,6 +36,7 @@ export enum AccountControllerActions {
 	GetAlertGroups = "get-alert-groups",
 	MarkSilenceStarted = "mark-silence-started",
 	MarkSilenceExpired = "mark-silence-expired",
+	AcknowledgeAlert = "acknowledge-alert",
 }
 
 const getTracer = () => {
@@ -194,6 +195,10 @@ class AccountControllerDO implements DurableObject {
 		});
 	}
 
+	private async acknowledgeAlert({ fingerprint, user }: { fingerprint: string; user: string }) {
+		return this.alertStorage.acknowledgeAlert(fingerprint, user);
+	}
+
 	async fetch(request: Request) {
 		const rpcMethods = {
 			[AccountControllerActions.AddAlerts]: this.addAlerts,
@@ -206,6 +211,7 @@ class AccountControllerDO implements DurableObject {
 			[AccountControllerActions.GetAlertGroups]: this.getAlertGroups,
 			[AccountControllerActions.MarkSilenceStarted]: this.markSilenceStarted,
 			[AccountControllerActions.MarkSilenceExpired]: this.markSilenceExpired,
+			[AccountControllerActions.AcknowledgeAlert]: this.acknowledgeAlert,
 		};
 
 		return rpcFetch(this, request, rpcMethods);

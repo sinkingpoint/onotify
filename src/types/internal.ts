@@ -88,6 +88,7 @@ export type CachedAlert = Alert & {
 	updatedAt: number;
 	receivers: string[];
 	history: AlertEvent[];
+	acknowledgedBy?: string;
 };
 
 export type ReceiveredAlert = Alert & { receivers: string[] };
