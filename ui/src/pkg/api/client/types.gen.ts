@@ -7057,8 +7057,15 @@ export type GetUserResponses = {
 	/**
 	 * Returned user details
 	 */
-	200: unknown;
+	200: {
+		user: {
+			id: string;
+			name: string;
+		};
+	};
 };
+
+export type GetUserResponse = GetUserResponses[keyof GetUserResponses];
 
 export type ClientOptions = {
 	baseUrl: `${string}://${string}` | (string & {});

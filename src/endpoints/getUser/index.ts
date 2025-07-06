@@ -1,5 +1,6 @@
 import { OpenAPIRoute } from "chanfana";
 import { Context } from "hono";
+import { z } from "zod";
 import { GetUserParamsSpec } from "../../types/api";
 import { Errors, HTTPResponses } from "../../types/http";
 import { Bindings } from "../../types/internal";
@@ -19,6 +20,16 @@ export class GetUser extends OpenAPIRoute {
 		responses: {
 			"200": {
 				description: "Returned user details",
+				content: {
+					"application/json": {
+						schema: z.object({
+							user: z.object({
+								id: z.string(),
+								name: z.string(),
+							}),
+						}),
+					},
+				},
 			},
 			...Errors,
 		},
