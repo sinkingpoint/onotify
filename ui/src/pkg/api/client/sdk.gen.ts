@@ -117,12 +117,8 @@ export const acknowledgeAlert = <ThrowOnError extends boolean = false>(
 	options: Options<AcknowledgeAlertData, ThrowOnError>,
 ) => {
 	return (options.client ?? _heyApiClient).post<AcknowledgeAlertResponses, AcknowledgeAlertErrors, ThrowOnError>({
-		url: "/api/v1/alerts/acknowledge",
+		url: "/api/v1/alerts/{fingerprint}/acknowledge",
 		...options,
-		headers: {
-			"Content-Type": "application/json",
-			...options.headers,
-		},
 	});
 };
 

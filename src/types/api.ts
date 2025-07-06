@@ -306,9 +306,6 @@ export const StatsResponseSpec = z.object({
 export const PaginationHeaders = z.object({
 	"X-Total-Count": z.number().int().positive().optional().openapi({ description: "Total number of items" }),
 });
-export const AcknowledgeAlertBodySpec = z.object({
-	fingerprint: z.string(),
-});
 
 export const GetUserParamsSpec = z.object({
 	userID: z.string().openapi({

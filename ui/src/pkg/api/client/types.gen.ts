@@ -328,12 +328,15 @@ export type GetAlertGroupsResponses = {
 };
 
 export type AcknowledgeAlertData = {
-	body: {
+	body?: never;
+	path: {
+		/**
+		 * The ID of the silence to retrieve
+		 */
 		fingerprint: string;
 	};
-	path?: never;
 	query?: never;
-	url: "/api/v1/alerts/acknowledge";
+	url: "/api/v1/alerts/{fingerprint}/acknowledge";
 };
 
 export type AcknowledgeAlertErrors = {

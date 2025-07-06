@@ -753,27 +753,22 @@
 				}
 			}
 		},
-		"/api/v1/alerts/acknowledge": {
+		"/api/v1/alerts/{fingerprint}/acknowledge": {
 			"post": {
 				"operationId": "acknowledgeAlert",
 				"tags": ["alerts"],
 				"summary": "Acknowledge a firing alert",
-				"requestBody": {
-					"required": true,
-					"content": {
-						"application/json": {
-							"schema": {
-								"type": "object",
-								"properties": {
-									"fingerprint": {
-										"type": "string"
-									}
-								},
-								"required": ["fingerprint"]
-							}
-						}
+				"parameters": [
+					{
+						"schema": {
+							"type": "string",
+							"description": "The ID of the silence to retrieve"
+						},
+						"required": true,
+						"name": "fingerprint",
+						"in": "path"
 					}
-				},
+				],
 				"responses": {
 					"200": {
 						"description": "Alert acknowledged successfully"

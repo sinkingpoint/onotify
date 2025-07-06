@@ -51,7 +51,7 @@ openapi.get("/api/v2/alerts", GetAlerts);
 openapi.get("/api/v2/:resourceType/stats", GetStats);
 openapi.get("/api/v2/alerts/groups", GetAlertGroups);
 openapi.post("/api/v2/alerts", PostAlerts);
-openapi.post("/api/v1/alerts/acknowledge", AcknowledgeAlert);
+openapi.post("/api/v1/alerts/:fingerprint/acknowledge", AcknowledgeAlert);
 openapi.get("/api/v1/config/required-files", GetRequiredFiles);
 openapi.post("/api/v1/config/required-files", PostRequiredFiles);
 openapi.get("/api/v2/silence/:id", GetSilence);

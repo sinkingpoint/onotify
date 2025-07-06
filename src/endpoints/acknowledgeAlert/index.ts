@@ -1,7 +1,7 @@
 import { OpenAPIRoute } from "chanfana";
 import { Context } from "hono";
+import { z } from "zod";
 import { AccountControllerActions } from "../../dos/account-controller";
-import { AcknowledgeAlertBodySpec } from "../../types/api";
 import { Errors, HTTPResponses } from "../../types/http";
 import { Bindings } from "../../types/internal";
 import { callRPC } from "../../utils/rpc";
@@ -14,14 +14,9 @@ export class AcknowledgeAlert extends OpenAPIRoute {
 		tags: ["alerts"],
 		summary: "Acknowledge a firing alert",
 		request: {
-			body: {
-				content: {
-					"application/json": {
-						schema: AcknowledgeAlertBodySpec,
-					},
-				},
-				required: true,
-			},
+			params: z.object({
+				fingerprint: z.string().openapi({ description: "The ID of the silence to retrieve" }),
+			}),
 		},
 		responses: {
 			"200": {
@@ -38,8 +33,8 @@ export class AcknowledgeAlert extends OpenAPIRoute {
 			return c.text(toErrorString(authResult));
 		}
 
-		const { body } = await this.getValidatedData<typeof this.schema>();
-		const { fingerprint } = body;
+		const { params } = await this.getValidatedData<typeof this.schema>();
+		const { fingerprint } = params;
 		const controllerName = accountControllerName(authResult.accountID);
 		const controllerID = c.env.ACCOUNT_CONTROLLER.idFromName(controllerName);
 		const controller = c.env.ACCOUNT_CONTROLLER.get(controllerID);
