@@ -5,7 +5,15 @@ import InfoBox from "../../components/InfoBox";
 import { MatcherCard } from "../../components/MatcherCard";
 import { SilenceCard } from "../../components/SilenceCard";
 import { SkeletonLoader } from "../../components/Skeleton";
-import { getAlerts, GetAlertsResponse, getSilences, GetSilencesResponse, postAlerts } from "../../pkg/api/client";
+import {
+	acknowledgeAlert,
+	getAlerts,
+	GetAlertsResponse,
+	getSilences,
+	GetSilencesResponse,
+	getUser,
+	postAlerts,
+} from "../../pkg/api/client";
 import { GettableSilence, GettableSilenceSpec, Matcher } from "../../pkg/types/api";
 import { DataPull, matcherToString, useQuery } from "../../pkg/types/utils";
 
@@ -103,10 +111,22 @@ export default () => {
 		}
 	};
 
-	const onResolve = async () => {
+	const onResolveAlert = async () => {
 		if (alertPull.state === "success" && alert) {
 			alert.endsAt = new Date(Date.now()).toISOString();
 			await postAlerts({ body: [alert] });
+			alertPull.refresh();
+		}
+	};
+
+	const onAcknowledgeAlert = async () => {
+		if (alertPull.state === "success" && alert) {
+			await acknowledgeAlert({
+				path: {
+					fingerprint,
+				},
+			});
+
 			alertPull.refresh();
 		}
 	};
@@ -129,6 +149,37 @@ export default () => {
 		}
 	})();
 
+	const acknowledgedByPull = useQuery(() => {
+		if (alertPull.state !== "success") {
+			return undefined;
+		}
+
+		if (alert.acknowledgedBy === undefined) {
+			return null;
+		}
+
+		return getUser({
+			path: {
+				userID: alert.acknowledgedBy,
+			},
+		});
+	}, [alertPull, alert]);
+
+	let acknowledgedBy = <></>;
+	if (acknowledgedByPull.state === "pending" && alert?.acknowledgedBy !== undefined) {
+		acknowledgedBy = (
+			<>
+				<h2 class="text-xl inline">Acknowledged</h2>
+			</>
+		);
+	} else if (acknowledgedByPull.state === "success" && acknowledgedByPull.result) {
+		acknowledgedBy = (
+			<>
+				<h2 class="text-xl inline">Acknowledged by: </h2> {acknowledgedByPull.result.user.name}
+			</>
+		);
+	}
+
 	let contents: JSX.Element;
 	if (alertPull.state === "error") {
 		contents = <InfoBox text="Failed to get alert" style="error" />;
@@ -143,8 +194,12 @@ export default () => {
 							<button class="p-2 bg-green-600 rounded whitespace-nowrap" onClick={onSilenceAlert}>
 								Silence Alert
 							</button>
-							any
-							<button class="p-2 bg-green-600 rounded whitespace-nowrap" onClick={onResolve}>
+
+							<button class="p-2 bg-green-600 rounded whitespace-nowrap" onClick={onAcknowledgeAlert}>
+								Acknowledge Alert
+							</button>
+
+							<button class="p-2 bg-green-600 rounded whitespace-nowrap" onClick={onResolveAlert}>
 								Resolve Alert
 							</button>
 						</>
@@ -156,13 +211,16 @@ export default () => {
 						</button>
 					)}
 				</div>
-				<div>
-					<h2 class="text-xl inline">Status: </h2>
-					<SkeletonLoader layout="single-line" pull={alertPull}>
-						<span>{statusText}</span>
-					</SkeletonLoader>
+				<div class="flex flex-row">
+					<span class="basis-1/2">
+						<h2 class="text-xl inline">Status: </h2>
+						<SkeletonLoader layout="single-line" pull={alertPull}>
+							<span>{statusText}</span>
+						</SkeletonLoader>
+					</span>
+					<span class="basis-1/2">{acknowledgedBy}</span>
 				</div>
-				<div class="flex flex-col md:flex-row justify-between gap-5">
+				<div class="flex flex-col md:flex-row justify-between">
 					<div class="basis-1/2">
 						<h2 class="text-xl">Labels</h2>
 						<span class="flex flex-wrap">
@@ -192,7 +250,7 @@ export default () => {
 					</div>
 				</div>
 
-				<div class="flex flex-col md:flex-row justify-between gap-5">
+				<div class="flex flex-col md:flex-row justify-between">
 					<div class="basis-1/2">
 						<h2 class="text-xl">Silenced By</h2>
 						<SkeletonLoader pull={silencePull ?? alertPull} layout="paragraph">
@@ -213,10 +271,11 @@ export default () => {
 
 	return (
 		<div class="w-full h-full flex flex-col">
-			<h1>
-				Alert {fingerprint} (
-				{!!alert && "alertname" in alert.labels ? alert.labels["alertname"] : <i class="italic">No Alert Name</i>})
-			</h1>
+			<SkeletonLoader layout="single-line" pull={alertPull}>
+				<h1>
+					{!!alert && "alertname" in alert.labels ? alert.labels["alertname"] : <i class="italic">No Alert Name</i>}
+				</h1>
+			</SkeletonLoader>
 
 			{contents}
 		</div>

@@ -33,6 +33,6 @@
 .side-bar {
 	background-color: var(--background-three);
 	height: 100vh;
-  overflow: hidden;
+	overflow: hidden;
 	transition: min-width 0.2s ease-in-out;
 }
