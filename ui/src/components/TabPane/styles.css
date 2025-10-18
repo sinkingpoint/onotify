@@ -1,0 +1,13 @@
+.tab-pane-header {
+  padding: 8px 16px;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+}
+
+.tab-pane-header.active {
+  border-bottom-color: var(--background-two);
+  border-bottom-width: 2px;
+  border-bottom-style: solid;
+  font-weight: bold;
+}

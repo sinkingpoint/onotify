@@ -161,9 +161,6 @@ export const GettableAlertSpec = z.object({
 	receivers: z.array(GettableAlertReceiverSpec).openapi({
 		description: "The receivers that this alert is firing to",
 	}),
-	history: z.array(GettableAlertHistorySpec).openapi({
-		description: "The history of events for this alert",
-	}),
 	status: GettableAlertStatusSpec.openapi({
 		description: "The state of the alert",
 	}),
@@ -341,4 +338,22 @@ export const GetUserParamsSpec = z.object({
 	userID: z.string().openapi({
 		description: "The userID of the user to fetch",
 	}),
+});
+
+export const GetAlertHistoryParamsSpec = z.object({
+	fingerprint: z.string().openapi({ description: "The fingerprint of the alert to get history for" }),
+	startTime: z
+		.string()
+		.datetime({ offset: true })
+		.transform((s) => Date.parse(s))
+		.optional()
+		.openapi({ description: "The start time of the history" }),
+	endTime: z
+		.string()
+		.datetime({ offset: true })
+		.transform((s) => Date.parse(s))
+		.optional()
+		.openapi({ description: "The end time of the history" }),
+	page: z.number().optional().openapi({ description: "The page of history to return" }),
+	pageSize: z.number().optional().openapi({ description: "The number of history events per page" }),
 });

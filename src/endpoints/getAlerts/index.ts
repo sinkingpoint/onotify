@@ -1,13 +1,7 @@
 import { OpenAPIRoute } from "chanfana";
 import { Context } from "hono";
 import { AccountControllerActions } from "../../dos/account-controller";
-import {
-	GetAlertsParamsSpec,
-	GettableAlert,
-	GettableAlertHistory,
-	GettableAlertsSpec,
-	PaginationHeaders,
-} from "../../types/api";
+import { GetAlertsParamsSpec, GettableAlert, GettableAlertsSpec, PaginationHeaders } from "../../types/api";
 import { Errors, HTTPResponses } from "../../types/http";
 import { Bindings, CachedAlert } from "../../types/internal";
 import { callRPC } from "../../utils/rpc";
@@ -97,22 +91,6 @@ export class GetAlerts extends OpenAPIRoute {
 		})) as CachedAlert[];
 
 		for (const alert of internalAlerts) {
-			const history: GettableAlertHistory[] = alert.history.map((event) => {
-				if (event.ty === "comment") {
-					return {
-						ty: event.ty,
-						timestamp: new Date(event.timestamp).toISOString(),
-						comment: event.comment,
-						userID: event.userID,
-					};
-				} else {
-					return {
-						ty: event.ty,
-						timestamp: new Date(event.timestamp).toISOString(),
-					};
-				}
-			});
-
 			outputAlerts.push({
 				fingerprint: alert.fingerprint,
 				labels: alert.labels,
@@ -126,7 +104,6 @@ export class GetAlerts extends OpenAPIRoute {
 						name: r,
 					};
 				}),
-				history,
 				status: {
 					silencedBy: alert.silencedBy,
 					inhibitedBy: alert.inhibitedBy,
