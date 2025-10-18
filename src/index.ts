@@ -4,6 +4,7 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { AcknowledgeAlert } from "./endpoints/acknowledgeAlert";
 import { GetAlertGroups } from "./endpoints/getAlertGroups";
+import { GetAlertHistory } from "./endpoints/getAlertHistory";
 import { GetAlerts } from "./endpoints/getAlerts";
 import { GetConfig } from "./endpoints/getConfig";
 import { GetRequiredFiles } from "./endpoints/getRequiredFiles";
@@ -61,6 +62,7 @@ openapi.post("/api/v1/config", PostConfig);
 openapi.get("/api/v1/config", GetConfig);
 openapi.get("/api/v1/config/tree", GetRoutingTree);
 openapi.get("/api/v1/user/:userID", GetUser);
+openapi.get("/api/v1/alerts/:fingerprint/history", GetAlertHistory);
 
 // Export the Hono app
 export default instrument(app, OTelConfFn);

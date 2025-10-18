@@ -341,7 +341,6 @@ export const GetUserParamsSpec = z.object({
 });
 
 export const GetAlertHistoryParamsSpec = z.object({
-	fingerprint: z.string().openapi({ description: "The fingerprint of the alert to get history for" }),
 	startTime: z
 		.string()
 		.datetime({ offset: true })

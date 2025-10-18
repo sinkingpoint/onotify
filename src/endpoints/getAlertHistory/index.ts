@@ -15,6 +15,9 @@ export class GetAlertHistory extends OpenAPIRoute {
 		tags: ["alerts"],
 		summary: "Get a list of history events for an alert",
 		request: {
+			params: z.object({
+				fingerprint: z.string().openapi({ description: "The fingerprint of the alert to get history for" }),
+			}),
 			query: GetAlertHistoryParamsSpec,
 		},
 		responses: {
@@ -38,8 +41,9 @@ export class GetAlertHistory extends OpenAPIRoute {
 			return c.text(toErrorString(authResult));
 		}
 
-		const { query } = await this.getValidatedData<typeof this.schema>();
-		const { fingerprint, startTime, endTime } = query;
+		const { query, params } = await this.getValidatedData<typeof this.schema>();
+		const { startTime, endTime } = query;
+		const { fingerprint } = params;
 
 		const controllerName = accountControllerName(authResult.accountID);
 		const controllerID = c.env.ACCOUNT_CONTROLLER.idFromName(controllerName);
