@@ -77,10 +77,19 @@ export type Silence = PostableSilence & {
 	updatedAt: number;
 };
 
-export type AlertEvent = {
-	ty: AlertState;
-	timestamp: number;
-};
+export type AlertHistoryType = "firing" | "resolved" | "acknowledged" | "unacknowledged" | "silenced" | "unsilenced";
+
+export type AlertEvent =
+	| {
+			ty: AlertHistoryType;
+			timestamp: number;
+	  }
+	| {
+			ty: "comment";
+			timestamp: number;
+			comment: string;
+			userID: string;
+	  };
 
 export type CachedAlert = Alert & {
 	silencedBy: string[];

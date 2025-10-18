@@ -109,6 +109,33 @@ export const GettableAlertStatusSpec = z.object({
 	}),
 });
 
+export const GettableAlertHistoryEventSpec = z.object({
+	ty: z.enum(["firing", "resolved", "acknowledged", "unacknowledged", "silenced", "unsilenced"]).openapi({
+		description: "The type of the alert event",
+	}),
+	timestamp: z.string().datetime({ precision: 3, offset: true }).openapi({
+		description: "An RFC-3339 formatted timestamp indicating when the event occurred",
+	}),
+});
+
+export const GettableAlertCommentEventSpec = z.object({
+	ty: z.literal("comment").openapi({
+		description: "The type of the alert event",
+	}),
+	timestamp: z.string().datetime({ precision: 3, offset: true }).openapi({
+		description: "An RFC-3339 formatted timestamp indicating when the event occurred",
+	}),
+	comment: z.string().openapi({
+		description: "The comment that was added to the alert",
+	}),
+	userID: z.string().openapi({
+		description: "The userID of the user that made the comment",
+	}),
+});
+
+export const GettableAlertHistorySpec = z.union([GettableAlertHistoryEventSpec, GettableAlertCommentEventSpec]);
+export type GettableAlertHistory = z.infer<typeof GettableAlertHistorySpec>;
+
 export const GettableAlertSpec = z.object({
 	fingerprint: z.string().openapi({
 		description: "The fingerprint of the alert",
@@ -133,6 +160,9 @@ export const GettableAlertSpec = z.object({
 	}),
 	receivers: z.array(GettableAlertReceiverSpec).openapi({
 		description: "The receivers that this alert is firing to",
+	}),
+	history: z.array(GettableAlertHistorySpec).openapi({
+		description: "The history of events for this alert",
 	}),
 	status: GettableAlertStatusSpec.openapi({
 		description: "The state of the alert",
