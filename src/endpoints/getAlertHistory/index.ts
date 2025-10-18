@@ -2,7 +2,12 @@ import { OpenAPIRoute } from "chanfana";
 import { Context } from "hono";
 import z from "zod";
 import { AccountControllerActions } from "../../dos/account-controller";
-import { GetAlertHistoryParamsSpec, GettableAlertHistorySpec, PaginationHeaders } from "../../types/api";
+import {
+	GetAlertHistoryParamsSpec,
+	GettableAlertHistory,
+	GettableAlertHistorySpec,
+	PaginationHeaders,
+} from "../../types/api";
 import { Errors, HTTPResponses } from "../../types/http";
 import { Bindings, CachedAlert } from "../../types/internal";
 import { callRPC } from "../../utils/rpc";
@@ -42,7 +47,7 @@ export class GetAlertHistory extends OpenAPIRoute {
 		}
 
 		const { query, params } = await this.getValidatedData<typeof this.schema>();
-		const { startTime, endTime } = query;
+		const { startTime, endTime, page, pageSize } = query;
 		const { fingerprint } = params;
 
 		const controllerName = accountControllerName(authResult.accountID);
@@ -67,9 +72,39 @@ export class GetAlertHistory extends OpenAPIRoute {
 			history = history.filter((h) => h.timestamp <= endTime);
 		}
 
-		const outputHistories = history.map((h) => GettableAlertHistorySpec.parse(h));
+		const totalLength = history.length;
+		let start = 0;
+		let end = history.length;
+		if (pageSize) {
+			start = pageSize * (page ?? 0);
+			end = start + pageSize;
+			if (start > history.length) {
+				start = history.length - 1;
+			}
 
+			if (end > history.length) {
+				end = history.length;
+			}
+		}
+
+		const outputHistories: GettableAlertHistory[] = history.slice(start, end).map((h) => {
+			if (h.ty === "comment") {
+				return {
+					ty: h.ty,
+					timestamp: new Date(h.timestamp).toISOString(),
+					comment: h.comment,
+					userID: h.userID,
+				};
+			} else {
+				return {
+					ty: h.ty,
+					timestamp: new Date(h.timestamp).toISOString(),
+				};
+			}
+		});
+
+		c.res.headers.set("X-Total-Count", history.length.toString());
 		c.status(HTTPResponses.OK);
-		c.json(outputHistories);
+		return c.json(outputHistories);
 	}
 }
