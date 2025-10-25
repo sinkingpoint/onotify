@@ -1,4 +1,6 @@
-import { useMemo, useState } from "preact/hooks";
+import HeatMap from "@uiw/react-heat-map";
+import { useMemo, useRef, useState } from "preact/hooks";
+import { Tooltip } from "react-tooltip";
 import InfoBox from "../../components/InfoBox";
 import Paginator from "../../components/Paginator";
 import { SkeletonLoader } from "../../components/Skeleton";
@@ -9,7 +11,7 @@ type HistoryPaneProps = {
 	fingerprint: string;
 };
 
-const HistoryCard = (event: { event: GetAlertHistoryResponse["200"] }) => {
+const HistoryCard = (event: { event: GetAlertHistoryResponse["entries"][number] }) => {
 	return (
 		<div class="border-b border-gray-300 dark:border-gray-600 py-2 px-4">
 			<div class="text-sm text-gray-500">{new Date(event.event.timestamp).toLocaleString()}</div>
@@ -28,8 +30,9 @@ const HistoryCard = (event: { event: GetAlertHistoryResponse["200"] }) => {
 };
 
 export default ({ fingerprint }: HistoryPaneProps) => {
-	const [currentPage, setCurrentPage] = useState(1);
-	const historyEvents = useQuery(() => {
+	const heatmapHoverRef = useRef();
+	const [currentPage, setCurrentPage] = useState(0);
+	const historyEventsPull = useQuery(() => {
 		return getAlertHistory({
 			query: {
 				page: currentPage,
@@ -39,27 +42,80 @@ export default ({ fingerprint }: HistoryPaneProps) => {
 		});
 	}, [currentPage]);
 
+	const historyStats =
+		historyEventsPull.state === "success"
+			? Object.keys(historyEventsPull.result.stats).map((day) => {
+					return {
+						date: day.replace("-", "/"),
+						count: historyEventsPull.result.stats[day],
+					};
+				})
+			: [];
+
 	const numPages = useMemo(() => {
-		if (historyEvents.state !== "success") {
+		if (historyEventsPull.state !== "success") {
 			return 1;
 		}
 
-		const numSilences = Math.max(parseInt(historyEvents.headers.get("X-Total-Count")), 1);
+		const numSilences = Math.max(parseInt(historyEventsPull.headers.get("X-Total-Count")), 1);
 
 		return Math.ceil(numSilences / 10);
-	}, [historyEvents]);
+	}, [historyEventsPull]);
+
+	const getStartDate = () => {
+		const date = new Date();
+		date.setDate(1);
+		date.setMonth(date.getMonth() - 12);
+		return date;
+	};
 
 	return (
-		<Paginator currentPage={currentPage} setCurrentPage={setCurrentPage} totalPages={numPages}>
-			<SkeletonLoader layout="paragraph" pull={historyEvents}>
-				{historyEvents.state === "success" && historyEvents.result.length === 0 && (
-					<div class="p-4 italic text-center text-gray-500">No history events found for this alert.</div>
+		<div>
+			<SkeletonLoader layout="paragraph" pull={historyEventsPull}>
+				<Tooltip place="top" anchorSelect=".date-entry">{`foo`}</Tooltip>
+				{historyEventsPull.state === "success" && (
+					<HeatMap
+						value={historyStats}
+						startDate={getStartDate()}
+						endDate={new Date()}
+						rectProps={{
+							rx: 1,
+						}}
+						style={{
+							"--rhm-text-color": "#d3d3d3",
+							"font-size": "12px",
+						}}
+						weekLabels={["", "Mon", "", "Wed", "", "Fri", ""]}
+						width="100%"
+						panelColors={["#d3d3d3", "#ffa0a0", "#ff7070", "#df7373", "#d76b6b", "#a54949"]}
+						rectRender={(props, data) => {
+							let tooltip: string;
+							if (!data.count) {
+								tooltip = `No events`;
+							} else if (data.count === 1) {
+								tooltip = `1 event`;
+							} else {
+								tooltip = `${data.count} events`;
+							}
+							return <rect class="date-entry" data-tooltip-content={`${tooltip} on ${data.date}`} {...props} />;
+						}}
+					/>
 				)}
-				{historyEvents.state === "error" && (
-					<InfoBox style="error" text="Failed to load history events" class="w-full" />
-				)}
-				<>{historyEvents.state === "success" && historyEvents.result.map((event) => <HistoryCard event={event} />)}</>
 			</SkeletonLoader>
-		</Paginator>
+			<Paginator currentPage={currentPage} setCurrentPage={setCurrentPage} totalPages={numPages}>
+				<SkeletonLoader layout="paragraph" pull={historyEventsPull}>
+					{historyEventsPull.state === "success" && historyEventsPull.result.entries.length === 0 && (
+						<div class="p-4 italic text-center text-gray-500">No history events found for this alert.</div>
+					)}
+					{historyEventsPull.state === "error" && (
+						<InfoBox style="error" text="Failed to load history events" class="w-full" />
+					)}
+					<>
+						{historyEventsPull.state === "success" &&
+							historyEventsPull.result.entries.map((event) => <HistoryCard event={event} />)}
+					</>
+				</SkeletonLoader>
+			</Paginator>
+		</div>
 	);
 };

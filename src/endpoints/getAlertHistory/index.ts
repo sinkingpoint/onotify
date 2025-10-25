@@ -82,8 +82,6 @@ export class GetAlertHistory extends OpenAPIRoute {
 				stats[day] = 0;
 			}
 
-			console.log("Got day", day, event);
-
 			stats[day]++;
 		}
 
@@ -101,8 +99,6 @@ export class GetAlertHistory extends OpenAPIRoute {
 				end = history.length;
 			}
 		}
-
-		console.log("trimming to", start, end, page, pageSize);
 
 		const outputHistories: GettableAlertHistory[] = history.slice(start, end).map((h) => {
 			if (h.ty === "comment") {

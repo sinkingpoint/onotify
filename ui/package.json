@@ -14,10 +14,12 @@
 		"@clerk/clerk-react": "^5.27.0",
 		"@heroicons/react": "^2.2.0",
 		"@hey-api/client-fetch": "^0.6.0",
+		"@uiw/react-heat-map": "^2.3.3",
 		"js-yaml": "^4.1.0",
 		"preact": "^10.22.1",
 		"preact-iso": "^2.8.1",
 		"preact-render-to-string": "^6.5.11",
+		"react-tooltip": "^5.30.0",
 		"zod": "^3.24.1"
 	},
 	"devDependencies": {
