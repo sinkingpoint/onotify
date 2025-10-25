@@ -31,7 +31,10 @@ export class GetAlertHistory extends OpenAPIRoute {
 				headers: PaginationHeaders,
 				content: {
 					"application/json": {
-						schema: z.array(GettableAlertHistorySpec),
+						schema: z.object({
+							stats: z.record(z.number()),
+							entries: z.array(GettableAlertHistorySpec),
+						}),
 					},
 				},
 			},
@@ -72,6 +75,18 @@ export class GetAlertHistory extends OpenAPIRoute {
 			history = history.filter((h) => h.timestamp <= endTime);
 		}
 
+		const stats: Record<string, number> = {};
+		for (const event of history) {
+			const day = new Date(event.timestamp).toISOString().split("T")[0];
+			if (!stats[day]) {
+				stats[day] = 0;
+			}
+
+			console.log("Got day", day, event);
+
+			stats[day]++;
+		}
+
 		const totalLength = history.length;
 		let start = 0;
 		let end = history.length;
@@ -86,6 +101,8 @@ export class GetAlertHistory extends OpenAPIRoute {
 				end = history.length;
 			}
 		}
+
+		console.log("trimming to", start, end, page, pageSize);
 
 		const outputHistories: GettableAlertHistory[] = history.slice(start, end).map((h) => {
 			if (h.ty === "comment") {
@@ -103,8 +120,11 @@ export class GetAlertHistory extends OpenAPIRoute {
 			}
 		});
 
-		c.res.headers.set("X-Total-Count", history.length.toString());
+		c.res.headers.set("X-Total-Count", totalLength.toString());
 		c.status(HTTPResponses.OK);
-		return c.json(outputHistories);
+		return c.json({
+			stats,
+			entries: outputHistories,
+		});
 	}
 }

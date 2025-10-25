@@ -7133,36 +7133,41 @@ export type GetAlertHistoryResponses = {
 	/**
 	 * Successfully got alerts
 	 */
-	200: Array<
-		| {
-				/**
-				 * The type of the alert event
-				 */
-				ty: "firing" | "resolved" | "acknowledged" | "unacknowledged" | "silenced" | "unsilenced";
-				/**
-				 * An RFC-3339 formatted timestamp indicating when the event occurred
-				 */
-				timestamp: string;
-		  }
-		| {
-				/**
-				 * The type of the alert event
-				 */
-				ty: "comment";
-				/**
-				 * An RFC-3339 formatted timestamp indicating when the event occurred
-				 */
-				timestamp: string;
-				/**
-				 * The comment that was added to the alert
-				 */
-				comment: string;
-				/**
-				 * The userID of the user that made the comment
-				 */
-				userID: string;
-		  }
-	>;
+	200: {
+		stats: {
+			[key: string]: number;
+		};
+		entries: Array<
+			| {
+					/**
+					 * The type of the alert event
+					 */
+					ty: "firing" | "resolved" | "acknowledged" | "unacknowledged" | "silenced" | "unsilenced";
+					/**
+					 * An RFC-3339 formatted timestamp indicating when the event occurred
+					 */
+					timestamp: string;
+			  }
+			| {
+					/**
+					 * The type of the alert event
+					 */
+					ty: "comment";
+					/**
+					 * An RFC-3339 formatted timestamp indicating when the event occurred
+					 */
+					timestamp: string;
+					/**
+					 * The comment that was added to the alert
+					 */
+					comment: string;
+					/**
+					 * The userID of the user that made the comment
+					 */
+					userID: string;
+			  }
+		>;
+	};
 };
 
 export type GetAlertHistoryResponse = GetAlertHistoryResponses[keyof GetAlertHistoryResponses];

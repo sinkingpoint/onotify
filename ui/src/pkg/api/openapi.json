@@ -10185,51 +10185,70 @@
 						"content": {
 							"application/json": {
 								"schema": {
-									"type": "array",
-									"items": {
-										"anyOf": [
-											{
-												"type": "object",
-												"properties": {
-													"ty": {
-														"type": "string",
-														"enum": ["firing", "resolved", "acknowledged", "unacknowledged", "silenced", "unsilenced"],
-														"description": "The type of the alert event"
-													},
-													"timestamp": {
-														"type": "string",
-														"format": "date-time",
-														"description": "An RFC-3339 formatted timestamp indicating when the event occurred"
-													}
-												},
-												"required": ["ty", "timestamp"]
-											},
-											{
-												"type": "object",
-												"properties": {
-													"ty": {
-														"type": "string",
-														"enum": ["comment"],
-														"description": "The type of the alert event"
-													},
-													"timestamp": {
-														"type": "string",
-														"format": "date-time",
-														"description": "An RFC-3339 formatted timestamp indicating when the event occurred"
-													},
-													"comment": {
-														"type": "string",
-														"description": "The comment that was added to the alert"
-													},
-													"userID": {
-														"type": "string",
-														"description": "The userID of the user that made the comment"
-													}
-												},
-												"required": ["ty", "timestamp", "comment", "userID"]
+									"type": "object",
+									"properties": {
+										"stats": {
+											"type": "object",
+											"additionalProperties": {
+												"type": "number"
 											}
-										]
-									}
+										},
+										"entries": {
+											"type": "array",
+											"items": {
+												"anyOf": [
+													{
+														"type": "object",
+														"properties": {
+															"ty": {
+																"type": "string",
+																"enum": [
+																	"firing",
+																	"resolved",
+																	"acknowledged",
+																	"unacknowledged",
+																	"silenced",
+																	"unsilenced"
+																],
+																"description": "The type of the alert event"
+															},
+															"timestamp": {
+																"type": "string",
+																"format": "date-time",
+																"description": "An RFC-3339 formatted timestamp indicating when the event occurred"
+															}
+														},
+														"required": ["ty", "timestamp"]
+													},
+													{
+														"type": "object",
+														"properties": {
+															"ty": {
+																"type": "string",
+																"enum": ["comment"],
+																"description": "The type of the alert event"
+															},
+															"timestamp": {
+																"type": "string",
+																"format": "date-time",
+																"description": "An RFC-3339 formatted timestamp indicating when the event occurred"
+															},
+															"comment": {
+																"type": "string",
+																"description": "The comment that was added to the alert"
+															},
+															"userID": {
+																"type": "string",
+																"description": "The userID of the user that made the comment"
+															}
+														},
+														"required": ["ty", "timestamp", "comment", "userID"]
+													}
+												]
+											}
+										}
+									},
+									"required": ["stats", "entries"]
 								}
 							}
 						}
