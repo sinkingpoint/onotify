@@ -10171,7 +10171,7 @@
 				],
 				"responses": {
 					"200": {
-						"description": "Successfully got alerts",
+						"description": "Successfully got alert alert history",
 						"headers": {
 							"X-Total-Count": {
 								"schema": {
@@ -10252,6 +10252,97 @@
 								}
 							}
 						}
+					},
+					"400": {
+						"description": "Bad Request",
+						"text/plain": {
+							"schema": {
+								"_def": {
+									"checks": [],
+									"typeName": "ZodString",
+									"coerce": false
+								},
+								"~standard": {
+									"version": 1,
+									"vendor": "zod"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized",
+						"text/plain": {
+							"schema": {
+								"_def": {
+									"checks": [],
+									"typeName": "ZodString",
+									"coerce": false
+								},
+								"~standard": {
+									"version": 1,
+									"vendor": "zod"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error",
+						"text/plain": {
+							"schema": {
+								"_def": {
+									"checks": [],
+									"typeName": "ZodString",
+									"coerce": false
+								},
+								"~standard": {
+									"version": 1,
+									"vendor": "zod"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/v1/alerts/{fingerprint}/comment": {
+			"post": {
+				"operationId": "postAlertComment",
+				"tags": ["alerts"],
+				"summary": "Add a comment to an alert",
+				"parameters": [
+					{
+						"schema": {
+							"type": "string",
+							"minLength": 1,
+							"maxLength": 100,
+							"description": "The fingerprint of the alert to comment on"
+						},
+						"required": true,
+						"name": "fingerprint",
+						"in": "path"
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"type": "object",
+								"properties": {
+									"comment": {
+										"type": "string",
+										"minLength": 1,
+										"maxLength": 500,
+										"description": "The comment to add to the alert"
+									}
+								},
+								"required": ["comment"]
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "Sucessfully pushed alerts"
 					},
 					"400": {
 						"description": "Bad Request",

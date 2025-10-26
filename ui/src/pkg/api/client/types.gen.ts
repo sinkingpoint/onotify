@@ -7131,7 +7131,7 @@ export type GetAlertHistoryErrors = {
 
 export type GetAlertHistoryResponses = {
 	/**
-	 * Successfully got alerts
+	 * Successfully got alert alert history
 	 */
 	200: {
 		stats: {
@@ -7171,3 +7171,42 @@ export type GetAlertHistoryResponses = {
 };
 
 export type GetAlertHistoryResponse = GetAlertHistoryResponses[keyof GetAlertHistoryResponses];
+
+export type PostAlertCommentData = {
+	body?: {
+		/**
+		 * The comment to add to the alert
+		 */
+		comment: string;
+	};
+	path: {
+		/**
+		 * The fingerprint of the alert to comment on
+		 */
+		fingerprint: string;
+	};
+	query?: never;
+	url: "/api/v1/alerts/{fingerprint}/comment";
+};
+
+export type PostAlertCommentErrors = {
+	/**
+	 * Bad Request
+	 */
+	400: unknown;
+	/**
+	 * Unauthorized
+	 */
+	401: unknown;
+	/**
+	 * Internal Server Error
+	 */
+	500: unknown;
+};
+
+export type PostAlertCommentResponses = {
+	/**
+	 * Sucessfully pushed alerts
+	 */
+	200: unknown;
+};

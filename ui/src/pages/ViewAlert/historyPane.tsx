@@ -1,27 +1,39 @@
 import HeatMap from "@uiw/react-heat-map";
-import { useMemo, useRef, useState } from "preact/hooks";
+import { useEffect, useMemo, useState } from "preact/hooks";
 import { Tooltip } from "react-tooltip";
 import InfoBox from "../../components/InfoBox";
 import Paginator from "../../components/Paginator";
 import { SkeletonLoader } from "../../components/Skeleton";
-import { getAlertHistory, GetAlertHistoryResponse } from "../../pkg/api/client";
+import { TextBox } from "../../components/TextBox";
+import {
+	getAlertHistory,
+	GetAlertHistoryResponse,
+	getUser,
+	GetUserResponse,
+	postAlertComment,
+} from "../../pkg/api/client";
 import { useQuery } from "../../pkg/types/utils";
 
 type HistoryPaneProps = {
 	fingerprint: string;
 };
 
-const HistoryCard = (event: { event: GetAlertHistoryResponse["entries"][number] }) => {
+type HistoryCardProps = {
+	event: GetAlertHistoryResponse["entries"][number];
+	users: GetUserResponse[];
+};
+
+const HistoryCard = ({ event, users }: HistoryCardProps) => {
 	return (
 		<div class="border-b border-gray-300 dark:border-gray-600 py-2 px-4">
-			<div class="text-sm text-gray-500">{new Date(event.event.timestamp).toLocaleString()}</div>
+			<div class="text-sm text-gray-500">{new Date(event.timestamp).toLocaleString()}</div>
 			<div class="mt-1">
-				{event.event.ty === "firing" && <span class="text-[color:--error] font-semibold">Firing</span>}
-				{event.event.ty === "resolved" && <span class="text-[color:--background-two] font-semibold">Resolved</span>}
-				{event.event.ty === "acknowledged" && <span class="text-[color:--warning] font-semibold">Acknowledged</span>}
-				{event.event.ty === "comment" && (
+				{event.ty === "firing" && <span class="text-[color:--error] font-semibold">Firing</span>}
+				{event.ty === "resolved" && <span class="text-[color:--background-two] font-semibold">Resolved</span>}
+				{event.ty === "acknowledged" && <span class="text-[color:--warning] font-semibold">Acknowledged</span>}
+				{event.ty === "comment" && (
 					<span class="">
-						Comment by {event.event.userID}: {event.event.comment}
+						{users.find((user) => event.ty === "comment" && user.user.id === event.userID)?.user.name}: {event.comment}
 					</span>
 				)}
 			</div>
@@ -30,7 +42,6 @@ const HistoryCard = (event: { event: GetAlertHistoryResponse["entries"][number] 
 };
 
 export default ({ fingerprint }: HistoryPaneProps) => {
-	const heatmapHoverRef = useRef();
 	const [currentPage, setCurrentPage] = useState(0);
 	const historyEventsPull = useQuery(() => {
 		return getAlertHistory({
@@ -61,6 +72,40 @@ export default ({ fingerprint }: HistoryPaneProps) => {
 
 		return Math.ceil(numSilences / 10);
 	}, [historyEventsPull]);
+
+	const [commentUsers, setCommentUsers] = useState<GetUserResponse[]>([]);
+
+	useEffect(() => {
+		const fetchUsers = async () => {
+			if (historyEventsPull.state !== "success") {
+				setCommentUsers([]);
+				return;
+			}
+
+			const users = new Set<string>();
+			historyEventsPull.result.entries.forEach((event) => {
+				if (event.ty === "comment") {
+					users.add(event.userID);
+				}
+			});
+
+			const userResponses = await Promise.all(Array.from(users).map((userID) => getUser({ path: { userID } })));
+			setCommentUsers(userResponses.map((res) => res.data));
+		};
+
+		fetchUsers();
+	}, [historyEventsPull]);
+
+	const addComment = (comment: string) => {
+		return postAlertComment({
+			path: {
+				fingerprint,
+			},
+			body: {
+				comment,
+			},
+		});
+	};
 
 	const getStartDate = () => {
 		const date = new Date();
@@ -102,6 +147,25 @@ export default ({ fingerprint }: HistoryPaneProps) => {
 					/>
 				)}
 			</SkeletonLoader>
+
+			<div class="flex flex-col md:flex-row justify-between">
+				<h2 class="text-xl">Comment</h2>
+			</div>
+
+			<div class="flex-1">
+				<TextBox
+					placeholder="Add a comment..."
+					onKeyPress={(e) => {
+						if (e.key === "Enter") {
+							addComment(e.currentTarget.value).then(() => {
+								e.currentTarget.value = "";
+								historyEventsPull.state !== "pending" && historyEventsPull.refresh();
+							});
+						}
+					}}
+				/>
+			</div>
+
 			<Paginator currentPage={currentPage} setCurrentPage={setCurrentPage} totalPages={numPages}>
 				<SkeletonLoader layout="paragraph" pull={historyEventsPull}>
 					{historyEventsPull.state === "success" && historyEventsPull.result.entries.length === 0 && (
@@ -112,7 +176,7 @@ export default ({ fingerprint }: HistoryPaneProps) => {
 					)}
 					<>
 						{historyEventsPull.state === "success" &&
-							historyEventsPull.result.entries.map((event) => <HistoryCard event={event} />)}
+							historyEventsPull.result.entries.map((event) => <HistoryCard event={event} users={commentUsers} />)}
 					</>
 				</SkeletonLoader>
 			</Paginator>

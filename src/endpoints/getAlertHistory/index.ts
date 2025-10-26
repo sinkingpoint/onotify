@@ -27,7 +27,7 @@ export class GetAlertHistory extends OpenAPIRoute {
 		},
 		responses: {
 			"200": {
-				description: "Successfully got alerts",
+				description: "Successfully got alert alert history",
 				headers: PaginationHeaders,
 				content: {
 					"application/json": {

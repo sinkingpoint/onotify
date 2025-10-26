@@ -36,6 +36,9 @@ import type {
 	GetUserData,
 	GetUserErrors,
 	GetUserResponses,
+	PostAlertCommentData,
+	PostAlertCommentErrors,
+	PostAlertCommentResponses,
 	PostAlertsData,
 	PostAlertsErrors,
 	PostAlertsResponses,
@@ -242,5 +245,21 @@ export const getAlertHistory = <ThrowOnError extends boolean = false>(
 	return (options.client ?? client).get<GetAlertHistoryResponses, GetAlertHistoryErrors, ThrowOnError>({
 		url: "/api/v1/alerts/{fingerprint}/history",
 		...options,
+	});
+};
+
+/**
+ * Add a comment to an alert
+ */
+export const postAlertComment = <ThrowOnError extends boolean = false>(
+	options: Options<PostAlertCommentData, ThrowOnError>,
+) => {
+	return (options.client ?? client).post<PostAlertCommentResponses, PostAlertCommentErrors, ThrowOnError>({
+		url: "/api/v1/alerts/{fingerprint}/comment",
+		...options,
+		headers: {
+			"Content-Type": "application/json",
+			...options.headers,
+		},
 	});
 };

@@ -284,6 +284,23 @@ export class AlertDB {
 		const isResolved = alert.endsAt && alert.endsAt < Date.now();
 		if (isResolved) return false;
 		alert.acknowledgedBy = user;
+		alert.history.push({
+			timestamp: Date.now(),
+			ty: "acknowledged",
+		});
+		await this.storeAlert(alert);
+		return true;
+	}
+
+	async addAlertComment(fingerprint: string, user: string, comment: string): Promise<boolean> {
+		const alert = await this.getAlert(fingerprint);
+		if (!alert) return false;
+		alert.history.push({
+			timestamp: Date.now(),
+			ty: "comment",
+			userID: user,
+			comment,
+		});
 		await this.storeAlert(alert);
 		return true;
 	}

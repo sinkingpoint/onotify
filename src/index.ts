@@ -13,6 +13,7 @@ import GetSilence from "./endpoints/getSilence";
 import { GetSilences } from "./endpoints/getSilences";
 import { GetStats } from "./endpoints/getStats";
 import { GetUser } from "./endpoints/getUser";
+import { PostAlertComment } from "./endpoints/postAlertComment";
 import { PostAlerts } from "./endpoints/postAlerts";
 import { PostSilence } from "./endpoints/postSilences";
 import { PostConfig } from "./endpoints/uploadConfig";
@@ -63,6 +64,7 @@ openapi.get("/api/v1/config", GetConfig);
 openapi.get("/api/v1/config/tree", GetRoutingTree);
 openapi.get("/api/v1/user/:userID", GetUser);
 openapi.get("/api/v1/alerts/:fingerprint/history", GetAlertHistory);
+openapi.post("/api/v1/alerts/:fingerprint/comment", PostAlertComment);
 
 // Export the Hono app
 export default instrument(app, OTelConfFn);

@@ -37,6 +37,7 @@ export enum AccountControllerActions {
 	MarkSilenceStarted = "mark-silence-started",
 	MarkSilenceExpired = "mark-silence-expired",
 	AcknowledgeAlert = "acknowledge-alert",
+	AddComment = "add-comment",
 }
 
 const getTracer = () => {
@@ -69,6 +70,18 @@ class AccountControllerDO implements DurableObject {
 				this.alertGroupStorage.init(alertGroups);
 			});
 		});
+	}
+	alarm?(alarmInfo?: AlarmInvocationInfo): void | Promise<void> {
+		throw new Error("Method not implemented.");
+	}
+	webSocketMessage?(ws: WebSocket, message: string | ArrayBuffer): void | Promise<void> {
+		throw new Error("Method not implemented.");
+	}
+	webSocketClose?(ws: WebSocket, code: number, reason: string, wasClean: boolean): void | Promise<void> {
+		throw new Error("Method not implemented.");
+	}
+	webSocketError?(ws: WebSocket, error: unknown): void | Promise<void> {
+		throw new Error("Method not implemented.");
 	}
 
 	private async addAlerts(alerts: ReceiveredAlert[]) {
@@ -199,6 +212,10 @@ class AccountControllerDO implements DurableObject {
 		return this.alertStorage.acknowledgeAlert(fingerprint, user);
 	}
 
+	private async addComment({ fingerprint, comment, user }: { fingerprint: string; comment: string; user: string }) {
+		return this.alertStorage.addAlertComment(fingerprint, user, comment);
+	}
+
 	async fetch(request: Request) {
 		const rpcMethods = {
 			[AccountControllerActions.AddAlerts]: this.addAlerts,
@@ -212,6 +229,7 @@ class AccountControllerDO implements DurableObject {
 			[AccountControllerActions.MarkSilenceStarted]: this.markSilenceStarted,
 			[AccountControllerActions.MarkSilenceExpired]: this.markSilenceExpired,
 			[AccountControllerActions.AcknowledgeAlert]: this.acknowledgeAlert,
+			[AccountControllerActions.AddComment]: this.addComment,
 		};
 
 		return rpcFetch(this, request, rpcMethods);
