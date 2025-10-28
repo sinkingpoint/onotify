@@ -356,3 +356,21 @@ export const GetAlertHistoryParamsSpec = z.object({
 	page: z.number().optional().openapi({ description: "The page of history to return" }),
 	pageSize: z.number().optional().openapi({ description: "The number of history events per page" }),
 });
+
+export const GettableUserTokenSpec = z.object({
+	id: z.string().openapi({
+		description: "The ID of the token",
+	}),
+	name: z.string().openapi({
+		description: "The name of the token",
+	}),
+	createdAt: z.string().datetime({ precision: 3, offset: true }).openapi({
+		description: "An RFC-3339 formatted timestamp indicating when the token was created",
+	}),
+	scopes: z.array(z.string()).openapi({
+		description: "The scopes that the token has",
+	}),
+	expiresAt: z.string().datetime({ precision: 3, offset: true }).openapi({
+		description: "An RFC-3339 formatted timestamp indicating when the token expires",
+	}),
+});

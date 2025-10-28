@@ -13,6 +13,7 @@ import GetSilence from "./endpoints/getSilence";
 import { GetSilences } from "./endpoints/getSilences";
 import { GetStats } from "./endpoints/getStats";
 import { GetUser } from "./endpoints/getUser";
+import { GetUserTokens } from "./endpoints/getUserTokens";
 import { PostAlertComment } from "./endpoints/postAlertComment";
 import { PostAlerts } from "./endpoints/postAlerts";
 import { PostSilence } from "./endpoints/postSilences";
@@ -25,7 +26,6 @@ export { AccountController } from "./dos/account-controller";
 export { default as AlertGroupController } from "./dos/alert-group-controller";
 export { default as SilenceController } from "./dos/silence-controller";
 export { app };
-
 // Start a Hono app
 const app = new Hono<{ Bindings: Bindings }>();
 
@@ -65,6 +65,7 @@ openapi.get("/api/v1/config/tree", GetRoutingTree);
 openapi.get("/api/v1/user/:userID", GetUser);
 openapi.get("/api/v1/alerts/:fingerprint/history", GetAlertHistory);
 openapi.post("/api/v1/alerts/:fingerprint/comment", PostAlertComment);
+openapi.get("/api/auth/tokens", GetUserTokens);
 
 // Export the Hono app
 export default instrument(app, OTelConfFn);
