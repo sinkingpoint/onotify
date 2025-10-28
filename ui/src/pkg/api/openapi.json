@@ -10394,6 +10394,105 @@
 					}
 				}
 			}
+		},
+		"/api/auth/tokens": {
+			"get": {
+				"operationId": "getUserTokens",
+				"tags": ["auth"],
+				"summary": "Get all the API tokens for the authenticated user",
+				"responses": {
+					"200": {
+						"description": "Sucessfully retrieved silence",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"type": "object",
+										"properties": {
+											"id": {
+												"type": "string",
+												"description": "The ID of the token"
+											},
+											"name": {
+												"type": "string",
+												"description": "The name of the token"
+											},
+											"createdAt": {
+												"type": "string",
+												"format": "date-time",
+												"description": "An RFC-3339 formatted timestamp indicating when the token was created"
+											},
+											"scopes": {
+												"type": "array",
+												"items": {
+													"type": "string"
+												},
+												"description": "The scopes that the token has"
+											},
+											"expiresAt": {
+												"type": "string",
+												"format": "date-time",
+												"description": "An RFC-3339 formatted timestamp indicating when the token expires"
+											}
+										},
+										"required": ["id", "name", "createdAt", "scopes", "expiresAt"]
+									},
+									"description": "The list of API tokens for the user"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Bad Request",
+						"text/plain": {
+							"schema": {
+								"_def": {
+									"checks": [],
+									"typeName": "ZodString",
+									"coerce": false
+								},
+								"~standard": {
+									"version": 1,
+									"vendor": "zod"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized",
+						"text/plain": {
+							"schema": {
+								"_def": {
+									"checks": [],
+									"typeName": "ZodString",
+									"coerce": false
+								},
+								"~standard": {
+									"version": 1,
+									"vendor": "zod"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error",
+						"text/plain": {
+							"schema": {
+								"_def": {
+									"checks": [],
+									"typeName": "ZodString",
+									"coerce": false
+								},
+								"~standard": {
+									"version": 1,
+									"vendor": "zod"
+								}
+							}
+						}
+					}
+				}
+			}
 		}
 	},
 	"webhooks": {}

@@ -36,6 +36,9 @@ import type {
 	GetUserData,
 	GetUserErrors,
 	GetUserResponses,
+	GetUserTokensData,
+	GetUserTokensErrors,
+	GetUserTokensResponses,
 	PostAlertCommentData,
 	PostAlertCommentErrors,
 	PostAlertCommentResponses,
@@ -261,5 +264,17 @@ export const postAlertComment = <ThrowOnError extends boolean = false>(
 			"Content-Type": "application/json",
 			...options.headers,
 		},
+	});
+};
+
+/**
+ * Get all the API tokens for the authenticated user
+ */
+export const getUserTokens = <ThrowOnError extends boolean = false>(
+	options?: Options<GetUserTokensData, ThrowOnError>,
+) => {
+	return (options?.client ?? client).get<GetUserTokensResponses, GetUserTokensErrors, ThrowOnError>({
+		url: "/api/auth/tokens",
+		...options,
 	});
 };

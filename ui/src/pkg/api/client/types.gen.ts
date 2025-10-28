@@ -7210,3 +7210,55 @@ export type PostAlertCommentResponses = {
 	 */
 	200: unknown;
 };
+
+export type GetUserTokensData = {
+	body?: never;
+	path?: never;
+	query?: never;
+	url: "/api/auth/tokens";
+};
+
+export type GetUserTokensErrors = {
+	/**
+	 * Bad Request
+	 */
+	400: unknown;
+	/**
+	 * Unauthorized
+	 */
+	401: unknown;
+	/**
+	 * Internal Server Error
+	 */
+	500: unknown;
+};
+
+export type GetUserTokensResponses = {
+	/**
+	 * The list of API tokens for the user
+	 */
+	200: Array<{
+		/**
+		 * The ID of the token
+		 */
+		id: string;
+		/**
+		 * The name of the token
+		 */
+		name: string;
+		/**
+		 * An RFC-3339 formatted timestamp indicating when the token was created
+		 */
+		createdAt: string;
+		/**
+		 * The scopes that the token has
+		 */
+		scopes: Array<string>;
+		/**
+		 * An RFC-3339 formatted timestamp indicating when the token expires
+		 */
+		expiresAt: string;
+	}>;
+};
+
+export type GetUserTokensResponse = GetUserTokensResponses[keyof GetUserTokensResponses];
