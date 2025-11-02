@@ -6,6 +6,9 @@ import type {
 	AcknowledgeAlertData,
 	AcknowledgeAlertErrors,
 	AcknowledgeAlertResponses,
+	DeleteApiKeyData,
+	DeleteApiKeyErrors,
+	DeleteApiKeyResponses,
 	GetAlertGroupsData,
 	GetAlertGroupsErrors,
 	GetAlertGroupsResponses,
@@ -275,6 +278,18 @@ export const getUserTokens = <ThrowOnError extends boolean = false>(
 ) => {
 	return (options?.client ?? client).get<GetUserTokensResponses, GetUserTokensErrors, ThrowOnError>({
 		url: "/api/auth/tokens",
+		...options,
+	});
+};
+
+/**
+ * Delete an API key for the authenticated user
+ */
+export const deleteApiKey = <ThrowOnError extends boolean = false>(
+	options: Options<DeleteApiKeyData, ThrowOnError>,
+) => {
+	return (options.client ?? client).delete<DeleteApiKeyResponses, DeleteApiKeyErrors, ThrowOnError>({
+		url: "/api/auth/tokens/{tokenId}",
 		...options,
 	});
 };

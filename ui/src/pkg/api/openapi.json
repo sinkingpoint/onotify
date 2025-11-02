@@ -10496,6 +10496,77 @@
 					}
 				}
 			}
+		},
+		"/api/auth/tokens/{tokenId}": {
+			"delete": {
+				"operationId": "deleteAPIKey",
+				"tags": ["auth"],
+				"summary": "Delete an API key for the authenticated user",
+				"parameters": [
+					{
+						"schema": {
+							"type": "string",
+							"description": "The ID of the API key to delete"
+						},
+						"required": true,
+						"name": "tokenId",
+						"in": "path"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successfully deleted API token"
+					},
+					"400": {
+						"description": "Bad Request",
+						"text/plain": {
+							"schema": {
+								"_def": {
+									"checks": [],
+									"typeName": "ZodString",
+									"coerce": false
+								},
+								"~standard": {
+									"version": 1,
+									"vendor": "zod"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized",
+						"text/plain": {
+							"schema": {
+								"_def": {
+									"checks": [],
+									"typeName": "ZodString",
+									"coerce": false
+								},
+								"~standard": {
+									"version": 1,
+									"vendor": "zod"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error",
+						"text/plain": {
+							"schema": {
+								"_def": {
+									"checks": [],
+									"typeName": "ZodString",
+									"coerce": false
+								},
+								"~standard": {
+									"version": 1,
+									"vendor": "zod"
+								}
+							}
+						}
+					}
+				}
+			}
 		}
 	},
 	"webhooks": {}

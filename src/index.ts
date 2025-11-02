@@ -3,6 +3,7 @@ import { fromHono } from "chanfana";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { AcknowledgeAlert } from "./endpoints/acknowledgeAlert";
+import { DeleteAPIKey } from "./endpoints/deleteAPIKey";
 import { GetAlertGroups } from "./endpoints/getAlertGroups";
 import { GetAlertHistory } from "./endpoints/getAlertHistory";
 import { GetAlerts } from "./endpoints/getAlerts";
@@ -32,7 +33,7 @@ const app = new Hono<{ Bindings: Bindings }>();
 app.use(
 	"*",
 	cors({
-		allowMethods: ["GET", "POST", "OPTIONS"],
+		allowMethods: ["GET", "POST", "OPTIONS", "DELETE"],
 		allowHeaders: ["Content-Type", "Authorization"],
 		exposeHeaders: ["X-Total-Count"],
 		origin: (origin, c) => {
@@ -66,6 +67,7 @@ openapi.get("/api/v1/user/:userID", GetUser);
 openapi.get("/api/v1/alerts/:fingerprint/history", GetAlertHistory);
 openapi.post("/api/v1/alerts/:fingerprint/comment", PostAlertComment);
 openapi.get("/api/auth/tokens", GetUserTokens);
+openapi.delete("/api/auth/tokens/:tokenId", DeleteAPIKey);
 
 // Export the Hono app
 export default instrument(app, OTelConfFn);

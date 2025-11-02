@@ -7263,3 +7263,37 @@ export type GetUserTokensResponses = {
 };
 
 export type GetUserTokensResponse = GetUserTokensResponses[keyof GetUserTokensResponses];
+
+export type DeleteApiKeyData = {
+	body?: never;
+	path: {
+		/**
+		 * The ID of the API key to delete
+		 */
+		tokenId: string;
+	};
+	query?: never;
+	url: "/api/auth/tokens/{tokenId}";
+};
+
+export type DeleteApiKeyErrors = {
+	/**
+	 * Bad Request
+	 */
+	400: unknown;
+	/**
+	 * Unauthorized
+	 */
+	401: unknown;
+	/**
+	 * Internal Server Error
+	 */
+	500: unknown;
+};
+
+export type DeleteApiKeyResponses = {
+	/**
+	 * Successfully deleted API token
+	 */
+	200: unknown;
+};
