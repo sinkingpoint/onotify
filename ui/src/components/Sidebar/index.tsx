@@ -9,6 +9,7 @@ import {
 import { VNode } from "preact";
 import { useLocation } from "preact-iso";
 import { HTMLAttributes, useRef, useState } from "preact/compat";
+import UserMenuCard from "../UserMenuCard";
 import "./style.css";
 
 interface SideBarItemProps extends HTMLAttributes<HTMLAnchorElement> {
@@ -34,7 +35,7 @@ const SideBarGroup = ({ title, icon, initialExpanded, children }: SideBarGroupPr
 	const triggerGroupClick = () => {
 		if (firstChildRef.current) {
 			setExpanded(true);
-			(firstChildRef.current as unknown).base.click(); // Cast with any here. Base does exist, but I can't figure out how to type it.
+			(firstChildRef.current as any).base.click(); // Cast with any here. Base does exist, but I can't figure out how to type it.
 		}
 	};
 
@@ -127,6 +128,8 @@ export const SideBar = () => {
 				<SideBarGroup title="Config" icon={<DocumentTextIcon class="inline size-6" />} initialExpanded={true}>
 					<SideBarItem title="Raw Config" href="/config" />
 				</SideBarGroup>
+
+				<UserMenuCard class="mt-auto p-5 side-bar-item" />
 			</nav>
 		);
 	} else {

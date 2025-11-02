@@ -10025,7 +10025,7 @@
 		"/api/v1/user/{userID}": {
 			"get": {
 				"operationId": "getUser",
-				"tags": ["alerts"],
+				"tags": ["auth"],
 				"summary": "get the details about a user",
 				"parameters": [
 					{
@@ -10054,9 +10054,12 @@
 												},
 												"name": {
 													"type": "string"
+												},
+												"email": {
+													"type": "string"
 												}
 											},
-											"required": ["id", "name"]
+											"required": ["id", "name", "email"]
 										}
 									},
 									"required": ["user"]

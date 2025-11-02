@@ -7079,6 +7079,7 @@ export type GetUserResponses = {
 		user: {
 			id: string;
 			name: string;
+			email: string;
 		};
 	};
 };
