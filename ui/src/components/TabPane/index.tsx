@@ -29,7 +29,19 @@ export function TabPane({
 			content: tab.props.children,
 		}));
 
+	if (window.location.hash && window.location.hash.startsWith("#tab-")) {
+		const tabIndex = parseInt(window.location.hash.replace("#tab-", ""), 10);
+		if (!isNaN(tabIndex) && tabIndex < tabList.length) {
+			initialIndex = tabIndex;
+		}
+	}
+
 	const [selected, setSelected] = useState(initialIndex);
+
+	const onTabChange = (index: number) => {
+		setSelected(index);
+		window.location.hash = `#tab-${index}`;
+	};
 
 	return (
 		<div {...divProps}>
@@ -37,7 +49,7 @@ export function TabPane({
 				{tabList.map((tab, idx) => (
 					<button
 						key={tab.name}
-						onClick={() => setSelected(idx)}
+						onClick={() => onTabChange(idx)}
 						className={"tab-pane-header " + (selected === idx ? " active" : "")}
 					>
 						{tab.name}
