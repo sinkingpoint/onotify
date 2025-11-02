@@ -14,12 +14,20 @@ import ViewSilence from "./pages/ViewSilence";
 import ViewSilences from "./pages/ViewSilences/index.js";
 import { client } from "./pkg/api/client/client.gen.js";
 
+const headers =
+	import.meta.env.MODE === "development"
+		? {
+				Authorization: "Bearer notify-test",
+			}
+		: {};
+
 export function App() {
 	client.setConfig({
-		baseUrl: import.meta.env.MODE === "development" ? "http://localhost:8787" : "https://api.onotifi.com",
-		headers: {
-			Authorization: "Bearer notify-test",
-		},
+		baseUrl:
+			import.meta.env.MODE === "development"
+				? "http://localhost:8787"
+				: (import.meta.env.BASE_URL ?? "https://api.onotifi.com"),
+		headers,
 	});
 
 	return (
