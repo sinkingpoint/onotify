@@ -129,7 +129,7 @@ export const SideBar = () => {
 					<SideBarItem title="Raw Config" href="/config" />
 				</SideBarGroup>
 
-				<UserMenuCard class="mt-auto p-5 side-bar-item" />
+				<UserMenuCard class="mt-auto p-5 side-bar-item" href="/user" />
 			</nav>
 		);
 	} else {

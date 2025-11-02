@@ -5,7 +5,7 @@ import "./index.css";
 import { NotFound } from "./pages/_404.jsx";
 import AddSilence from "./pages/AddSilence";
 import { Dash } from "./pages/Dash";
-import ManageApiKeys from "./pages/ManageApiKeys/index.js";
+import ManageUser from "./pages/ManageUser/index.js";
 import Onboarding from "./pages/Onboarding";
 import ViewAlert from "./pages/ViewAlert";
 import ViewAlerts from "./pages/ViewAlerts/index.js";
@@ -43,7 +43,7 @@ export function App() {
 					<Route path="/silences/new" component={AddSilence} />
 					<Route path="/silences/:id" component={ViewSilence} />
 					<Route path="/config" component={ViewConfig} />
-					<Route path="/auth/api-keys" component={ManageApiKeys} />
+					<Route path="/user" component={ManageUser} />
 					<Route default component={NotFound} />
 				</Router>
 			</main>

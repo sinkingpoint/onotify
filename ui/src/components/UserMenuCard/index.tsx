@@ -3,11 +3,14 @@ import { getUser } from "../../pkg/api/client";
 import { useQuery } from "../../pkg/types/utils";
 import { SkeletonLoader } from "../Skeleton";
 
-interface UserMenuCardProps extends HTMLAttributes<HTMLDivElement> {}
-export default (props: UserMenuCardProps) => {
+interface UserMenuCardProps extends HTMLAttributes<HTMLAnchorElement> {
+	href: string;
+}
+
+export default ({ href, ...extra }: UserMenuCardProps) => {
 	const userPull = useQuery(() => getUser({ path: { userID: "me" } }), []);
 	return (
-		<div {...props}>
+		<a href={href} {...extra}>
 			<SkeletonLoader pull={userPull} layout="single-line">
 				{userPull.state === "success" && (
 					<span>
@@ -15,6 +18,6 @@ export default (props: UserMenuCardProps) => {
 					</span>
 				)}
 			</SkeletonLoader>
-		</div>
+		</a>
 	);
 };
