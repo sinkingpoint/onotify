@@ -1,5 +1,6 @@
 import { OpenAPIRoute } from "chanfana";
 import { Context } from "hono";
+import { callRPC } from "utils/rpc";
 import { AccountControllerActions } from "../../dos/account-controller";
 import { GetAlertGroupsOptionsSpec } from "../../types/api";
 import { Errors, HTTPResponses } from "../../types/http";
@@ -7,7 +8,6 @@ import { Bindings, HydratedAlertGroup } from "../../types/internal";
 import { internalAlertToAlertmanager } from "../utils/api";
 import { checkAPIKey, toErrorString } from "../utils/auth";
 import { accountControllerName } from "../utils/kv";
-import { callRPC } from "utils/rpc";
 
 export class GetAlertGroups extends OpenAPIRoute {
 	schema = {
@@ -26,7 +26,7 @@ export class GetAlertGroups extends OpenAPIRoute {
 	};
 
 	async handle(c: Context<{ Bindings: Bindings }>) {
-		const authResult = await checkAPIKey(c.env, c.req.header("Authorization"), "get-alerts");
+		const authResult = await checkAPIKey(c.env, c.req, "get-alerts");
 
 		if (authResult.result !== "ok") {
 			c.status(HTTPResponses.Unauthorized);

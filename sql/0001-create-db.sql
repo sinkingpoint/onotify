@@ -5,12 +5,14 @@ CREATE TABLE IF NOT EXISTS account (
 
 CREATE TABLE IF NOT EXISTS user (
   id string,
-  name string
+  name string,
+  email string
 );
 
 CREATE TABLE IF NOT EXISTS account_membership (
   user_id string,
-  account_id string
+  account_id string,
+  scopes string
 );
 
 CREATE TABLE IF NOT EXISTS api_keys (
@@ -25,6 +27,6 @@ CREATE TABLE IF NOT EXISTS api_keys (
 );
 
 INSERT INTO api_keys VALUES ("0", "0", "test-key", "st", "730a107cecab83da37f6468d831dcdbbdedf156dc0c45bb037d4f7b0f31cf860", 0, 0, "*");
-INSERT INTO user VALUES ("0", "Test User");
+INSERT INTO user VALUES ("0", "Test User", "test@example.com");
 INSERT INTO account VALUES ("0", "Test Account");
-INSERT INTO account_membership VALUES ("0", "0");
+INSERT INTO account_membership VALUES ("0", "0", "*");

@@ -31,7 +31,7 @@ export class PostSilence extends OpenAPIRoute {
 	};
 
 	async handle(c: Context<{ Bindings: Bindings }>) {
-		const authResult = await checkAPIKey(c.env, c.req.header("Authorization"), "post-silences");
+		const authResult = await checkAPIKey(c.env, c.req, "post-silences");
 		if (authResult.result !== "ok") {
 			c.status(HTTPResponses.Unauthorized);
 			return c.text(toErrorString(authResult));

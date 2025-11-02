@@ -34,7 +34,7 @@ export default class GetSilence extends OpenAPIRoute {
 	};
 
 	async handle(c: Context<{ Bindings: Bindings }>) {
-		const authResult = await checkAPIKey(c.env, c.req.header("Authorization"), "get-silences");
+		const authResult = await checkAPIKey(c.env, c.req, "get-silences");
 		if (authResult.result !== "ok") {
 			c.status(HTTPResponses.Unauthorized);
 			return c.text(toErrorString(authResult));

@@ -1,6 +1,7 @@
-import { SpanStatusCode, trace } from "@opentelemetry/api";
+import { HonoRequest } from "hono";
 import * as jose from "jose";
 import { Bindings } from "../../types/internal";
+import { getCookie } from "./cookie";
 
 const API_KEY_PREFIX = "notify-";
 
@@ -34,7 +35,8 @@ export const toErrorString = (e: APIKeyError) => {
 };
 
 type APIKeyData = jose.JWTPayload & {
-	scopes: string[];
+	scopes?: string[];
+	email?: string;
 };
 
 interface APIKey {
@@ -52,71 +54,124 @@ type APIKeyResult = APIKey | APIKeyError;
 // 3. has all of the required scopes
 export const checkAPIKey = async (
 	env: Bindings,
-	auth_header: string | undefined,
+	req: HonoRequest,
 	...requiredScopes: string[]
 ): Promise<APIKeyResult> => {
-	if (!auth_header) {
+	const authHeader = req.header("Authorization");
+	const cfAccessCookie = getCookie(req, "CF_Authorization");
+	if (!authHeader && !cfAccessCookie) {
 		return {
 			result: "missing",
 		};
 	}
 
-	const [bearer, key] = auth_header.split(" ");
-	if (bearer !== "Bearer") {
-		return {
-			result: "malformed",
-			text: "missing Bearer prefix",
-		};
+	if (authHeader) {
+		const [bearer, key] = authHeader.split(" ");
+		if (bearer !== "Bearer") {
+			return {
+				result: "malformed",
+				text: "missing Bearer prefix",
+			};
+		}
+
+		if (key.startsWith(API_KEY_PREFIX)) {
+			return validateAPIKey(env, key, ...requiredScopes);
+		} else {
+			return validateUserToken(env, key, ...requiredScopes);
+		}
 	}
 
-	if (key.startsWith(API_KEY_PREFIX)) {
-		return validateAPIKey(env, key, ...requiredScopes);
+	return validateUserToken(env, cfAccessCookie!, ...requiredScopes);
+};
+
+const fetchPublicKeys = async (env: Bindings): Promise<(jose.CryptoKey | Uint8Array<ArrayBufferLike>)[]> => {
+	type jwkKey = {
+		keys: jose.JWK[];
+	};
+	if (env.AUTH_JWK) {
+		const jwkKey: jwkKey = JSON.parse(env.AUTH_JWK);
+		return Promise.all(jwkKey["keys"].map((k: jose.JWK) => jose.importJWK(k)));
+	} else if (env.AUTH_JWK_URL) {
+		const response = await fetch(env.AUTH_JWK_URL);
+		if (!response.ok) {
+			throw new Error("Failed to fetch JWKs");
+		}
+		const jwkKey: jwkKey = await response.json();
+		return Promise.all(jwkKey["keys"].map((k: jose.JWK) => jose.importJWK(k)));
 	} else {
-		return validateUserToken(env, key, ...requiredScopes);
+		throw new Error("No JWK or JWK URL configured");
 	}
 };
 
 const validateUserToken = async (env: Bindings, key: string, ...requiredScopes: string[]): Promise<APIKeyResult> => {
-	const jwkKey = JSON.parse(env.AUTH_JWK);
-	const publicKey = await jose.importJWK(jwkKey["keys"][0]);
+	const publicKeys = await fetchPublicKeys(env);
+	let payload: (jose.JWTPayload & APIKeyData) | undefined = undefined;
 
-	try {
-		const { payload } = await jose.jwtVerify<APIKeyData>(key, publicKey, {});
-		if (payload.nbf && payload.nbf !== 0 && payload.nbf > Date.now() / 1000) {
-			return {
-				result: "expired",
-				text: "api key not valid yet",
-			};
+	for (const publicKey of publicKeys) {
+		try {
+			const decoded = await jose.jwtVerify<APIKeyData>(key, publicKey, {});
+			payload = decoded.payload;
+		} catch (e: any) {
+			// Ignore errors, we just try the next key
 		}
+	}
 
-		if (payload.exp && payload.exp !== 0 && payload.exp < Date.now() / 1000) {
-			return {
-				result: "expired",
-				text: "api key expired",
-			};
-		}
-
-		const scopes = validateScopes(payload.scopes ?? [], ...requiredScopes);
-		if (!scopes.result) {
-			return {
-				result: "missing scope",
-				text: `missing scopes: ${scopes.missingScopes.join(", ")}`,
-			};
-		}
-
-		return {
-			result: "ok",
-			accountID: payload.account_id as string,
-			userID: payload.user_id as string,
-			scopes: payload.scopes ?? [],
-		};
-	} catch (e: any) {
-		trace.getActiveSpan()?.setStatus({ code: SpanStatusCode.ERROR, message: e.toString() });
+	if (!payload) {
 		return {
 			result: "invalid",
-			text: "invalid JWT",
+			text: "invalid jwt",
 		};
 	}
+
+	if (payload.nbf && payload.nbf !== 0 && payload.nbf > Date.now() / 1000) {
+		return {
+			result: "expired",
+			text: "api key not valid yet",
+		};
+	}
+
+	if (payload.exp && payload.exp !== 0 && payload.exp < Date.now() / 1000) {
+		return {
+			result: "expired",
+			text: "api key expired",
+		};
+	}
+
+	if (!payload.scopes && payload.email) {
+		// This is a CF Access token, look up the user's scopes from the database.
+		const user: { user_id: string } | null = await env.DB.prepare(`SELECT id AS user_id FROM user WHERE email=?`)
+			.bind(payload.email)
+			.first();
+
+		if (user) {
+			const membership: { account_id: string; user_id: string; scopes: string } | null = await env.DB.prepare(
+				`SELECT account_id,user_id,scopes FROM account_membership WHERE user_id=?`,
+			)
+				.bind(user.user_id)
+				.first();
+
+			if (membership) {
+				payload.scopes = membership.scopes.split(",");
+				payload.user_id = membership.user_id;
+				payload.account_id = membership.account_id;
+			}
+		}
+	}
+
+	const scopes = validateScopes(payload.scopes ?? [], ...requiredScopes);
+	if (!scopes.result) {
+		return {
+			result: "missing scope",
+			text: `missing scopes: ${scopes.missingScopes.join(", ")}`,
+		};
+	}
+
+	return {
+		result: "ok",
+		accountID: payload.account_id as string,
+		userID: payload.user_id as string,
+		scopes: payload.scopes ?? [],
+	};
 };
 
 const validateAPIKey = async (env: Bindings, key: string, ...requiredScopes: string[]): Promise<APIKeyResult> => {
@@ -129,8 +184,6 @@ const validateAPIKey = async (env: Bindings, key: string, ...requiredScopes: str
 
 	const keyWithoutPrefix = key.substring(API_KEY_PREFIX.length);
 	const keyHash = await hashPassword(keyWithoutPrefix, new Uint8Array());
-
-	console.log("Validating API key with hash:", keyHash);
 
 	const data: D1Result<apiKeyResult> = await env.DB.prepare(
 		`SELECT account_id, user_id, expires, scopes FROM api_keys WHERE key=?`,

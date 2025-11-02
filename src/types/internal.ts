@@ -5,7 +5,8 @@ interface EnvVars {
 	HONEYCOMB_API_KEY?: string;
 	HONEYCOMB_DATASET?: string;
 	UI_ORIGIN?: string;
-	AUTH_JWK: string;
+	AUTH_JWK?: string;
+	AUTH_JWK_URL?: string;
 }
 
 export interface Bindings extends EnvVars {

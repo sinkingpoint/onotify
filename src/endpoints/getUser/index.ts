@@ -36,7 +36,7 @@ export class GetUser extends OpenAPIRoute {
 	};
 
 	async handle(c: Context<{ Bindings: Bindings }>) {
-		const authResult = await checkAPIKey(c.env, c.req.header("Authorization"), "acknowledge-alert");
+		const authResult = await checkAPIKey(c.env, c.req, "acknowledge-alert");
 		if (authResult.result !== "ok") {
 			c.status(HTTPResponses.Unauthorized);
 			return c.text(toErrorString(authResult));

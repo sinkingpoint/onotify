@@ -37,7 +37,7 @@ export class GetRoutingTree extends OpenAPIRoute {
 	};
 
 	async handle(ctx: Context<{ Bindings: Bindings }>) {
-		const authResult = await checkAPIKey(ctx.env, ctx.req.header("Authorization"), "get-config");
+		const authResult = await checkAPIKey(ctx.env, ctx.req, "get-config");
 
 		if (authResult.result !== "ok") {
 			ctx.status(HTTPResponses.Unauthorized);

@@ -26,7 +26,7 @@ export class GetConfig extends OpenAPIRoute {
 	};
 
 	async handle(c: Context<{ Bindings: Bindings }>) {
-		const authResult = await checkAPIKey(c.env, c.req.header("Authorization"), "get-config");
+		const authResult = await checkAPIKey(c.env, c.req, "get-config");
 
 		if (authResult.result !== "ok") {
 			c.status(HTTPResponses.Unauthorized);

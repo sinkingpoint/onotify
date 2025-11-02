@@ -36,7 +36,7 @@ export class PostAlertComment extends OpenAPIRoute {
 	};
 
 	async handle(c: Context<{ Bindings: Bindings }>) {
-		const authResult = await checkAPIKey(c.env, c.req.header("Authorization"), "post-alert-comment");
+		const authResult = await checkAPIKey(c.env, c.req, "post-alert-comment");
 		if (authResult.result !== "ok") {
 			c.status(HTTPResponses.Unauthorized);
 			return c.text(toErrorString(authResult));
