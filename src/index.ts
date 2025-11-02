@@ -17,6 +17,7 @@ import { GetUser } from "./endpoints/getUser";
 import { GetUserTokens } from "./endpoints/getUserTokens";
 import { PostAlertComment } from "./endpoints/postAlertComment";
 import { PostAlerts } from "./endpoints/postAlerts";
+import { PostAPIKey } from "./endpoints/postAPIKey";
 import { PostSilence } from "./endpoints/postSilences";
 import { PostConfig } from "./endpoints/uploadConfig";
 import { PostRequiredFiles } from "./endpoints/uploadRequiredFile";
@@ -68,6 +69,7 @@ openapi.get("/api/v1/alerts/:fingerprint/history", GetAlertHistory);
 openapi.post("/api/v1/alerts/:fingerprint/comment", PostAlertComment);
 openapi.get("/api/auth/tokens", GetUserTokens);
 openapi.delete("/api/auth/tokens/:tokenId", DeleteAPIKey);
+openapi.post("/api/auth/tokens", PostAPIKey);
 
 // Export the Hono app
 export default instrument(app, OTelConfFn);

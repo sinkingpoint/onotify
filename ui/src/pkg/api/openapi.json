@@ -10495,6 +10495,129 @@
 						}
 					}
 				}
+			},
+			"post": {
+				"operationId": "postAPIKey",
+				"tags": ["auth"],
+				"summary": "Create a new API key for the authenticated user",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"type": "object",
+								"properties": {
+									"name": {
+										"type": "string",
+										"minLength": 1,
+										"maxLength": 100,
+										"description": "Name for the API key",
+										"example": "My API Key"
+									},
+									"scopes": {
+										"type": "array",
+										"items": {
+											"type": "string"
+										},
+										"description": "List of scopes for the API key",
+										"example": ["read", "write"]
+									},
+									"expiresInDays": {
+										"type": "integer",
+										"minimum": 1,
+										"maximum": 365,
+										"description": "Number of days until the key expires (optional)",
+										"example": 30
+									}
+								},
+								"required": ["name", "scopes"]
+							}
+						}
+					}
+				},
+				"responses": {
+					"201": {
+						"description": "Successfully created API key",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"properties": {
+										"id": {
+											"type": "string"
+										},
+										"name": {
+											"type": "string"
+										},
+										"key": {
+											"type": "string"
+										},
+										"scopes": {
+											"type": "array",
+											"items": {
+												"type": "string"
+											}
+										},
+										"createdAt": {
+											"type": "number"
+										},
+										"expiresAt": {
+											"type": ["number", "null"]
+										}
+									},
+									"required": ["id", "name", "key", "scopes", "createdAt", "expiresAt"]
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Bad Request",
+						"text/plain": {
+							"schema": {
+								"_def": {
+									"checks": [],
+									"typeName": "ZodString",
+									"coerce": false
+								},
+								"~standard": {
+									"version": 1,
+									"vendor": "zod"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized",
+						"text/plain": {
+							"schema": {
+								"_def": {
+									"checks": [],
+									"typeName": "ZodString",
+									"coerce": false
+								},
+								"~standard": {
+									"version": 1,
+									"vendor": "zod"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error",
+						"text/plain": {
+							"schema": {
+								"_def": {
+									"checks": [],
+									"typeName": "ZodString",
+									"coerce": false
+								},
+								"~standard": {
+									"version": 1,
+									"vendor": "zod"
+								}
+							}
+						}
+					}
+				}
 			}
 		},
 		"/api/auth/tokens/{tokenId}": {

@@ -48,6 +48,9 @@ import type {
 	PostAlertsData,
 	PostAlertsErrors,
 	PostAlertsResponses,
+	PostApiKeyData,
+	PostApiKeyErrors,
+	PostApiKeyResponses,
 	PostConfigData,
 	PostConfigErrors,
 	PostConfigResponses,
@@ -279,6 +282,20 @@ export const getUserTokens = <ThrowOnError extends boolean = false>(
 	return (options?.client ?? client).get<GetUserTokensResponses, GetUserTokensErrors, ThrowOnError>({
 		url: "/api/auth/tokens",
 		...options,
+	});
+};
+
+/**
+ * Create a new API key for the authenticated user
+ */
+export const postApiKey = <ThrowOnError extends boolean = false>(options?: Options<PostApiKeyData, ThrowOnError>) => {
+	return (options?.client ?? client).post<PostApiKeyResponses, PostApiKeyErrors, ThrowOnError>({
+		url: "/api/auth/tokens",
+		...options,
+		headers: {
+			"Content-Type": "application/json",
+			...options?.headers,
+		},
 	});
 };
 

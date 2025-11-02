@@ -7264,6 +7264,57 @@ export type GetUserTokensResponses = {
 
 export type GetUserTokensResponse = GetUserTokensResponses[keyof GetUserTokensResponses];
 
+export type PostApiKeyData = {
+	body?: {
+		/**
+		 * Name for the API key
+		 */
+		name: string;
+		/**
+		 * List of scopes for the API key
+		 */
+		scopes: Array<string>;
+		/**
+		 * Number of days until the key expires (optional)
+		 */
+		expiresInDays?: number;
+	};
+	path?: never;
+	query?: never;
+	url: "/api/auth/tokens";
+};
+
+export type PostApiKeyErrors = {
+	/**
+	 * Bad Request
+	 */
+	400: unknown;
+	/**
+	 * Unauthorized
+	 */
+	401: unknown;
+	/**
+	 * Internal Server Error
+	 */
+	500: unknown;
+};
+
+export type PostApiKeyResponses = {
+	/**
+	 * Successfully created API key
+	 */
+	201: {
+		id: string;
+		name: string;
+		key: string;
+		scopes: Array<string>;
+		createdAt: number;
+		expiresAt: number | null;
+	};
+};
+
+export type PostApiKeyResponse = PostApiKeyResponses[keyof PostApiKeyResponses];
+
 export type DeleteApiKeyData = {
 	body?: never;
 	path: {
