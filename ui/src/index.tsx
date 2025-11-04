@@ -9,6 +9,7 @@ import { Dash } from "./pages/Dash";
 import ManageUser from "./pages/ManageUser/index.js";
 import Onboarding from "./pages/Onboarding";
 import ViewAlert from "./pages/ViewAlert";
+import ViewAlertHistory from "./pages/ViewAlertHistory/index.js";
 import ViewAlerts from "./pages/ViewAlerts/index.js";
 import ViewConfig from "./pages/ViewConfig/index.js";
 import ViewSilence from "./pages/ViewSilence";
@@ -39,6 +40,7 @@ export function App() {
 					<Route path="/" component={Dash} />
 					<Route path="/onboarding" component={Onboarding} />
 					<Route path="/alerts" component={ViewAlerts} />
+					<Route path="/alerts/search" component={ViewAlertHistory} />
 					<Route path="/alerts/:fingerprint" component={ViewAlert} />
 					<Route path="/silences" component={ViewSilences} />
 					<Route path="/silences/new" component={AddSilence} />

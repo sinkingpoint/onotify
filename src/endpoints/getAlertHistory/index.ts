@@ -98,15 +98,15 @@ export class GetAlertHistory extends OpenAPIRoute {
 			const outputHistories = history.map((h) => {
 				if (h.ty === "comment") {
 					return {
+						fingerprint: alertHistory.fingerprint,
 						ty: h.ty,
 						timestamp: h.timestamp,
 						comment: h.comment,
 						userID: h.userID,
-						fingerprint: h.fingerprint,
 					};
 				} else {
 					return {
-						fingerprint: h.fingerprint,
+						fingerprint: alertHistory.fingerprint,
 						ty: h.ty,
 						timestamp: h.timestamp,
 					};

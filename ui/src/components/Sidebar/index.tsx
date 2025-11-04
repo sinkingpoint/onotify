@@ -118,6 +118,7 @@ export const SideBar = () => {
 				<SideBarItem title="Home" href="/" icon={<HomeIcon class="inline size-6" />} />
 				<SideBarGroup title="Alerts" icon={<BellAlertIcon class="inline size-6" />} initialExpanded={true}>
 					<SideBarItem title="Overview" href="/alerts" />
+					<SideBarItem title="Alert Search" href="/alerts/search" />
 				</SideBarGroup>
 
 				<SideBarGroup title="Silences" icon={<BellSlashIcon class="inline size-6" />} initialExpanded={true}>
