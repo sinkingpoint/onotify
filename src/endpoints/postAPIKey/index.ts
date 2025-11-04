@@ -75,7 +75,7 @@ export class PostAPIKey extends OpenAPIRoute {
 		}
 
 		// Generate secure API key
-		const apiKey = Array.from(crypto.getRandomValues(new Uint8Array(32)))
+		const apiKey = Array.from(crypto.getRandomValues(new Uint8Array(16)))
 			.map((b) => b.toString(16).padStart(2, "0"))
 			.join("");
 
@@ -102,7 +102,7 @@ export class PostAPIKey extends OpenAPIRoute {
 		return c.json({
 			id: keyId,
 			name,
-			key: apiKey,
+			key: `notify-${apiKey}`,
 			scopes,
 			createdAt,
 			expiresAt: expiresAt || null,
