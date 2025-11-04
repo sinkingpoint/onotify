@@ -38,14 +38,7 @@ export default () => {
 			}
 		} else {
 			// Handle individual scope
-			let newScopes;
-			if (checked) {
-				newScopes = [...scopes, scope];
-			} else {
-				newScopes = scopes.filter((s) => s !== scope);
-				// Remove "*" if any individual scope is unchecked
-				newScopes = newScopes.filter((s) => s !== "*");
-			}
+			const newScopes = checked ? [...scopes, scope] : scopes.filter((s) => s !== scope && s !== "*");
 			setScopes(newScopes);
 		}
 	};
