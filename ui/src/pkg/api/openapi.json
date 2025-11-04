@@ -112,6 +112,26 @@
 					},
 					{
 						"schema": {
+							"type": "string",
+							"format": "date-time",
+							"description": "The start time to filter by"
+						},
+						"required": false,
+						"name": "startTime",
+						"in": "query"
+					},
+					{
+						"schema": {
+							"type": "string",
+							"format": "date-time",
+							"description": "The end time to filter by"
+						},
+						"required": false,
+						"name": "endTime",
+						"in": "query"
+					},
+					{
+						"schema": {
 							"type": "array",
 							"items": {
 								"type": "string",
@@ -10122,22 +10142,108 @@
 			"get": {
 				"operationId": "getAlertHistory",
 				"tags": ["alerts"],
-				"summary": "Get a list of history events for an alert",
+				"summary": "Get a list of history events for alerts",
 				"parameters": [
 					{
 						"schema": {
-							"type": "string",
-							"description": "The fingerprint of the alert to get history for"
+							"type": "array",
+							"items": {
+								"type": "string"
+							}
 						},
-						"required": true,
-						"name": "fingerprint",
-						"in": "path"
+						"required": false,
+						"name": "fingerprints",
+						"in": "query"
+					},
+					{
+						"schema": {
+							"type": "boolean",
+							"default": true,
+							"description": "Show active alerts"
+						},
+						"required": false,
+						"name": "active",
+						"in": "query"
+					},
+					{
+						"schema": {
+							"type": "boolean",
+							"default": true,
+							"description": "Show silenced alerts"
+						},
+						"required": false,
+						"name": "silenced",
+						"in": "query"
+					},
+					{
+						"schema": {
+							"type": "boolean",
+							"default": false,
+							"description": "Show resolved alerts"
+						},
+						"required": false,
+						"name": "resolved",
+						"in": "query"
+					},
+					{
+						"schema": {
+							"type": "boolean",
+							"default": true,
+							"description": "Show muted alerts"
+						},
+						"required": false,
+						"name": "muted",
+						"in": "query"
+					},
+					{
+						"schema": {
+							"type": "boolean",
+							"default": true,
+							"description": "Show inhibited alerts"
+						},
+						"required": false,
+						"name": "inhibited",
+						"in": "query"
+					},
+					{
+						"schema": {
+							"type": "boolean",
+							"default": true,
+							"description": "Show unprocessed alerts"
+						},
+						"required": false,
+						"name": "unprocessed",
+						"in": "query"
+					},
+					{
+						"schema": {
+							"type": "array",
+							"items": {
+								"type": "string",
+								"description": "a matcher to match labels against",
+								"examples": ["a=\"b\"", "a!=\"b\"", "a=~\"b\"", "a!~\"b\""]
+							},
+							"default": [],
+							"description": "A list of matchers to filter by"
+						},
+						"required": false,
+						"name": "filter",
+						"in": "query"
+					},
+					{
+						"schema": {
+							"type": "string",
+							"description": "A regex matching receivers to filter by"
+						},
+						"required": false,
+						"name": "receiver",
+						"in": "query"
 					},
 					{
 						"schema": {
 							"type": "string",
 							"format": "date-time",
-							"description": "The start time of the history"
+							"description": "The start time to filter by"
 						},
 						"required": false,
 						"name": "startTime",
@@ -10147,7 +10253,7 @@
 						"schema": {
 							"type": "string",
 							"format": "date-time",
-							"description": "The end time of the history"
+							"description": "The end time to filter by"
 						},
 						"required": false,
 						"name": "endTime",
@@ -10155,26 +10261,48 @@
 					},
 					{
 						"schema": {
-							"type": "number",
-							"description": "The page of history to return"
+							"type": "array",
+							"items": {
+								"type": "string",
+								"enum": [
+									"startsAt:asc",
+									"endsAt:asc",
+									"updatedAt:asc",
+									"alertname:asc",
+									"startsAt:desc",
+									"endsAt:desc",
+									"updatedAt:desc",
+									"alertname:desc"
+								]
+							},
+							"description": "The field to sort by"
 						},
 						"required": false,
-						"name": "page",
+						"name": "sort",
 						"in": "query"
 					},
 					{
 						"schema": {
 							"type": "number",
-							"description": "The number of history events per page"
+							"description": "The maximum number of alerts to return"
 						},
 						"required": false,
-						"name": "pageSize",
+						"name": "limit",
+						"in": "query"
+					},
+					{
+						"schema": {
+							"type": "number",
+							"description": "The page of alerts to return"
+						},
+						"required": false,
+						"name": "page",
 						"in": "query"
 					}
 				],
 				"responses": {
 					"200": {
-						"description": "Successfully got alert alert history",
+						"description": "Successfully got alert history",
 						"headers": {
 							"X-Total-Count": {
 								"schema": {
@@ -10203,6 +10331,15 @@
 													{
 														"type": "object",
 														"properties": {
+															"timestamp": {
+																"type": "string",
+																"format": "date-time",
+																"description": "An RFC-3339 formatted timestamp indicating when the event occurred"
+															},
+															"fingerprint": {
+																"type": "string",
+																"description": "The fingerprint of the alert that this event is for"
+															},
 															"ty": {
 																"type": "string",
 																"enum": [
@@ -10214,27 +10351,26 @@
 																	"unsilenced"
 																],
 																"description": "The type of the alert event"
-															},
-															"timestamp": {
-																"type": "string",
-																"format": "date-time",
-																"description": "An RFC-3339 formatted timestamp indicating when the event occurred"
 															}
 														},
-														"required": ["ty", "timestamp"]
+														"required": ["timestamp", "fingerprint", "ty"]
 													},
 													{
 														"type": "object",
 														"properties": {
-															"ty": {
-																"type": "string",
-																"enum": ["comment"],
-																"description": "The type of the alert event"
-															},
 															"timestamp": {
 																"type": "string",
 																"format": "date-time",
 																"description": "An RFC-3339 formatted timestamp indicating when the event occurred"
+															},
+															"fingerprint": {
+																"type": "string",
+																"description": "The fingerprint of the alert that this event is for"
+															},
+															"ty": {
+																"type": "string",
+																"enum": ["comment"],
+																"description": "The type of the alert event"
 															},
 															"comment": {
 																"type": "string",
@@ -10245,7 +10381,7 @@
 																"description": "The userID of the user that made the comment"
 															}
 														},
-														"required": ["ty", "timestamp", "comment", "userID"]
+														"required": ["timestamp", "fingerprint", "ty", "comment", "userID"]
 													}
 												]
 											}

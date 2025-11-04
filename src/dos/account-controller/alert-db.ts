@@ -210,6 +210,80 @@ export class AlertDB {
 		);
 	}
 
+	async getAlertHistory({
+		active,
+		fingerprints,
+		silenced,
+		muted,
+		resolved,
+		inhibited,
+		unprocessed,
+		receiver,
+		filter,
+		startTime,
+		endTime,
+	}: GetAlertsOptions): Promise<Array<{ fingerprint: string; alertname?: string; history: any[] }>> {
+		return getTracer().startActiveSpan(
+			"getAlertHistory",
+			{
+				attributes: {
+					active,
+					fingerprints,
+					silenced,
+					muted,
+					resolved,
+					inhibited,
+					unprocessed,
+					receiver: receiver?.toString(),
+					startTime,
+					endTime,
+				},
+			},
+			async (span) => {
+				const alerts = await this.getAlerts({
+					active,
+					fingerprints,
+					silenced,
+					muted,
+					resolved,
+					inhibited,
+					unprocessed,
+					receiver,
+					filter,
+					// Don't filter by alert start time here, we want alerts that existed during the period
+				});
+
+				span.setAttribute("matched_alerts", alerts.length);
+
+				const result = [];
+				const startTimeMs = startTime ? new Date(startTime).getTime() : 0;
+				const endTimeMs = endTime ? new Date(endTime).getTime() : Date.now();
+
+				for (const alert of alerts) {
+					if (!alert.history || alert.history.length === 0) {
+						continue;
+					}
+
+					const filteredHistory = alert.history.filter((event) => {
+						return event.timestamp >= startTimeMs && event.timestamp <= endTimeMs;
+					});
+
+					if (filteredHistory.length > 0) {
+						result.push({
+							fingerprint: alert.fingerprint,
+							alertname: alert.labels?.alertname,
+							history: filteredHistory,
+						});
+					}
+				}
+
+				span.setAttribute("result_count", result.length);
+				span.end();
+				return result;
+			},
+		);
+	}
+
 	async addSilence(id: string, s: PostableSilence) {
 		return getTracer().startActiveSpan("AlertDB::addSilence", { attributes: { id } }, async (span) => {
 			const now = Date.now();

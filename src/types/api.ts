@@ -109,21 +109,24 @@ export const GettableAlertStatusSpec = z.object({
 	}),
 });
 
-export const GettableAlertHistoryEventSpec = z.object({
-	ty: z.enum(["firing", "resolved", "acknowledged", "unacknowledged", "silenced", "unsilenced"]).openapi({
-		description: "The type of the alert event",
-	}),
+export const GettableAlertHistoryEventBaseSpec = z.object({
 	timestamp: z.string().datetime({ precision: 3, offset: true }).openapi({
 		description: "An RFC-3339 formatted timestamp indicating when the event occurred",
+	}),
+	fingerprint: z.string().openapi({
+		description: "The fingerprint of the alert that this event is for",
 	}),
 });
 
-export const GettableAlertCommentEventSpec = z.object({
-	ty: z.literal("comment").openapi({
+export const GettableAlertHistoryEventSpec = GettableAlertHistoryEventBaseSpec.extend({
+	ty: z.enum(["firing", "resolved", "acknowledged", "unacknowledged", "silenced", "unsilenced"]).openapi({
 		description: "The type of the alert event",
 	}),
-	timestamp: z.string().datetime({ precision: 3, offset: true }).openapi({
-		description: "An RFC-3339 formatted timestamp indicating when the event occurred",
+});
+
+export const GettableAlertCommentEventSpec = GettableAlertHistoryEventBaseSpec.extend({
+	ty: z.literal("comment").openapi({
+		description: "The type of the alert event",
 	}),
 	comment: z.string().openapi({
 		description: "The comment that was added to the alert",
@@ -253,6 +256,8 @@ export const GetAlertsParamsSpec = z.object({
 	unprocessed: z.boolean().default(true).openapi({ description: "Show unprocessed alerts" }),
 	filter: z.array(StringMatcherSpec).default([]).openapi({ description: "A list of matchers to filter by" }),
 	receiver: StringRegexp.optional().openapi({ description: "A regex matching receivers to filter by" }),
+	startTime: z.string().datetime({ offset: true }).optional().openapi({ description: "The start time to filter by" }),
+	endTime: z.string().datetime({ offset: true }).optional().openapi({ description: "The end time to filter by" }),
 	sort: z
 		.array(
 			z.enum([

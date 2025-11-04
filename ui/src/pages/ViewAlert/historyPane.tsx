@@ -42,14 +42,14 @@ const HistoryCard = ({ event, users }: HistoryCardProps) => {
 };
 
 export default ({ fingerprint }: HistoryPaneProps) => {
-	const [currentPage, setCurrentPage] = useState(0);
+	const [currentPage, setCurrentPage] = useState(1);
 	const historyEventsPull = useQuery(() => {
 		return getAlertHistory({
 			query: {
 				page: currentPage,
-				pageSize: 10,
+				limit: 10,
+				fingerprints: [fingerprint],
 			},
-			path: { fingerprint },
 		});
 	}, [currentPage]);
 

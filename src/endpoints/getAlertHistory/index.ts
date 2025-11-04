@@ -2,14 +2,9 @@ import { OpenAPIRoute } from "chanfana";
 import { Context } from "hono";
 import z from "zod";
 import { AccountControllerActions } from "../../dos/account-controller";
-import {
-	GetAlertHistoryParamsSpec,
-	GettableAlertHistory,
-	GettableAlertHistorySpec,
-	PaginationHeaders,
-} from "../../types/api";
+import { GetAlertsParamsSpec, GettableAlertHistorySpec, PaginationHeaders } from "../../types/api";
 import { Errors, HTTPResponses } from "../../types/http";
-import { Bindings, CachedAlert } from "../../types/internal";
+import { Bindings } from "../../types/internal";
 import { callRPC } from "../../utils/rpc";
 import { checkAPIKey, toErrorString } from "../utils/auth";
 import { accountControllerName } from "../utils/kv";
@@ -18,16 +13,13 @@ export class GetAlertHistory extends OpenAPIRoute {
 	schema = {
 		operationId: "getAlertHistory",
 		tags: ["alerts"],
-		summary: "Get a list of history events for an alert",
+		summary: "Get a list of history events for alerts",
 		request: {
-			params: z.object({
-				fingerprint: z.string().openapi({ description: "The fingerprint of the alert to get history for" }),
-			}),
-			query: GetAlertHistoryParamsSpec,
+			query: GetAlertsParamsSpec,
 		},
 		responses: {
 			"200": {
-				description: "Successfully got alert alert history",
+				description: "Successfully got alert history",
 				headers: PaginationHeaders,
 				content: {
 					"application/json": {
@@ -49,78 +41,101 @@ export class GetAlertHistory extends OpenAPIRoute {
 			return c.text(toErrorString(authResult));
 		}
 
-		const { query, params } = await this.getValidatedData<typeof this.schema>();
-		const { startTime, endTime, page, pageSize } = query;
-		const { fingerprint } = params;
+		const { query } = await this.getValidatedData<typeof this.schema>();
+		const {
+			startTime,
+			endTime,
+			page,
+			limit,
+			active,
+			silenced,
+			inhibited,
+			muted,
+			resolved,
+			unprocessed,
+			receiver,
+			filter,
+			fingerprints,
+		} = query;
 
 		const controllerName = accountControllerName(authResult.accountID);
 		const controllerID = c.env.ACCOUNT_CONTROLLER.idFromName(controllerName);
 		const controller = c.env.ACCOUNT_CONTROLLER.get(controllerID);
 
-		const internalAlerts = (await callRPC(controller, AccountControllerActions.GetAlerts, {
-			fingerprints: [fingerprint],
-		})) as CachedAlert[];
+		const historyResults = (await callRPC(controller, AccountControllerActions.GetAlertHistory, {
+			fingerprints,
+			startTime,
+			endTime,
+			active,
+			silenced,
+			inhibited,
+			muted,
+			resolved,
+			unprocessed,
+			receiver,
+			filter,
+		})) as Array<{ fingerprint: string; alertname?: string; history: any[] }>;
 
-		if (internalAlerts.length === 0) {
+		if (historyResults.length === 0) {
 			c.status(HTTPResponses.NotFound);
 			return c.text("No alerts found");
 		}
 
-		const alert = internalAlerts[0];
-		let history = alert.history;
-		if (startTime) {
-			history = history.filter((h) => h.timestamp >= startTime);
-		}
-		if (endTime) {
-			history = history.filter((h) => h.timestamp <= endTime);
-		}
-
+		const results = [];
 		const stats: Record<string, number> = {};
-		for (const event of history) {
-			const day = new Date(event.timestamp).toISOString().split("T")[0];
-			if (!stats[day]) {
-				stats[day] = 0;
+
+		for (const alertHistory of historyResults) {
+			const history = alertHistory.history;
+			for (const event of history) {
+				const day = new Date(event.timestamp).toISOString().split("T")[0];
+				if (!stats[day]) {
+					stats[day] = 0;
+				}
+
+				stats[day]++;
 			}
 
-			stats[day]++;
+			const outputHistories = history.map((h) => {
+				if (h.ty === "comment") {
+					return {
+						ty: h.ty,
+						timestamp: h.timestamp,
+						comment: h.comment,
+						userID: h.userID,
+						fingerprint: h.fingerprint,
+					};
+				} else {
+					return {
+						fingerprint: h.fingerprint,
+						ty: h.ty,
+						timestamp: h.timestamp,
+					};
+				}
+			});
+
+			results.push(...outputHistories);
 		}
 
-		const totalLength = history.length;
-		let start = 0;
-		let end = history.length;
-		if (pageSize) {
-			start = pageSize * (page ?? 0);
-			end = start + pageSize;
-			if (start > history.length) {
-				start = history.length - 1;
-			}
+		results.sort((a, b) => b.timestamp - a.timestamp);
 
-			if (end > history.length) {
-				end = history.length;
-			}
+		const totalLength = results.length;
+		let startIndex = 0;
+		let endIndex = results.length;
+		if (limit) {
+			startIndex = limit * ((page ?? 1) - 1);
+			endIndex = startIndex + limit;
 		}
-
-		const outputHistories: GettableAlertHistory[] = history.slice(start, end).map((h) => {
-			if (h.ty === "comment") {
-				return {
-					ty: h.ty,
-					timestamp: new Date(h.timestamp).toISOString(),
-					comment: h.comment,
-					userID: h.userID,
-				};
-			} else {
-				return {
-					ty: h.ty,
-					timestamp: new Date(h.timestamp).toISOString(),
-				};
-			}
-		});
 
 		c.res.headers.set("X-Total-Count", totalLength.toString());
 		c.status(HTTPResponses.OK);
 		return c.json({
 			stats,
-			entries: outputHistories,
+			entries: results.slice(startIndex, endIndex).map((h) => {
+				return {
+					...h,
+					timestamp: new Date(h.timestamp).toISOString(),
+				};
+			}),
 		});
 	}
 }

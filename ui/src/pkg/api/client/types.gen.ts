@@ -42,6 +42,14 @@ export type GetAlertsData = {
 		 */
 		receiver?: string;
 		/**
+		 * The start time to filter by
+		 */
+		startTime?: string;
+		/**
+		 * The end time to filter by
+		 */
+		endTime?: string;
+		/**
 		 * The field to sort by
 		 */
 		sort?: Array<
@@ -7088,29 +7096,70 @@ export type GetUserResponse = GetUserResponses[keyof GetUserResponses];
 
 export type GetAlertHistoryData = {
 	body?: never;
-	path: {
-		/**
-		 * The fingerprint of the alert to get history for
-		 */
-		fingerprint: string;
-	};
+	path?: never;
 	query?: {
+		fingerprints?: Array<string>;
 		/**
-		 * The start time of the history
+		 * Show active alerts
+		 */
+		active?: boolean;
+		/**
+		 * Show silenced alerts
+		 */
+		silenced?: boolean;
+		/**
+		 * Show resolved alerts
+		 */
+		resolved?: boolean;
+		/**
+		 * Show muted alerts
+		 */
+		muted?: boolean;
+		/**
+		 * Show inhibited alerts
+		 */
+		inhibited?: boolean;
+		/**
+		 * Show unprocessed alerts
+		 */
+		unprocessed?: boolean;
+		/**
+		 * A list of matchers to filter by
+		 */
+		filter?: Array<string>;
+		/**
+		 * A regex matching receivers to filter by
+		 */
+		receiver?: string;
+		/**
+		 * The start time to filter by
 		 */
 		startTime?: string;
 		/**
-		 * The end time of the history
+		 * The end time to filter by
 		 */
 		endTime?: string;
 		/**
-		 * The page of history to return
+		 * The field to sort by
+		 */
+		sort?: Array<
+			| "startsAt:asc"
+			| "endsAt:asc"
+			| "updatedAt:asc"
+			| "alertname:asc"
+			| "startsAt:desc"
+			| "endsAt:desc"
+			| "updatedAt:desc"
+			| "alertname:desc"
+		>;
+		/**
+		 * The maximum number of alerts to return
+		 */
+		limit?: number;
+		/**
+		 * The page of alerts to return
 		 */
 		page?: number;
-		/**
-		 * The number of history events per page
-		 */
-		pageSize?: number;
 	};
 	url: "/api/v1/alerts/{fingerprint}/history";
 };
@@ -7132,7 +7181,7 @@ export type GetAlertHistoryErrors = {
 
 export type GetAlertHistoryResponses = {
 	/**
-	 * Successfully got alert alert history
+	 * Successfully got alert history
 	 */
 	200: {
 		stats: {
@@ -7141,23 +7190,31 @@ export type GetAlertHistoryResponses = {
 		entries: Array<
 			| {
 					/**
+					 * An RFC-3339 formatted timestamp indicating when the event occurred
+					 */
+					timestamp: string;
+					/**
+					 * The fingerprint of the alert that this event is for
+					 */
+					fingerprint: string;
+					/**
 					 * The type of the alert event
 					 */
 					ty: "firing" | "resolved" | "acknowledged" | "unacknowledged" | "silenced" | "unsilenced";
+			  }
+			| {
 					/**
 					 * An RFC-3339 formatted timestamp indicating when the event occurred
 					 */
 					timestamp: string;
-			  }
-			| {
+					/**
+					 * The fingerprint of the alert that this event is for
+					 */
+					fingerprint: string;
 					/**
 					 * The type of the alert event
 					 */
 					ty: "comment";
-					/**
-					 * An RFC-3339 formatted timestamp indicating when the event occurred
-					 */
-					timestamp: string;
 					/**
 					 * The comment that was added to the alert
 					 */

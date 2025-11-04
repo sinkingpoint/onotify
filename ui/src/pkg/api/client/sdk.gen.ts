@@ -246,12 +246,12 @@ export const getUser = <ThrowOnError extends boolean = false>(options: Options<G
 };
 
 /**
- * Get a list of history events for an alert
+ * Get a list of history events for alerts
  */
 export const getAlertHistory = <ThrowOnError extends boolean = false>(
-	options: Options<GetAlertHistoryData, ThrowOnError>,
+	options?: Options<GetAlertHistoryData, ThrowOnError>,
 ) => {
-	return (options.client ?? client).get<GetAlertHistoryResponses, GetAlertHistoryErrors, ThrowOnError>({
+	return (options?.client ?? client).get<GetAlertHistoryResponses, GetAlertHistoryErrors, ThrowOnError>({
 		url: "/api/v1/alerts/{fingerprint}/history",
 		...options,
 	});

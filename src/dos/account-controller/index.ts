@@ -38,6 +38,7 @@ export enum AccountControllerActions {
 	MarkSilenceExpired = "mark-silence-expired",
 	AcknowledgeAlert = "acknowledge-alert",
 	AddComment = "add-comment",
+	GetAlertHistory = "get-alert-history",
 }
 
 const getTracer = () => {
@@ -70,18 +71,6 @@ class AccountControllerDO implements DurableObject {
 				this.alertGroupStorage.init(alertGroups);
 			});
 		});
-	}
-	alarm?(alarmInfo?: AlarmInvocationInfo): void | Promise<void> {
-		throw new Error("Method not implemented.");
-	}
-	webSocketMessage?(ws: WebSocket, message: string | ArrayBuffer): void | Promise<void> {
-		throw new Error("Method not implemented.");
-	}
-	webSocketClose?(ws: WebSocket, code: number, reason: string, wasClean: boolean): void | Promise<void> {
-		throw new Error("Method not implemented.");
-	}
-	webSocketError?(ws: WebSocket, error: unknown): void | Promise<void> {
-		throw new Error("Method not implemented.");
 	}
 
 	private async addAlerts(alerts: ReceiveredAlert[]) {
@@ -216,6 +205,22 @@ class AccountControllerDO implements DurableObject {
 		return this.alertStorage.addAlertComment(fingerprint, user, comment);
 	}
 
+	private async getAlertHistory(options: GetAlertsOptions) {
+		return runInSpan(getTracer(), "AccountController::getAlertHistory", {}, async () => {
+			trace.getActiveSpan()?.setAttributes({
+				fingerprints: options.fingerprints,
+				active: options.active,
+				muted: options.muted,
+				silenced: options.silenced,
+				inhibited: options.inhibited,
+				startTime: options.startTime,
+				endTime: options.endTime,
+			});
+
+			return this.alertStorage.getAlertHistory(options);
+		});
+	}
+
 	async fetch(request: Request) {
 		const rpcMethods = {
 			[AccountControllerActions.AddAlerts]: this.addAlerts,
@@ -230,6 +235,7 @@ class AccountControllerDO implements DurableObject {
 			[AccountControllerActions.MarkSilenceExpired]: this.markSilenceExpired,
 			[AccountControllerActions.AcknowledgeAlert]: this.acknowledgeAlert,
 			[AccountControllerActions.AddComment]: this.addComment,
+			[AccountControllerActions.GetAlertHistory]: this.getAlertHistory,
 		};
 
 		return rpcFetch(this, request, rpcMethods);
