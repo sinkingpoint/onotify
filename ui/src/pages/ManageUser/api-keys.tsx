@@ -52,7 +52,9 @@ export default () => {
 								{apiKeys.result?.map((key, index) => (
 									<tr key={key.id} class={`${index > 0 ? "border-t-[color:var(--border-color)]" : ""}`}>
 										<td class="px-6 py-4 whitespace-nowrap font-medium text-[color:var(--text-color)]">{key.name}</td>
-										<td class="px-6 py-4 whitespace-nowrap font-mono text-[color:var(--text-color)]">{key.id}</td>
+										<td class="px-6 py-4 whitespace-nowrap font-mono text-[color:var(--text-color)]">
+											{"*".repeat(16 - key.id.length) + key.id}
+										</td>
 										<td class="px-6 py-4 whitespace-nowrap text-[color:var(--text-color)]">
 											{new Date(key.createdAt).toLocaleDateString()}
 										</td>
