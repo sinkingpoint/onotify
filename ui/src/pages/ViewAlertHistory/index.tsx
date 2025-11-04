@@ -3,7 +3,7 @@ import FilterInput from "../../components/FilterInput";
 import InfoBox from "../../components/InfoBox";
 import Paginator from "../../components/Paginator";
 import { SkeletonLoader } from "../../components/Skeleton";
-import { getAlertHistory, GetAlertHistoryResponse } from "../../pkg/api/client";
+import { getAlertHistory, GetAlertHistoryResponse, getAlerts, GetAlertsResponse } from "../../pkg/api/client";
 import { StringMatcherSpec } from "../../pkg/types/alertmanager";
 import { Matcher } from "../../pkg/types/api";
 import { DataPull, matcherToString, setURLParam, useQuery } from "../../pkg/types/utils";
@@ -13,7 +13,10 @@ import { HistoryEventCard } from "./historyEventCard";
 
 const DEFAULT_PAGE_SIZE = 10;
 
-const getHistoryPage = (query: DataPull<GetAlertHistoryResponse, unknown>) => {
+const getHistoryPage = (
+	query: DataPull<GetAlertHistoryResponse, unknown>,
+	alerts: Map<string, GetAlertsResponse[number]>,
+) => {
 	if (query.state === "pending") {
 		return <></>;
 	}
@@ -30,7 +33,7 @@ const getHistoryPage = (query: DataPull<GetAlertHistoryResponse, unknown>) => {
 	return (
 		<div class="space-y-3">
 			{history.entries.map((event, idx) => (
-				<HistoryEventCard key={idx} event={event} />
+				<HistoryEventCard key={idx} event={event} alert={alerts.get(event.fingerprint)} />
 			))}
 		</div>
 	);
@@ -73,6 +76,31 @@ export default () => {
 			},
 		});
 	}, [startTime, endTime, matchers, currentPage]);
+
+	const alerts = useQuery(() => {
+		if (history.state !== "success") {
+			return;
+		}
+
+		const fingerprints = history.result.entries.map((entry) => entry.fingerprint);
+		return getAlerts({
+			query: {
+				fingerprints,
+			},
+		});
+	}, [history]);
+
+	const alertMap = useMemo(() => {
+		if (alerts.state !== "success") {
+			return new Map<string, GetAlertsResponse[number]>();
+		}
+
+		const map = new Map<string, GetAlertsResponse[number]>();
+		for (const alert of alerts.result) {
+			map.set(alert.fingerprint, alert);
+		}
+		return map;
+	}, [alerts]);
 
 	const numPages = useMemo(() => {
 		if (history.state !== "success") {
@@ -153,7 +181,7 @@ export default () => {
 					class="w-full"
 				>
 					<SkeletonLoader pull={history} layout="paragraph" repeat={DEFAULT_PAGE_SIZE / 4}>
-						{getHistoryPage(history)}
+						{getHistoryPage(history, alertMap)}
 					</SkeletonLoader>
 				</Paginator>
 			</div>
