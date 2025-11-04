@@ -4,6 +4,7 @@ import { SideBar } from "./components/Sidebar/index.js";
 import "./index.css";
 import { NotFound } from "./pages/_404.jsx";
 import AddSilence from "./pages/AddSilence";
+import CreateApiKey from "./pages/CreateApiKey/index.js";
 import { Dash } from "./pages/Dash";
 import ManageUser from "./pages/ManageUser/index.js";
 import Onboarding from "./pages/Onboarding";
@@ -44,6 +45,7 @@ export function App() {
 					<Route path="/silences/:id" component={ViewSilence} />
 					<Route path="/config" component={ViewConfig} />
 					<Route path="/user" component={ManageUser} />
+					<Route path="/user/api-keys/create" component={CreateApiKey} />
 					<Route default component={NotFound} />
 				</Router>
 			</main>

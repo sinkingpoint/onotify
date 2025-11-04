@@ -1,3 +1,4 @@
+import { PlusCircleIcon } from "@heroicons/react/16/solid";
 import { SkeletonLoader } from "../../components/Skeleton";
 import { deleteApiKey, getUserTokens } from "../../pkg/api/client";
 import { useQuery } from "../../pkg/types/utils";
@@ -14,7 +15,11 @@ export default () => {
 	};
 
 	return (
-		<div>
+		<div class="flex flex-col">
+			<button class="ml-auto p-2 bg-[color:var(--background-three)] text-white rounded flex flex-row">
+				<PlusCircleIcon class="inline size-5 m-0.5 mr-1" />
+				Create
+			</button>
 			<SkeletonLoader layout="paragraph" pull={apiKeys}>
 				{apiKeys.state === "error" && <div>Error loading API keys.</div>}
 				{apiKeys.state === "success" && apiKeys.result.length === 0 && <div>No API keys found.</div>}

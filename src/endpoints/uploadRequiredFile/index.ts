@@ -29,7 +29,7 @@ export class PostRequiredFiles extends OpenAPIRoute {
 	};
 
 	async handle(c: Context<{ Bindings: Bindings }>) {
-		const authResult = await checkAPIKey(c.env, c.req, "upload-config");
+		const authResult = await checkAPIKey(c.env, c.req, "write-config");
 
 		if (authResult.result !== "ok") {
 			c.status(HTTPResponses.Unauthorized);

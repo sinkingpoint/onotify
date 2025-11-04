@@ -34,7 +34,7 @@ export class PostAlerts extends OpenAPIRoute {
 	};
 
 	async handle(c: Context<{ Bindings: Bindings }>) {
-		const authResult = await checkAPIKey(c.env, c.req, "post-alerts");
+		const authResult = await checkAPIKey(c.env, c.req, "write-alerts");
 		if (authResult.result !== "ok") {
 			c.status(HTTPResponses.Unauthorized);
 			return c.text(toErrorString(authResult));

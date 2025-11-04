@@ -5,10 +5,11 @@ interface TextBoxProps extends InputHTMLAttributes<HTMLInputElement> {
 	valid?: boolean;
 	textRef?: Ref<HTMLInputElement>;
 	button?: JSX.Element;
+	placeholder?: string;
 	onButtonClick?: () => void;
 }
 
-export const TextBox = ({ valid, button, onButtonClick, textRef, ...inputProps }: TextBoxProps) => {
+export const TextBox = ({ valid, button, onButtonClick, textRef, placeholder, ...inputProps }: TextBoxProps) => {
 	inputProps.class ??= "";
 	inputProps.class += " bg-transparent txt-box";
 
@@ -16,7 +17,7 @@ export const TextBox = ({ valid, button, onButtonClick, textRef, ...inputProps }
 		inputProps.class += " txt-box-invalid";
 	}
 
-	const input = <input type="text" {...inputProps} ref={textRef} />;
+	const input = <input type="text" {...inputProps} ref={textRef} placeholder={placeholder} />;
 	if (!button) {
 		input.props.class += " border-solid border-2 rounded txt-box-container";
 		return input;

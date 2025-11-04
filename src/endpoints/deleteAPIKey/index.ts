@@ -26,7 +26,7 @@ export class DeleteAPIKey extends OpenAPIRoute {
 	};
 
 	async handle(c: Context<{ Bindings: Bindings }>) {
-		const authResult = await checkAPIKey(c.env, c.req);
+		const authResult = await checkAPIKey(c.env, c.req, "write-api-keys");
 		if (authResult.result !== "ok") {
 			c.status(HTTPResponses.Unauthorized);
 			return c.text(toErrorString(authResult));

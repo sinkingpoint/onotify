@@ -26,7 +26,7 @@ export class GetAlertGroups extends OpenAPIRoute {
 	};
 
 	async handle(c: Context<{ Bindings: Bindings }>) {
-		const authResult = await checkAPIKey(c.env, c.req, "get-alerts");
+		const authResult = await checkAPIKey(c.env, c.req, "read-alerts");
 
 		if (authResult.result !== "ok") {
 			c.status(HTTPResponses.Unauthorized);

@@ -102,7 +102,7 @@ export class GetStats extends OpenAPIRoute {
 	}
 
 	async handle(c: Context<{ Bindings: Bindings }>) {
-		const authResult = await checkAPIKey(c.env, c.req, "get-silences");
+		const authResult = await checkAPIKey(c.env, c.req, "read-stats");
 		if (authResult.result !== "ok") {
 			c.status(HTTPResponses.Unauthorized);
 			return c.text(toErrorString(authResult));

@@ -18,6 +18,14 @@
 	--warning: #d6a600;
 	--error: #d76b6b;
 
+	--success: #6ab04c;
+	--success-bg: #d1fae5;
+	--success-border: #10b981;
+	--success-text: #065f46;
+	--success-text-dark: #064e3b;
+	--success-text-muted: #047857;
+	--success-input-bg: #ecfdf5;
+
 	color: var(--background-color);
 	background-color: var(--text-color);
 
@@ -58,6 +66,15 @@ main {
 	:root {
 		color: var(--text-color);
 		background-color: var(--background-color);
+
+
+		--success: #6ab04c;
+		--success-bg: #064e3b;
+		--success-border: #059669;
+		--success-text: #d1fae5;
+		--success-text-dark: #a7f3d0;
+		--success-text-muted: #6ee7b7;
+		--success-input-bg: #065f46;
 	}
 }
 
