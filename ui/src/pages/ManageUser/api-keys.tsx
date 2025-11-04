@@ -16,10 +16,13 @@ export default () => {
 
 	return (
 		<div class="flex flex-col">
-			<button class="ml-auto p-2 bg-[color:var(--background-three)] text-white rounded flex flex-row">
+			<a
+				href="/user/api-keys/create"
+				class="ml-auto p-2 bg-[color:var(--background-three)] text-white rounded flex flex-row"
+			>
 				<PlusCircleIcon class="inline size-5 m-0.5 mr-1" />
 				Create
-			</button>
+			</a>
 			<SkeletonLoader layout="paragraph" pull={apiKeys}>
 				{apiKeys.state === "error" && <div>Error loading API keys.</div>}
 				{apiKeys.state === "success" && apiKeys.result.length === 0 && <div>No API keys found.</div>}
@@ -53,7 +56,18 @@ export default () => {
 										<td class="px-6 py-4 whitespace-nowrap text-[color:var(--text-color)]">
 											{new Date(key.createdAt).toLocaleDateString()}
 										</td>
-										<td class="px-6 py-4 whitespace-nowrap text-[color:var(--text-color)]">{key.scopes.join(", ")}</td>
+										<td class="px-6 py-4 text-[color:var(--text-color)] max-w-48">
+											<div class="flex flex-wrap gap-1">
+												{key.scopes.map((scope) => (
+													<span
+														key={scope}
+														class="inline-block px-2 py-1 text-xs bg-[color:var(--background-two)] text-[color:var(--text-two)] rounded-full"
+													>
+														{scope}
+													</span>
+												))}
+											</div>
+										</td>
 										<td class="px-6 py-4 whitespace-nowrap text-[color:var(--text-color)]">
 											<button class="text-red-500" onClick={() => onDeleteKey(key.id)}>
 												Delete
