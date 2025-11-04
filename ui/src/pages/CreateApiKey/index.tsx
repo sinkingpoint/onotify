@@ -88,7 +88,7 @@ export default () => {
 			const result = await postApiKey({
 				body: {
 					name: name,
-					scopes: scopes,
+					scopes: scopes.includes("*") ? ["*"] : scopes,
 					expiresInDays: expiresInDays || undefined,
 				},
 			});
