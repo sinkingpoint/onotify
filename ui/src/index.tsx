@@ -1,21 +1,21 @@
 import { LocationProvider, Route, Router, hydrate, prerender as ssr } from "preact-iso";
 
-import { SideBar } from "./components/Sidebar/index.js";
+import { SideBar } from "./components/Sidebar";
 import "./index.css";
 import { NotFound } from "./pages/_404.jsx";
 import AddSilence from "./pages/AddSilence";
-import CreateApiKey from "./pages/CreateApiKey/index.js";
+import CreateApiKey from "./pages/CreateApiKey";
 import { Dash } from "./pages/Dash";
-import ManageUser from "./pages/ManageUser/index.js";
+import ManageUser from "./pages/ManageUser";
 import Onboarding from "./pages/Onboarding";
 import ViewAlert from "./pages/ViewAlert";
-import ViewAlertHistory from "./pages/ViewAlertHistory/index.js";
-import ViewAlerts from "./pages/ViewAlerts/index.js";
-import ViewConfig from "./pages/ViewConfig/index.js";
-import ViewReceiver from "./pages/ViewReceiver/index.js";
-import ViewReceivers from "./pages/ViewReceivers/index.js";
+import ViewAlertHistory from "./pages/ViewAlertHistory";
+import ViewAlerts from "./pages/ViewAlerts";
+import ViewRawConfig from "./pages/ViewRawConfig";
+import ViewReceiver from "./pages/ViewReceiver";
+import ViewReceivers from "./pages/ViewReceivers";
 import ViewSilence from "./pages/ViewSilence";
-import ViewSilences from "./pages/ViewSilences/index.js";
+import ViewSilences from "./pages/ViewSilences";
 import { client } from "./pkg/api/client/client.gen.js";
 
 const headers =
@@ -47,7 +47,7 @@ export function App() {
 					<Route path="/silences" component={ViewSilences} />
 					<Route path="/silences/new" component={AddSilence} />
 					<Route path="/silences/:id" component={ViewSilence} />
-					<Route path="/config" component={ViewConfig} />
+					<Route path="/config" component={ViewRawConfig} />
 					<Route path="/config/receivers" component={ViewReceivers} />
 					<Route path="/config/receivers/:name" component={ViewReceiver} />
 					<Route path="/user" component={ManageUser} />
