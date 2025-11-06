@@ -12,6 +12,7 @@ import ViewAlert from "./pages/ViewAlert";
 import ViewAlertHistory from "./pages/ViewAlertHistory/index.js";
 import ViewAlerts from "./pages/ViewAlerts/index.js";
 import ViewConfig from "./pages/ViewConfig/index.js";
+import ViewReceivers from "./pages/ViewReceivers/index.js";
 import ViewSilence from "./pages/ViewSilence";
 import ViewSilences from "./pages/ViewSilences/index.js";
 import { client } from "./pkg/api/client/client.gen.js";
@@ -46,6 +47,7 @@ export function App() {
 					<Route path="/silences/new" component={AddSilence} />
 					<Route path="/silences/:id" component={ViewSilence} />
 					<Route path="/config" component={ViewConfig} />
+					<Route path="/config/receivers" component={ViewReceivers} />
 					<Route path="/user" component={ManageUser} />
 					<Route path="/user/api-keys/create" component={CreateApiKey} />
 					<Route default component={NotFound} />

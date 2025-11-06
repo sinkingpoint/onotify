@@ -101,7 +101,69 @@ const notify: Notifier<PagerdutyConfig> = async (
 				throw `Failed to template details entry ${key}: ${config.details[key]}: ${e}`;
 			}
 		}
+
+		const groupKey = executeTextString(template, config.group, data);
+
+		// Determine API version and call appropriate function
+		if (config.service_key) {
+			// API v1
+			await notifyV1(config, template, loadUploadedFile, eventType, groupKey, data, details, alerts);
+		} else {
+			// API v2
+			await notifyV2(config, template, loadUploadedFile, eventType, groupKey, data, details, alerts);
+		}
 	});
+};
+
+const notifyV1 = async (
+	conf: PagerdutyConfig,
+	template: Template,
+	loadUploadedFile: (filename: string) => Promise<string | null>,
+	eventType: PagerdutyEventType,
+	groupKey: string,
+	data: AlertTemplateData,
+	details: Record<string, string>,
+	alerts: CachedAlert[],
+) => {
+	const span = trace.getActiveSpan();
+
+	let description = executeTextString(template, conf.description, data);
+	if (description.length > maxV1DescriptionLenRunes) {
+		description = description.substring(0, maxV1DescriptionLenRunes);
+		span?.setAttribute("truncated", true);
+	}
+
+	let serviceKey = conf.service_key;
+	if (!serviceKey && conf.service_key_file) {
+		const loadedServiceKey = await loadUploadedFile(conf.service_key_file);
+		if (!loadedServiceKey) {
+			span?.setAttribute("bailed", true);
+			return;
+		}
+		serviceKey = loadedServiceKey;
+	}
+
+	if (!serviceKey) {
+		span?.recordException("Missing service key for PagerDuty v1 API");
+		return;
+	}
+
+	const msg: PagerdutyMessage = {
+		service_key: executeTextString(template, serviceKey, data),
+		event_type: eventType,
+		incitend_key: groupKey,
+		description: description,
+		details: details,
+		client: executeTextString(template, conf.client, data),
+		client_url: executeTextString(template, conf.client_url, data),
+		payload: {
+			summary: description,
+			source: executeTextString(template, conf.source, data),
+			severity: executeTextString(template, conf.severity || "error", data),
+		},
+	};
+
+	await sendPagerdutyMessage(conf, msg, "https://events.pagerduty.com/generic/2010-04-15/create_event.json");
 };
 
 const notifyV2 = async (
@@ -134,7 +196,7 @@ const notifyV2 = async (
 
 		const loadedRoutingKey = await loadUploadedFile(conf.routing_key_file);
 		if (!loadedRoutingKey) {
-			span?.setAttribute("baild", true);
+			span?.setAttribute("bailed", true);
 			return;
 		}
 
@@ -185,6 +247,40 @@ const notifyV2 = async (
 
 	if (!msg.routing_key) {
 		span?.recordException("Missing routing key after templating");
+		return;
+	}
+
+	await sendPagerdutyMessage(conf, msg, "https://events.pagerduty.com/v2/enqueue");
+};
+
+const sendPagerdutyMessage = async (conf: PagerdutyConfig, msg: PagerdutyMessage, url: string) => {
+	const span = trace.getActiveSpan();
+	const internal: PagerdutyInternal = {
+		conf,
+		template: new Template("pagerduty"),
+		apiV1: conf.service_key ? "v1" : undefined,
+	};
+
+	const body = encodeMessage(internal, msg);
+
+	try {
+		const response = await fetch(url, {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: body,
+		});
+
+		if (!response.ok) {
+			span?.recordException(`PagerDuty API returned ${response.status}: ${await response.text()}`);
+			throw new Error(`PagerDuty notification failed: ${response.status}`);
+		}
+
+		span?.setAttribute("success", true);
+	} catch (error) {
+		span?.recordException(`Failed to send PagerDuty notification: ${error}`);
+		throw error;
 	}
 };
 

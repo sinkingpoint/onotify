@@ -128,6 +128,7 @@ export const SideBar = () => {
 
 				<SideBarGroup title="Config" icon={<DocumentTextIcon class="inline size-6" />} initialExpanded={true}>
 					<SideBarItem title="Raw Config" href="/config" />
+					<SideBarItem title="Receivers" href="/config/receivers" />
 				</SideBarGroup>
 
 				<UserMenuCard class="mt-auto p-5 side-bar-item" href="/user" />
