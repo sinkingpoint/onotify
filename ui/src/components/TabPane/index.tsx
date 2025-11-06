@@ -60,3 +60,36 @@ export function TabPane({
 		</div>
 	);
 }
+
+export const VerticalTabPane = ({
+	children,
+	initialIndex = 0,
+	...divProps
+}: TabPaneProps & JSX.HTMLAttributes<HTMLDivElement>) => {
+	const tabs = Array.isArray(children) ? children : [children];
+	const tabList = tabs
+		.filter((tab: any) => tab && tab.props && tab.props.name)
+		.map((tab: any) => ({
+			name: tab.props.name,
+			content: tab.props.children,
+		}));
+
+	const [selected, setSelected] = useState(initialIndex);
+
+	return (
+		<div {...divProps} style={{ display: "flex" }}>
+			<div style={{ display: "flex", flexDirection: "column", borderRight: "1px solid #ccc" }}>
+				{tabList.map((tab, idx) => (
+					<button
+						key={tab.name}
+						onClick={() => setSelected(idx)}
+						className={"tab-pane-header " + (selected === idx ? " active" : "")}
+					>
+						{tab.name}
+					</button>
+				))}
+			</div>
+			<div style={{ padding: "16px", flex: 1 }}>{tabList[selected]?.content}</div>
+		</div>
+	);
+};

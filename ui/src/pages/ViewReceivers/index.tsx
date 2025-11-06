@@ -24,7 +24,7 @@ const ReceiverCard = ({ receiver, ...props }: ReceiverCardProps) => {
 	}
 
 	return (
-		<a href={`/receivers/${receiver.name}`} class="flex flex-row alert-card justify-between p-3" {...props}>
+		<a href={`/config/receivers/${receiver.name}`} class="flex flex-row alert-card justify-between p-3" {...props}>
 			<div class="flex flex-col flex-1 min-w-0">
 				<span>
 					<label class="inline font-bold">Receiver Name: </label>
