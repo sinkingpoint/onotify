@@ -7,6 +7,7 @@ import AddSilence from "./pages/AddSilence";
 import CreateApiKey from "./pages/CreateApiKey";
 import { Dash } from "./pages/Dash";
 import ManageUser from "./pages/ManageUser";
+import ManageUsers from "./pages/ManageUsers";
 import Onboarding from "./pages/Onboarding";
 import ViewAlert from "./pages/ViewAlert";
 import ViewAlertHistory from "./pages/ViewAlertHistory";
@@ -52,6 +53,7 @@ export function App() {
 					<Route path="/config/receivers/:name" component={ViewReceiver} />
 					<Route path="/user" component={ManageUser} />
 					<Route path="/user/api-keys/create" component={CreateApiKey} />
+					<Route path="/account/users" component={ManageUsers} />
 					<Route default component={NotFound} />
 				</Router>
 			</main>

@@ -131,6 +131,10 @@ export const SideBar = () => {
 					<SideBarItem title="Receivers" href="/config/receivers" />
 				</SideBarGroup>
 
+				<SideBarGroup title="Account" icon={<Bars3BottomLeftIcon class="inline size-6" />} initialExpanded={false}>
+					<SideBarItem title="Users" href="/account/users" />
+				</SideBarGroup>
+
 				<UserMenuCard class="mt-auto p-5 side-bar-item" href="/user" />
 			</nav>
 		);
