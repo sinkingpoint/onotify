@@ -3,7 +3,7 @@ import { Context } from "hono";
 import { z } from "zod";
 import { Errors, HTTPResponses } from "../../types/http";
 import { Bindings } from "../../types/internal";
-import { checkAPIKey, hashPassword, toErrorString } from "../utils/auth";
+import { checkAPIKey, doScopesOverlap, getUserScopes, hashPassword, toErrorString } from "../utils/auth";
 
 export class PostAPIKey extends OpenAPIRoute {
 	schema = {
@@ -109,23 +109,3 @@ export class PostAPIKey extends OpenAPIRoute {
 		});
 	}
 }
-
-const getUserScopes = async (env: Bindings, userID: string, accountID: string): Promise<string[] | null> => {
-	const userScopes = await env.DB.prepare(`SELECT scopes FROM account_membership WHERE user_id = ? AND account_id = ?`)
-		.bind(userID, accountID)
-		.first<{ scopes: string }>();
-
-	if (!userScopes) {
-		return null;
-	}
-
-	return userScopes.scopes === "*" ? ["*"] : userScopes.scopes.split(",");
-};
-
-const doScopesOverlap = (userScopes: string[], requestedScopes: string[]): boolean => {
-	if (userScopes.includes("*")) {
-		return true;
-	}
-
-	return requestedScopes.some((scope) => userScopes.includes(scope));
-};

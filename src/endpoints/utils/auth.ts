@@ -344,3 +344,23 @@ export async function verifyPassword(storedHash: string, passwordAttempt: string
 	const [, attemptHash] = attemptHashWithSalt.split(":");
 	return attemptHash === originalHash;
 }
+
+export const getUserScopes = async (env: Bindings, userID: string, accountID: string): Promise<string[] | null> => {
+	const userScopes = await env.DB.prepare(`SELECT scopes FROM account_membership WHERE user_id = ? AND account_id = ?`)
+		.bind(userID, accountID)
+		.first<{ scopes: string }>();
+
+	if (!userScopes) {
+		return null;
+	}
+
+	return userScopes.scopes === "*" ? ["*"] : userScopes.scopes.split(",");
+};
+
+export const doScopesOverlap = (userScopes: string[], requestedScopes: string[]): boolean => {
+	if (userScopes.includes("*")) {
+		return true;
+	}
+
+	return requestedScopes.some((scope) => userScopes.includes(scope));
+};

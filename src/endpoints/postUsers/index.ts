@@ -3,7 +3,7 @@ import { Context } from "hono";
 import { PostableUserSpec } from "../../types/api";
 import { Errors, HTTPResponses } from "../../types/http";
 import { Bindings } from "../../types/internal";
-import { checkAPIKey, toErrorString } from "../utils/auth";
+import { checkAPIKey, doScopesOverlap, getUserScopes, toErrorString } from "../utils/auth";
 
 export class PostUsers extends OpenAPIRoute {
 	schema = {
@@ -36,6 +36,17 @@ export class PostUsers extends OpenAPIRoute {
 
 		const data = await this.getValidatedData<typeof this.schema>();
 		const { email, scopes } = data.body;
+
+		const userScopes = await getUserScopes(c.env, authResult.userID, authResult.accountID);
+		if (!userScopes) {
+			c.status(HTTPResponses.Forbidden);
+			return c.text("Unable to retrieve user scopes");
+		}
+
+		if (!doScopesOverlap(userScopes, scopes)) {
+			c.status(HTTPResponses.Forbidden);
+			return c.text("Requested scopes exceed user's permissions");
+		}
 
 		let userId = await c.env.DB.prepare(`select id from user where email = ?`).bind(email).first();
 		if (!userId) {
