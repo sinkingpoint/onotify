@@ -26,11 +26,11 @@ interface SideBarGroupProps {
 }
 
 const SideBarGroup = ({ title, icon, initialExpanded, children }: SideBarGroupProps) => {
-	const [expanded, setExpanded] = useState(initialExpanded);
 	const firstChildRef = useRef<SideBarItemElement>();
 	const containsActiveChild = Array.isArray(children)
 		? children.some((child) => child.props.href === useLocation().url)
 		: children.props.href === useLocation().url;
+	const [expanded, setExpanded] = useState(initialExpanded || containsActiveChild);
 
 	const triggerGroupClick = () => {
 		if (firstChildRef.current) {
@@ -131,7 +131,7 @@ export const SideBar = () => {
 					<SideBarItem title="Receivers" href="/config/receivers" />
 				</SideBarGroup>
 
-				<SideBarGroup title="Account" icon={<Bars3BottomLeftIcon class="inline size-6" />} initialExpanded={false}>
+				<SideBarGroup title="Account" icon={<Bars3BottomLeftIcon class="inline size-6" />} initialExpanded={true}>
 					<SideBarItem title="Users" href="/account/users" />
 				</SideBarGroup>
 
