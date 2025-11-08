@@ -396,3 +396,12 @@ export const GettableUserTokenSpec = z.object({
 		description: "An RFC-3339 formatted timestamp indicating when the token expires",
 	}),
 });
+
+export const PostableUserSpec = z.object({
+	email: z.string().email().openapi({
+		description: "The email of the user",
+	}),
+	scopes: z.array(z.string()).openapi({
+		description: "The scopes that the user has",
+	}),
+});

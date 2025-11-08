@@ -9,6 +9,9 @@ import type {
 	DeleteApiKeyData,
 	DeleteApiKeyErrors,
 	DeleteApiKeyResponses,
+	DeleteUsersData,
+	DeleteUsersErrors,
+	DeleteUsersResponses,
 	GetAccountUsersData,
 	GetAccountUsersErrors,
 	GetAccountUsersResponses,
@@ -63,6 +66,9 @@ import type {
 	PostSilenceData,
 	PostSilenceErrors,
 	PostSilenceResponses,
+	PostUsersData,
+	PostUsersErrors,
+	PostUsersResponses,
 } from "./types.gen";
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean> = Options2<
@@ -315,6 +321,20 @@ export const deleteApiKey = <ThrowOnError extends boolean = false>(
 };
 
 /**
+ * Delete a user from the system
+ */
+export const deleteUsers = <ThrowOnError extends boolean = false>(options?: Options<DeleteUsersData, ThrowOnError>) => {
+	return (options?.client ?? client).delete<DeleteUsersResponses, DeleteUsersErrors, ThrowOnError>({
+		url: "/api/auth/users",
+		...options,
+		headers: {
+			"Content-Type": "application/json",
+			...options?.headers,
+		},
+	});
+};
+
+/**
  * Get all users for the account
  */
 export const getAccountUsers = <ThrowOnError extends boolean = false>(
@@ -323,5 +343,19 @@ export const getAccountUsers = <ThrowOnError extends boolean = false>(
 	return (options?.client ?? client).get<GetAccountUsersResponses, GetAccountUsersErrors, ThrowOnError>({
 		url: "/api/auth/users",
 		...options,
+	});
+};
+
+/**
+ * Add a user to the system
+ */
+export const postUsers = <ThrowOnError extends boolean = false>(options?: Options<PostUsersData, ThrowOnError>) => {
+	return (options?.client ?? client).post<PostUsersResponses, PostUsersErrors, ThrowOnError>({
+		url: "/api/auth/users",
+		...options,
+		headers: {
+			"Content-Type": "application/json",
+			...options?.headers,
+		},
 	});
 };

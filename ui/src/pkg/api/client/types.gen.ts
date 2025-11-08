@@ -7417,6 +7417,37 @@ export type DeleteApiKeyResponses = {
 	200: unknown;
 };
 
+export type DeleteUsersData = {
+	body?: {
+		userID: string;
+	};
+	path?: never;
+	query?: never;
+	url: "/api/auth/users";
+};
+
+export type DeleteUsersErrors = {
+	/**
+	 * Bad Request
+	 */
+	400: unknown;
+	/**
+	 * Unauthorized
+	 */
+	401: unknown;
+	/**
+	 * Internal Server Error
+	 */
+	500: unknown;
+};
+
+export type DeleteUsersResponses = {
+	/**
+	 * Successfully deleted user from account
+	 */
+	200: unknown;
+};
+
 export type GetAccountUsersData = {
 	body?: never;
 	path?: never;
@@ -7464,3 +7495,41 @@ export type GetAccountUsersResponses = {
 };
 
 export type GetAccountUsersResponse = GetAccountUsersResponses[keyof GetAccountUsersResponses];
+
+export type PostUsersData = {
+	body?: {
+		/**
+		 * The email of the user
+		 */
+		email: string;
+		/**
+		 * The scopes that the user has
+		 */
+		scopes: Array<string>;
+	};
+	path?: never;
+	query?: never;
+	url: "/api/auth/users";
+};
+
+export type PostUsersErrors = {
+	/**
+	 * Bad Request
+	 */
+	400: unknown;
+	/**
+	 * Unauthorized
+	 */
+	401: unknown;
+	/**
+	 * Internal Server Error
+	 */
+	500: unknown;
+};
+
+export type PostUsersResponses = {
+	/**
+	 * Sucessfully added user to account
+	 */
+	200: unknown;
+};

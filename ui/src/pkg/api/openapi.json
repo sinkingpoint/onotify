@@ -10924,6 +10924,161 @@
 						}
 					}
 				}
+			},
+			"post": {
+				"operationId": "postUsers",
+				"tags": ["auth"],
+				"summary": "Add a user to the system",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"type": "object",
+								"properties": {
+									"email": {
+										"type": "string",
+										"format": "email",
+										"description": "The email of the user"
+									},
+									"scopes": {
+										"type": "array",
+										"items": {
+											"type": "string"
+										},
+										"description": "The scopes that the user has"
+									}
+								},
+								"required": ["email", "scopes"]
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "Sucessfully added user to account"
+					},
+					"400": {
+						"description": "Bad Request",
+						"text/plain": {
+							"schema": {
+								"_def": {
+									"checks": [],
+									"typeName": "ZodString",
+									"coerce": false
+								},
+								"~standard": {
+									"version": 1,
+									"vendor": "zod"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized",
+						"text/plain": {
+							"schema": {
+								"_def": {
+									"checks": [],
+									"typeName": "ZodString",
+									"coerce": false
+								},
+								"~standard": {
+									"version": 1,
+									"vendor": "zod"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error",
+						"text/plain": {
+							"schema": {
+								"_def": {
+									"checks": [],
+									"typeName": "ZodString",
+									"coerce": false
+								},
+								"~standard": {
+									"version": 1,
+									"vendor": "zod"
+								}
+							}
+						}
+					}
+				}
+			},
+			"delete": {
+				"operationId": "deleteUsers",
+				"tags": ["auth"],
+				"summary": "Delete a user from the system",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"type": "object",
+								"properties": {
+									"userID": {
+										"type": "string"
+									}
+								},
+								"required": ["userID"]
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "Successfully deleted user from account"
+					},
+					"400": {
+						"description": "Bad Request",
+						"text/plain": {
+							"schema": {
+								"_def": {
+									"checks": [],
+									"typeName": "ZodString",
+									"coerce": false
+								},
+								"~standard": {
+									"version": 1,
+									"vendor": "zod"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized",
+						"text/plain": {
+							"schema": {
+								"_def": {
+									"checks": [],
+									"typeName": "ZodString",
+									"coerce": false
+								},
+								"~standard": {
+									"version": 1,
+									"vendor": "zod"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error",
+						"text/plain": {
+							"schema": {
+								"_def": {
+									"checks": [],
+									"typeName": "ZodString",
+									"coerce": false
+								},
+								"~standard": {
+									"version": 1,
+									"vendor": "zod"
+								}
+							}
+						}
+					}
+				}
 			}
 		}
 	},
