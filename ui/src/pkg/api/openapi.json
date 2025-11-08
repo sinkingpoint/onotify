@@ -10066,23 +10066,29 @@
 								"schema": {
 									"type": "object",
 									"properties": {
-										"user": {
-											"type": "object",
-											"properties": {
-												"id": {
-													"type": "string"
-												},
-												"name": {
-													"type": "string"
-												},
-												"email": {
-													"type": "string"
-												}
+										"id": {
+											"type": "string",
+											"description": "The ID of the user"
+										},
+										"name": {
+											"type": "string",
+											"description": "The name of the user"
+										},
+										"email": {
+											"type": "string",
+											"format": "email",
+											"description": "The email of the user"
+										},
+										"scopes": {
+											"type": "array",
+											"items": {
+												"type": "string"
 											},
-											"required": ["id", "name", "email"]
+											"description": "The scopes that the user has"
 										}
 									},
-									"required": ["user"]
+									"required": ["id", "name", "email", "scopes"],
+									"description": "The details about the user"
 								}
 							}
 						}
@@ -10775,6 +10781,99 @@
 				"responses": {
 					"200": {
 						"description": "Successfully deleted API token"
+					},
+					"400": {
+						"description": "Bad Request",
+						"text/plain": {
+							"schema": {
+								"_def": {
+									"checks": [],
+									"typeName": "ZodString",
+									"coerce": false
+								},
+								"~standard": {
+									"version": 1,
+									"vendor": "zod"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized",
+						"text/plain": {
+							"schema": {
+								"_def": {
+									"checks": [],
+									"typeName": "ZodString",
+									"coerce": false
+								},
+								"~standard": {
+									"version": 1,
+									"vendor": "zod"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error",
+						"text/plain": {
+							"schema": {
+								"_def": {
+									"checks": [],
+									"typeName": "ZodString",
+									"coerce": false
+								},
+								"~standard": {
+									"version": 1,
+									"vendor": "zod"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/auth/users": {
+			"get": {
+				"operationId": "getAccountUsers",
+				"tags": ["auth"],
+				"summary": "Get all users for the account",
+				"responses": {
+					"200": {
+						"description": "Sucessfully retrieved users",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"type": "object",
+										"properties": {
+											"id": {
+												"type": "string",
+												"description": "The ID of the user"
+											},
+											"name": {
+												"type": "string",
+												"description": "The name of the user"
+											},
+											"email": {
+												"type": "string",
+												"format": "email",
+												"description": "The email of the user"
+											},
+											"scopes": {
+												"type": "array",
+												"items": {
+													"type": "string"
+												},
+												"description": "The scopes that the user has"
+											}
+										},
+										"required": ["id", "name", "email", "scopes"]
+									}
+								}
+							}
+						}
 					},
 					"400": {
 						"description": "Bad Request",

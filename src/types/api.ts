@@ -345,6 +345,23 @@ export const GetUserParamsSpec = z.object({
 	}),
 });
 
+export const GettableUserSpec = z.object({
+	id: z.string().openapi({
+		description: "The ID of the user",
+	}),
+	name: z.string().openapi({
+		description: "The name of the user",
+	}),
+	email: z.string().email().openapi({
+		description: "The email of the user",
+	}),
+	scopes: z.array(z.string()).openapi({
+		description: "The scopes that the user has",
+	}),
+});
+
+export type GettableUser = z.infer<typeof GettableUserSpec>;
+
 export const GetAlertHistoryParamsSpec = z.object({
 	startTime: z
 		.string()

@@ -4,6 +4,7 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { AcknowledgeAlert } from "./endpoints/acknowledgeAlert";
 import { DeleteAPIKey } from "./endpoints/deleteAPIKey";
+import { GetAccountUsers } from "./endpoints/getAccountUsers";
 import { GetAlertGroups } from "./endpoints/getAlertGroups";
 import { GetAlertHistory } from "./endpoints/getAlertHistory";
 import { GetAlerts } from "./endpoints/getAlerts";
@@ -70,6 +71,7 @@ openapi.post("/api/v1/alerts/:fingerprint/comment", PostAlertComment);
 openapi.get("/api/auth/tokens", GetUserTokens);
 openapi.delete("/api/auth/tokens/:tokenId", DeleteAPIKey);
 openapi.post("/api/auth/tokens", PostAPIKey);
+openapi.get("/api/auth/users", GetAccountUsers);
 
 // Export the Hono app
 export default instrument(app, OTelConfFn);

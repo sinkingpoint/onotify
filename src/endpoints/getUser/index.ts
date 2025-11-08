@@ -1,7 +1,6 @@
 import { OpenAPIRoute } from "chanfana";
 import { Context } from "hono";
-import { z } from "zod";
-import { GetUserParamsSpec } from "../../types/api";
+import { GettableUserSpec, GetUserParamsSpec } from "../../types/api";
 import { Errors, HTTPResponses } from "../../types/http";
 import { Bindings } from "../../types/internal";
 import { checkAPIKey, getUserInfo, toErrorString } from "../utils/auth";
@@ -22,13 +21,7 @@ export class GetUser extends OpenAPIRoute {
 				description: "Returned user details",
 				content: {
 					"application/json": {
-						schema: z.object({
-							user: z.object({
-								id: z.string(),
-								name: z.string(),
-								email: z.string(),
-							}),
-						}),
+						schema: GettableUserSpec.openapi({ description: "The details about the user" }),
 					},
 				},
 			},

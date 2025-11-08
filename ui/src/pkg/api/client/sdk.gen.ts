@@ -9,6 +9,9 @@ import type {
 	DeleteApiKeyData,
 	DeleteApiKeyErrors,
 	DeleteApiKeyResponses,
+	GetAccountUsersData,
+	GetAccountUsersErrors,
+	GetAccountUsersResponses,
 	GetAlertGroupsData,
 	GetAlertGroupsErrors,
 	GetAlertGroupsResponses,
@@ -307,6 +310,18 @@ export const deleteApiKey = <ThrowOnError extends boolean = false>(
 ) => {
 	return (options.client ?? client).delete<DeleteApiKeyResponses, DeleteApiKeyErrors, ThrowOnError>({
 		url: "/api/auth/tokens/{tokenId}",
+		...options,
+	});
+};
+
+/**
+ * Get all users for the account
+ */
+export const getAccountUsers = <ThrowOnError extends boolean = false>(
+	options?: Options<GetAccountUsersData, ThrowOnError>,
+) => {
+	return (options?.client ?? client).get<GetAccountUsersResponses, GetAccountUsersErrors, ThrowOnError>({
+		url: "/api/auth/users",
 		...options,
 	});
 };

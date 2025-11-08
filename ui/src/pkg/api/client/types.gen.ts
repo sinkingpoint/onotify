@@ -7081,14 +7081,25 @@ export type GetUserErrors = {
 
 export type GetUserResponses = {
 	/**
-	 * Returned user details
+	 * The details about the user
 	 */
 	200: {
-		user: {
-			id: string;
-			name: string;
-			email: string;
-		};
+		/**
+		 * The ID of the user
+		 */
+		id: string;
+		/**
+		 * The name of the user
+		 */
+		name: string;
+		/**
+		 * The email of the user
+		 */
+		email: string;
+		/**
+		 * The scopes that the user has
+		 */
+		scopes: Array<string>;
 	};
 };
 
@@ -7405,3 +7416,51 @@ export type DeleteApiKeyResponses = {
 	 */
 	200: unknown;
 };
+
+export type GetAccountUsersData = {
+	body?: never;
+	path?: never;
+	query?: never;
+	url: "/api/auth/users";
+};
+
+export type GetAccountUsersErrors = {
+	/**
+	 * Bad Request
+	 */
+	400: unknown;
+	/**
+	 * Unauthorized
+	 */
+	401: unknown;
+	/**
+	 * Internal Server Error
+	 */
+	500: unknown;
+};
+
+export type GetAccountUsersResponses = {
+	/**
+	 * Sucessfully retrieved users
+	 */
+	200: Array<{
+		/**
+		 * The ID of the user
+		 */
+		id: string;
+		/**
+		 * The name of the user
+		 */
+		name: string;
+		/**
+		 * The email of the user
+		 */
+		email: string;
+		/**
+		 * The scopes that the user has
+		 */
+		scopes: Array<string>;
+	}>;
+};
+
+export type GetAccountUsersResponse = GetAccountUsersResponses[keyof GetAccountUsersResponses];

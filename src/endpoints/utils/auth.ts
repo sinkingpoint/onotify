@@ -260,7 +260,9 @@ interface GetUserInfoError {
 
 interface GetUserInfoResult {
 	result: "ok";
-	user: UserData;
+	user: UserData & {
+		scopes: string[];
+	};
 }
 
 export type GetUserInfo = GetUserInfoResult | GetUserInfoError;
@@ -268,8 +270,8 @@ export type GetUserInfo = GetUserInfoResult | GetUserInfoError;
 export const getUserInfo = async (env: Bindings, userID: string, accountID: string): Promise<GetUserInfo> => {
 	// The user is allowed to fetch the requested user if they are the same user, or
 	// if the user currently is in an account that the requested user is also in.
-	const accountMembership: D1Result<any> = await env.DB.prepare(
-		`SELECT user_id, account_id FROM account_membership WHERE user_id=? AND account_id=?`,
+	const accountMembership: D1Result<{ user_id: string; account_id: string; scopes: string[] }> = await env.DB.prepare(
+		`SELECT user_id, account_id, scopes FROM account_membership WHERE user_id=? AND account_id=?`,
 	)
 		.bind(userID, accountID)
 		.run();
@@ -291,7 +293,10 @@ export const getUserInfo = async (env: Bindings, userID: string, accountID: stri
 
 	return {
 		result: "ok",
-		user,
+		user: {
+			scopes: accountMembership.results[0]["scopes"] as string[],
+			...user,
+		},
 	};
 };
 
