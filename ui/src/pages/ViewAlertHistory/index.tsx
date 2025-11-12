@@ -1,4 +1,5 @@
 import { useMemo, useState } from "preact/hooks";
+import Dropdown from "../../components/Dropdown";
 import FilterInput from "../../components/FilterInput";
 import InfoBox from "../../components/InfoBox";
 import Paginator from "../../components/Paginator";
@@ -133,6 +134,40 @@ export default () => {
 		}
 	};
 
+	const onExport = async (option: string) => {
+		const getAcceptHeader = (opt: string) => {
+			switch (opt) {
+				case "csv":
+					return "text/csv";
+				case "json":
+					return "application/json";
+				case "pdf":
+					return "application/pdf";
+			}
+		};
+
+		const response = await getAlertHistory({
+			query: {
+				startTime: `${formatDateTimeLocal(new Date(startTime))}+00:00`,
+				endTime: `${formatDateTimeLocal(new Date(endTime))}+00:00`,
+				active: true,
+				silenced: true,
+				inhibited: true,
+				muted: true,
+				resolved: true,
+				filter: matchers.map((m) => matcherToString(m)),
+			},
+			headers: {
+				Accept: getAcceptHeader(option),
+			},
+			parseAs: "blob",
+		});
+
+		const blob = response.data as unknown as Blob;
+		const url = URL.createObjectURL(blob);
+		window.open(url, "_blank").focus();
+	};
+
 	return (
 		<div class="flex flex-col w-full space-y-4">
 			<h1>Alert History</h1>
@@ -167,8 +202,18 @@ export default () => {
 					</div>
 				</div>
 
-				<div>
+				<label class="block text-sm font-medium mb-2">Filter</label>
+				<div class="flex flex-row">
 					<FilterInput handleNewMatcher={handleNewMatcher} removeMatcher={removeMatcher} matchers={matchers} />
+					<Dropdown
+						options={[
+							{ label: "Export as CSV", value: "csv" },
+							{ label: "Export as JSON", value: "json" },
+						]}
+						baseText="Export"
+						class="ml-auto"
+						onSelectOption={onExport}
+					/>
 				</div>
 			</div>
 

@@ -1,48 +1,48 @@
 @keyframes slideInFadeOut {
-  0% {
-    transform: translateX(100%);
-    opacity: 0;
-  }
-  10% {
-    transform: translateX(0);
-    opacity: 0.9;
-  }
-  90% {
-    transform: translateX(0);
-    opacity: 0.9;
-  }
-  100% {
-    transform: translateX(100%);
-    opacity: 0;
-  }
+	0% {
+		transform: translateX(100%);
+		opacity: 0;
+	}
+	10% {
+		transform: translateX(0);
+		opacity: 0.9;
+	}
+	90% {
+		transform: translateX(0);
+		opacity: 0.9;
+	}
+	100% {
+		transform: translateX(100%);
+		opacity: 0;
+	}
 }
 
 .toast {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  background-color: #333;
-  color: #fff;
-  padding: 16px;
-  border-radius: 4px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-  opacity: 0.9;
-  z-index: 1000;
-  animation: slideInFadeOut ease-in-out forwards;
+	position: fixed;
+	bottom: 20px;
+	right: 20px;
+	background-color: #333;
+	color: #fff;
+	padding: 16px;
+	border-radius: 4px;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+	opacity: 0.9;
+	z-index: 1000;
+	animation: slideInFadeOut ease-in-out forwards;
 }
 
 .toast-success {
-  background-color: var(--success);
+	background-color: var(--success);
 }
 
 .toast-error {
-  background-color: var(--error);
+	background-color: var(--error);
 }
 
 .toast-info {
-  background-color: var(--info);
+	background-color: var(--info);
 }
 
 .toast-warning {
-  background-color: var(--warning);
+	background-color: var(--warning);
 }
