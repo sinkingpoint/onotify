@@ -10144,7 +10144,7 @@
 				}
 			}
 		},
-		"/api/v1/alerts/{fingerprint}/history": {
+		"/api/v1/alerts/history": {
 			"get": {
 				"operationId": "getAlertHistory",
 				"tags": ["alerts"],
@@ -10394,6 +10394,18 @@
 										}
 									},
 									"required": ["stats", "entries"]
+								}
+							},
+							"text/csv": {
+								"schema": {
+									"type": "string",
+									"description": "CSV formatted alert history"
+								}
+							},
+							"application/pdf": {
+								"schema": {
+									"type": "string",
+									"description": "PDF formatted alert history"
 								}
 							}
 						}

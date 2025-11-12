@@ -68,7 +68,7 @@ openapi.post("/api/v1/config", PostConfig);
 openapi.get("/api/v1/config", GetConfig);
 openapi.get("/api/v1/config/tree", GetRoutingTree);
 openapi.get("/api/v1/user/:userID", GetUser);
-openapi.get("/api/v1/alerts/:fingerprint/history", GetAlertHistory);
+openapi.get("/api/v1/alerts/history", GetAlertHistory);
 openapi.post("/api/v1/alerts/:fingerprint/comment", PostAlertComment);
 openapi.get("/api/auth/tokens", GetUserTokens);
 openapi.delete("/api/auth/tokens/:tokenId", DeleteAPIKey);

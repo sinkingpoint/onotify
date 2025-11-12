@@ -261,7 +261,7 @@ export const getAlertHistory = <ThrowOnError extends boolean = false>(
 	options?: Options<GetAlertHistoryData, ThrowOnError>,
 ) => {
 	return (options?.client ?? client).get<GetAlertHistoryResponses, GetAlertHistoryErrors, ThrowOnError>({
-		url: "/api/v1/alerts/{fingerprint}/history",
+		url: "/api/v1/alerts/history",
 		...options,
 	});
 };

@@ -2,7 +2,12 @@ import { OpenAPIRoute } from "chanfana";
 import { Context } from "hono";
 import z from "zod";
 import { AccountControllerActions } from "../../dos/account-controller";
-import { GetAlertsParamsSpec, GettableAlertHistorySpec, PaginationHeaders } from "../../types/api";
+import {
+	GetAlertsParamsSpec,
+	GettableAlertHistory,
+	GettableAlertHistorySpec,
+	PaginationHeaders,
+} from "../../types/api";
 import { Errors, HTTPResponses } from "../../types/http";
 import { Bindings } from "../../types/internal";
 import { callRPC } from "../../utils/rpc";
@@ -27,6 +32,12 @@ export class GetAlertHistory extends OpenAPIRoute {
 							stats: z.record(z.number()),
 							entries: z.array(GettableAlertHistorySpec),
 						}),
+					},
+					"text/csv": {
+						schema: z.string().describe("CSV formatted alert history"),
+					},
+					"application/pdf": {
+						schema: z.string().describe("PDF formatted alert history"),
 					},
 				},
 			},
@@ -128,14 +139,34 @@ export class GetAlertHistory extends OpenAPIRoute {
 
 		c.res.headers.set("X-Total-Count", totalLength.toString());
 		c.status(HTTPResponses.OK);
-		return c.json({
-			stats,
-			entries: results.slice(startIndex, endIndex).map((h) => {
-				return {
-					...h,
-					timestamp: new Date(h.timestamp).toISOString(),
-				};
-			}),
-		});
+
+		if (c.req.header("Accept") === "text/csv") {
+			const csv = convertToCSV(results.slice(startIndex, endIndex));
+			return c.text(csv);
+		} else {
+			return c.json({
+				stats,
+				entries: results.slice(startIndex, endIndex).map((h) => {
+					return {
+						...h,
+						timestamp: new Date(h.timestamp).toISOString(),
+					};
+				}),
+			});
+		}
 	}
 }
+
+const convertToCSV = (data: GettableAlertHistory[]): string => {
+	let csv = "fingerprint,ty,timestamp,comment,userID\n";
+	for (const h of data) {
+		const row = [h.fingerprint, h.ty, h.timestamp];
+		if (h.ty === "comment") {
+			row.push(`"${h.comment.replace(/"/g, '""')}"`, h.userID ?? "");
+		} else {
+			row.push("", "");
+		}
+		csv += row.join(",") + "\n";
+	}
+	return csv;
+};

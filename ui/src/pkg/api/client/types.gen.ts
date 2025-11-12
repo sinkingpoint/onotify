@@ -7172,7 +7172,7 @@ export type GetAlertHistoryData = {
 		 */
 		page?: number;
 	};
-	url: "/api/v1/alerts/{fingerprint}/history";
+	url: "/api/v1/alerts/history";
 };
 
 export type GetAlertHistoryErrors = {
