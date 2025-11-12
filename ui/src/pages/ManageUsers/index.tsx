@@ -1,3 +1,4 @@
+import { PlusCircleIcon } from "@heroicons/react/16/solid";
 import InfoBox from "../../components/InfoBox";
 import { SkeletonLoader } from "../../components/Skeleton";
 import { getAccountUsers } from "../../pkg/api/client";
@@ -8,6 +9,13 @@ export default () => {
 	return (
 		<div class="w-full flex flex-col">
 			<h1>Manage Users</h1>
+			<a
+				href="/account/users/invite"
+				class="ml-auto mb-4 p-2 bg-[color:var(--background-three)] text-white rounded flex flex-row"
+			>
+				<PlusCircleIcon class="inline size-5 m-0.5 mr-1" />
+				Invite User
+			</a>
 			<SkeletonLoader layout="paragraph" pull={userPull}>
 				{userPull.state === "error" && <InfoBox style="error" text="Error loading users." />}
 				{userPull.state === "success" && userPull.result.length === 0 && <div>No users found.</div>}

@@ -1,16 +1,16 @@
 CREATE TABLE IF NOT EXISTS account (
-  id string,
+  id string primary key,
   name string
 );
 
 CREATE TABLE IF NOT EXISTS user (
-  id string,
+  id string primary key,
   name string,
   email string
 );
 
 CREATE TABLE IF NOT EXISTS account_membership (
-  user_id string,
+  user_id string primary key,
   account_id string,
   scopes string
 );

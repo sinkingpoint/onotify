@@ -6,6 +6,7 @@ import { NotFound } from "./pages/_404.jsx";
 import AddSilence from "./pages/AddSilence";
 import CreateApiKey from "./pages/CreateApiKey";
 import { Dash } from "./pages/Dash";
+import InviteUser from "./pages/InviteUser";
 import ManageUser from "./pages/ManageUser";
 import ManageUsers from "./pages/ManageUsers";
 import Onboarding from "./pages/Onboarding";
@@ -54,6 +55,7 @@ export function App() {
 					<Route path="/user" component={ManageUser} />
 					<Route path="/user/api-keys/create" component={CreateApiKey} />
 					<Route path="/account/users" component={ManageUsers} />
+					<Route path="/account/users/invite" component={InviteUser} />
 					<Route default component={NotFound} />
 				</Router>
 			</main>

@@ -1,6 +1,7 @@
 import { useState } from "preact/hooks";
 import { Button } from "../../components/Button";
 import InfoBox from "../../components/InfoBox";
+import ScopeSelect from "../../components/ScopeSelect";
 import { TextBox } from "../../components/TextBox";
 import { postApiKey } from "../../pkg/api/client";
 
@@ -12,36 +13,6 @@ export default () => {
 	const [error, setError] = useState<string>();
 	const [success, setSuccess] = useState<string>();
 	const [newApiKey, setNewApiKey] = useState<string>();
-
-	// Available scopes - you might want to fetch these from an API or config
-	const availableScopes = [
-		"acknowledge-alert",
-		"read-api-keys",
-		"write-api-keys",
-		"read-alerts",
-		"write-alerts",
-		"read-config",
-		"write-config",
-		"read-silences",
-		"write-silences",
-		"read-users",
-		"write-alert-history",
-	];
-
-	const handleScopeChange = (scope: string, checked: boolean) => {
-		if (scope === "*") {
-			// If "All permissions" is toggled, set all scopes or clear all
-			if (checked) {
-				setScopes(["*", ...availableScopes]);
-			} else {
-				setScopes([]);
-			}
-		} else {
-			// Handle individual scope
-			const newScopes = checked ? [...scopes, scope] : scopes.filter((s) => s !== scope && s !== "*");
-			setScopes(newScopes);
-		}
-	};
 
 	const checkFormValidity = () => {
 		const nameInput = document.getElementById("name") as HTMLInputElement;
@@ -149,28 +120,7 @@ export default () => {
 
 				<div>
 					<label class="block text-sm font-medium text-[color:var(--text-color)] mb-2">Scopes</label>
-					<div class="space-y-2">
-						<label class="flex items-center">
-							<input
-								type="checkbox"
-								checked={scopes.includes("*")}
-								onChange={(e) => handleScopeChange("*", e.currentTarget.checked)}
-								class="mr-2"
-							/>
-							<span class="text-sm text-[color:var(--text-color)]">All permissions (*)</span>
-						</label>
-						{availableScopes.map((scope) => (
-							<label key={scope} class="flex items-center">
-								<input
-									type="checkbox"
-									checked={scopes.includes(scope)}
-									onChange={(e) => handleScopeChange(scope, e.currentTarget.checked)}
-									class="mr-2"
-								/>
-								<span class="text-sm text-[color:var(--text-color)]">{scope}</span>
-							</label>
-						))}
-					</div>
+					<ScopeSelect selectedScopes={scopes} onChange={setScopes} />
 				</div>
 
 				<div>
