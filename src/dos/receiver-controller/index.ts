@@ -60,10 +60,10 @@ class Retrier {
 	}
 
 	retry() {
-		this.remainingRetries--;
-		if (this.remainingRetries < 0) {
+		if (this.remainingRetries <= 0) {
 			return null;
 		}
+		this.remainingRetries--;
 		const newDelay = this.delay;
 		this.delay *= 2;
 		return newDelay;
@@ -184,9 +184,9 @@ class ReceiverControllerDO implements DurableObject {
 			});
 			span.recordException(e.toString());
 			const newDelay = this.retrier?.retry();
+			span.setAttribute("will_retry", !!newDelay);
 			if (!newDelay) {
 				// We failed to send the alerts :/
-				span.setAttribute("completly_failed", true);
 				await this.delete(false);
 				return;
 			}
