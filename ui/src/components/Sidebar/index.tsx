@@ -96,15 +96,14 @@ type SideBarItemElement = ReturnType<typeof SideBarItem>;
 
 export const SideBar = () => {
 	const MIN_WIDTH_FOR_DEFAULT_OPEN = 800;
-	let defaultState: "open" | "closed" = "closed";
-
-	if (typeof window !== "undefined") {
-		if (window.innerWidth >= MIN_WIDTH_FOR_DEFAULT_OPEN) {
-			defaultState = "open";
+	const getInitialState = (): "open" | "closed" => {
+		if (typeof window !== "undefined" && window.innerWidth >= MIN_WIDTH_FOR_DEFAULT_OPEN) {
+			return "open";
 		}
-	}
+		return "closed";
+	};
 
-	const [state, setState] = useState<"open" | "closed">(defaultState);
+	const [state, setState] = useState<"open" | "closed">(getInitialState);
 
 	if (state === "open") {
 		return (
