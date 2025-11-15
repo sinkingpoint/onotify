@@ -6,6 +6,7 @@ import { PagerdutyConfig } from "types/alertmanager";
 import { AlertState, CachedAlert } from "types/internal";
 import { runInSpan } from "utils/observability";
 import { AlertTemplateData, executeTextString, getAlertData } from "utils/template";
+import { fingerprint } from "../../endpoints/utils/fingerprinting";
 
 const maxEventSize = 512000;
 const maxV1DescriptionLenRunes = 1024;
@@ -37,7 +38,7 @@ interface PagerdutyMessage {
 	routing_key?: string;
 	service_key?: string;
 	dedup_key?: string;
-	incitend_key?: string;
+	incident_key?: string;
 	event_type?: PagerdutyEventType;
 	description?: string;
 	event_action?: PagerdutyEventType;
@@ -80,6 +81,10 @@ enum PagerdutyEventType {
 	Resolve = "resolve",
 }
 
+const calculateGroupKey = (name: string, labels: Record<string, string>) => {
+	return `${name}:${fingerprint(labels)}`;
+};
+
 const notify: Notifier<PagerdutyConfig> = async (
 	name: string,
 	config: PagerdutyConfig,
@@ -102,14 +107,10 @@ const notify: Notifier<PagerdutyConfig> = async (
 			}
 		}
 
-		const groupKey = executeTextString(template, config.group, data);
-
-		// Determine API version and call appropriate function
+		const groupKey = calculateGroupKey(name, groupLabels);
 		if (config.service_key) {
-			// API v1
 			await notifyV1(config, template, loadUploadedFile, eventType, groupKey, data, details, alerts);
 		} else {
-			// API v2
 			await notifyV2(config, template, loadUploadedFile, eventType, groupKey, data, details, alerts);
 		}
 	});
@@ -151,7 +152,7 @@ const notifyV1 = async (
 	const msg: PagerdutyMessage = {
 		service_key: executeTextString(template, serviceKey, data),
 		event_type: eventType,
-		incitend_key: groupKey,
+		incident_key: groupKey,
 		description: description,
 		details: details,
 		client: executeTextString(template, conf.client, data),
@@ -273,8 +274,9 @@ const sendPagerdutyMessage = async (conf: PagerdutyConfig, msg: PagerdutyMessage
 		});
 
 		if (!response.ok) {
-			span?.recordException(`PagerDuty API returned ${response.status}: ${await response.text()}`);
-			throw new Error(`PagerDuty notification failed: ${response.status}`);
+			const responseText = await response.text();
+			span?.recordException(`PagerDuty API returned ${response.status}: ${responseText}`);
+			throw new Error(`PagerDuty notification failed: ${response.status}: ${responseText}`);
 		}
 
 		span?.setAttribute("success", true);

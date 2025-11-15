@@ -106,7 +106,6 @@ export default ({ onChange, duration }: DurationInputProps) => {
 	try {
 		durationComponents = parseDurationIntoComponents(duration);
 	} catch (e) {
-		console.log(e);
 		durationComponents = { d: 0, h: 1, m: 0 };
 	}
 

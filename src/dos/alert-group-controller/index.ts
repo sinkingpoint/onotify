@@ -128,7 +128,6 @@ class AlertGroupControllerDO implements DurableObject {
 					await this.state.storage.put(ROUTE_KV_KEY, this.route);
 					await this.state.storage.put(ACCOUNT_ID_KEY, this.accountID);
 					await Promise.all(group.alerts.map((a) => this.stateMachine.handlePendingAlert(a)));
-
 					if (!(await this.state.storage.getAlarm())) {
 						// We have never sent a notification for this group, so wait `group_wait`.
 						await this.state.storage.setAlarm(Date.now() + route.group_wait);
@@ -240,6 +239,7 @@ class AlertGroupControllerDO implements DurableObject {
 			fingerprints: fingerprints,
 			silenced: false,
 			inhibited: false,
+			resolved: true,
 		}) as Promise<CachedAlert[]>);
 	}
 

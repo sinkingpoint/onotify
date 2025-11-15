@@ -2,7 +2,7 @@ import { trace } from "@opentelemetry/api";
 import { Template } from "@sinkingpoint/gotemplate";
 import { minimatch } from "minimatch";
 import { uploadedFilesKey } from "../endpoints/utils/kv";
-import { alertState, CachedAlert } from "../types/internal";
+import { AlertState, alertState, CachedAlert } from "../types/internal";
 import { runInSpan } from "./observability";
 
 export const DEFAULT_TEMPLATE = `{{ define "__alertmanager" }}Alertmanager{{ end }}
@@ -262,15 +262,51 @@ export const loadTemplateFromAccount = async (accountID: string, kvs: KVNamespac
 	);
 };
 
+interface AlertData {
+	Firing: any[];
+	Resolved: any[];
+}
+
+type PairData = {
+	Name: string;
+	Value: string;
+}[];
+
+interface SortedPairs extends PairData {
+	Names: string[];
+	Values: string[];
+}
+
+const toSortedPairs = (kvs: Record<string, string>) => {
+	const keys = Object.keys(kvs).sort();
+	const pairs = [];
+	for (const k of keys) {
+		pairs.push({ Name: k, Value: kvs[k] });
+	}
+
+	Object.assign(pairs, {
+		Names: keys,
+		Values: keys.map((k) => kvs[k]),
+	});
+
+	return pairs as SortedPairs;
+};
+
 // The data that gets piped into alerts when we template them.
 // Note: These are _purposely_ capilitised because they are fed into go templates.
 export interface AlertTemplateData {
 	Receiver: string;
 	Status: string;
-	Alerts: any[];
-	GroupLabels: Record<string, string>;
-	CommonLabels: Record<string, string>;
-	CommonAnnotations: Record<string, string>;
+	Alerts: AlertData;
+	GroupLabels: {
+		SortedPairs: SortedPairs;
+	};
+	CommonLabels: {
+		SortedPairs: SortedPairs;
+	};
+	CommonAnnotations: {
+		SortedPairs: SortedPairs;
+	};
 	ExternalURL: string;
 }
 
@@ -278,42 +314,63 @@ export const getAlertData = (receiver: string, groupLabels: Record<string, strin
 	const data: AlertTemplateData = {
 		Receiver: receiver, // TODO: Alertmanager calls regexp.QuoteMeta here. We should probably do the same.
 		Status: alertState(alerts[0]),
-		Alerts: [],
-		GroupLabels: groupLabels,
-		CommonLabels: { ...alerts[0].labels },
-		CommonAnnotations: { ...alerts[0].annotations },
+		Alerts: {
+			Firing: [],
+			Resolved: [],
+		},
+		GroupLabels: { SortedPairs: toSortedPairs(groupLabels) },
+		CommonLabels: { SortedPairs: [] as unknown as SortedPairs },
+		CommonAnnotations: { SortedPairs: [] as unknown as SortedPairs },
 		ExternalURL: "",
 	};
 
 	for (const alert of alerts) {
-		data.Alerts.push({
-			Status: alertState(alert),
-			Labels: alert.labels,
-			Annotations: alert.annotations,
+		const state = alertState(alert);
+		const externalAlert = {
+			Status: state,
 			StartsAt: alert.startsAt,
 			EndsAt: alert.endsAt,
 			// GeneratorURL: alert. TODO
 			Fingerprint: alert.fingerprint,
-		});
+			Labels: {
+				SortedPairs: toSortedPairs(alert.labels),
+			},
+			Annotations: {
+				SortedPairs: toSortedPairs(alert.annotations),
+			},
+		};
+
+		if (state === AlertState.Firing) {
+			data.Alerts.Firing.push(externalAlert);
+		} else {
+			data.Alerts.Resolved.push(externalAlert);
+		}
 	}
+
+	const commonLabels = { ...alerts[0].labels };
+	const commonAnnotations = { ...alerts[0].annotations };
 
 	for (let i = 1; i < alerts.length; i++) {
 		if (Object.keys(data.CommonLabels).length === 0 && Object.keys(data.CommonAnnotations).length === 0) {
 			break;
 		}
 
-		for (const key of Object.keys(data.CommonLabels)) {
-			if (alerts[i].labels[key] !== data.CommonLabels[key]) {
-				delete data.CommonLabels[key];
+		for (const key of Object.keys(commonLabels)) {
+			if (alerts[i].labels[key] !== commonLabels[key]) {
+				delete commonLabels[key];
 			}
 		}
 
-		for (const key of Object.keys(data.CommonAnnotations)) {
-			if (alerts[i].labels[key] !== data.CommonAnnotations[key]) {
-				delete data.CommonAnnotations[key];
+		for (const key of Object.keys(commonAnnotations)) {
+			if (alerts[i].labels[key] !== commonAnnotations[key]) {
+				delete commonAnnotations[key];
 			}
 		}
 	}
+
+	data.GroupLabels.SortedPairs = toSortedPairs(groupLabels);
+	data.CommonLabels.SortedPairs = toSortedPairs(commonLabels);
+	data.CommonAnnotations.SortedPairs = toSortedPairs(commonAnnotations);
 
 	return data;
 };

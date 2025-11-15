@@ -101,7 +101,6 @@ export const PreviewSilence = ({ duration, matchers, comment }: PreviewProps) =>
 			});
 
 			if (resp.error) {
-				console.log(resp.error);
 				return;
 			}
 
