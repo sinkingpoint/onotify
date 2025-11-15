@@ -257,7 +257,7 @@ export class AlertDB {
 
 				const result = [];
 				const startTimeMs = startTime ? new Date(startTime).getTime() : 0;
-				const endTimeMs = endTime ? new Date(endTime).getTime() : Date.now();
+				const endTimeMs = endTime ? new Date(endTime).getTime() : Number.POSITIVE_INFINITY;
 
 				for (const alert of alerts) {
 					if (!alert.history || alert.history.length === 0) {

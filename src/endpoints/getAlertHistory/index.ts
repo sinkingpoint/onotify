@@ -78,19 +78,14 @@ export class GetAlertHistory extends OpenAPIRoute {
 			startTime,
 			endTime,
 			active,
-			silenced,
-			inhibited,
-			muted,
-			resolved,
+			silenced: true,
+			inhibited: true,
+			muted: true,
+			resolved: true,
 			unprocessed,
 			receiver,
 			filter,
 		})) as Array<{ fingerprint: string; alertname?: string; history: any[] }>;
-
-		if (historyResults.length === 0) {
-			c.status(HTTPResponses.NotFound);
-			return c.text("No alerts found");
-		}
 
 		const results = [];
 		const stats: Record<string, number> = {};
