@@ -44,9 +44,10 @@ func sendAlerts() error {
 	payload := []Alert{}
 	for i := 0; i < CLI.SendAlerts.Num; i++ {
 		var startsAt, endsAt string
-		if CLI.SendAlerts.Status == "firing" {
+		switch CLI.SendAlerts.Status {
+		case "firing":
 			startsAt = time.Now().Format(time.RFC3339)
-		} else if CLI.SendAlerts.Status == "resolved" {
+		case "resolved":
 			startsAt = time.Now().Add(-5 * time.Second).Format(time.RFC3339)
 			endsAt = time.Now().Format(time.RFC3339)
 		}

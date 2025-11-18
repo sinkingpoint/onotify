@@ -209,6 +209,7 @@ export default () => {
 						options={[
 							{ label: "Export as CSV", value: "csv" },
 							{ label: "Export as JSON", value: "json" },
+							{ label: "Export as XLS", value: "xls" },
 						]}
 						baseText="Export"
 						class="ml-auto"

@@ -53,21 +53,7 @@ export class GetAlertHistory extends OpenAPIRoute {
 		}
 
 		const { query } = await this.getValidatedData<typeof this.schema>();
-		const {
-			startTime,
-			endTime,
-			page,
-			limit,
-			active,
-			silenced,
-			inhibited,
-			muted,
-			resolved,
-			unprocessed,
-			receiver,
-			filter,
-			fingerprints,
-		} = query;
+		const { startTime, endTime, page, limit, active, unprocessed, receiver, filter, fingerprints } = query;
 
 		const controllerName = accountControllerName(authResult.accountID);
 		const controllerID = c.env.ACCOUNT_CONTROLLER.idFromName(controllerName);

@@ -10,10 +10,14 @@ compatibility_flags = [ "nodejs_compat" ]
 [observability]
 enabled = true
 
+[[routes]]
+zone_name = "sinkingpoint.com"
+pattern = "sinkingpoint.com/onotify/*"
+
 [[d1_databases]]
 binding = "DB"
 database_name = "onotify"
-database_id = "d7098067-4df0-4f70-a075-784676dbad34"
+database_id = "3234a1a1-b03b-4150-acc2-ffc628adff12"
 
 [[kv_namespaces]]
 binding = "CONFIGS"
