@@ -85,7 +85,7 @@ export const ConfigUpload = ({ uploadSucessCallback: uploadSuccessCallback }: Co
 			<span class="flex flex-row grow">
 				<span class="flex flex-col grow">
 					<span class="text-lg my-3">
-						<h2>
+						<h3>
 							Paste your Alertmanager config,{" "}
 							<label for="config-file" class="btn">
 								upload one
@@ -94,7 +94,7 @@ export const ConfigUpload = ({ uploadSucessCallback: uploadSuccessCallback }: Co
 							<span class="btn" onClick={() => handleConfigChange(DEFAULT_CONFIG)}>
 								use a sample
 							</span>
-						</h2>
+						</h3>
 					</span>
 					<span class="flex flex-row grow">
 						<span class="flex flex-row basis-2/3 grow">
